@@ -1,0 +1,21 @@
+{
+  "name": "sc-rollup-api",
+  "version": "0.0.1",
+  "description": "",
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "build-core": "pnpm -r build-core",
+    "test": "vitest",
+    "dev": "pnpm build-core & pnpm test"
+  },
+  "author": "GuiGou",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.0.9"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "sc-rollup-core",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build-core": "tsc",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}
