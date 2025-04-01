@@ -73,6 +73,16 @@ pub trait BaseOwnable {
     Ok(())
   }
 
+  fn init_with_owner(&mut self, owner: AccountId) {
+    // set the owner
+    self.inner_set_owner(Some(owner));
+    // emit the event
+    ::ink::env::emit_event::<DefaultEnvironment, OwnershipTransferred>(OwnershipTransferred{
+      old_owner : None,
+      new_owner : Some(owner),
+    });
+  }
+
 }
 
 

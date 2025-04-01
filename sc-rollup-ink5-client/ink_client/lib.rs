@@ -24,7 +24,9 @@ mod ink_client {
     impl InkClient {
         #[ink(constructor)]
         pub fn new() -> Self {
-            Self::default()
+            let mut instance = Self::default();
+            BaseOwnable::init_with_owner(&mut instance, Self::env().caller());
+            instance
         }
 
         #[ink(message)]
