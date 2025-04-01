@@ -1,7 +1,10 @@
+use crate::traits::access_control::AccessControlError;
+
 pub mod kv_store;
 pub mod message_queue;
 pub mod rollup_client;
 pub mod ownable;
+pub mod access_control;
 
 #[derive(Debug, Eq, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
@@ -9,8 +12,15 @@ pub mod ownable;
 pub enum RollupClientError {
     InvalidPopTarget,
     ConditionNotMet,
-    FailedToDecode,
     UnsupportedAction,
-    AccessControlError,
+    FailedToDecode,
     QueueIndexOverflow,
+    NotGranted(AccessControlError),
+    AccessControlError(AccessControlError),
+}
+
+impl From<AccessControlError> for RollupClientError {
+    fn from(error: AccessControlError) -> RollupClientError {
+        RollupClientError::AccessControlError(error)
+    }
 }

@@ -4,13 +4,13 @@
 mod ink_client {
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
-    use ink::scale::{Decode, Encode};
     use ink::storage::Mapping;
+    use ink_client_lib::traits::access_control::{AccessControl, AccessControlError, BaseAccessControl, RoleType};
     use ink_client_lib::traits::kv_store::{Key, KvStore, Value};
     use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
     use ink_client_lib::traits::ownable::{BaseOwnable, Ownable, OwnableError};
     use ink_client_lib::traits::rollup_client::{
-        BaseRollupAnchor, HandleActionInput, MessageHandler, RollupClient,
+        BaseRollupAnchor, HandleActionInput, RollupClient,
     };
     use ink_client_lib::traits::RollupClientError;
 
@@ -19,6 +19,7 @@ mod ink_client {
     pub struct InkClient {
         pub kv_store: Mapping<Key, Value>,
         pub owner: Option<AccountId>,
+        pub roles: Mapping<(AccountId, RoleType), ()>,
     }
 
     impl InkClient {
@@ -26,6 +27,7 @@ mod ink_client {
         pub fn new() -> Self {
             let mut instance = Self::default();
             BaseOwnable::init_with_owner(&mut instance, Self::env().caller());
+            BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
             instance
         }
 
@@ -63,6 +65,45 @@ mod ink_client {
         }
     }
 
+    impl BaseAccessControl for InkClient {
+        fn inner_has_role(&self, role: RoleType, account: AccountId) -> bool {
+            self.roles.contains((account, role))
+        }
+
+        fn inner_add_role(&mut self, role: RoleType, account: AccountId) {
+            self.roles.insert((account, role), &());
+        }
+
+        fn inner_remove_role(&mut self, role: RoleType, account: AccountId) {
+            self.roles.remove((account, role));
+        }
+    }
+
+
+    impl AccessControl for InkClient {
+
+        #[ink(message)]
+        fn has_role(&self, role: RoleType, account: AccountId) -> bool {
+            self.inner_has_role(role, account)
+        }
+
+        #[ink(message)]
+        fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            self.inner_grant_role(role, account)
+        }
+
+        #[ink(message)]
+        fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+            self.revoke_role(role, account)
+        }
+
+        #[ink(message)]
+        fn renounce_role(&mut self, role: RoleType) -> Result<(), AccessControlError> {
+            self.renounce_role(role)
+        }
+
+    }
+
     impl KvStore for InkClient {
         fn inner_get_value(&self, key: &Key) -> Option<Value> {
             self.kv_store.get(key)
@@ -80,9 +121,13 @@ mod ink_client {
 
     impl MessageQueue for InkClient {}
 
-    impl BaseRollupAnchor for InkClient {}
-
+    impl BaseRollupAnchor for InkClient {
+        fn on_message_received(&mut self, _action: Vec<u8>) -> Result<(), RollupClientError> {
+            Ok(())
+        }
+    }
     impl RollupClient for InkClient {
+
         #[ink(message)]
         fn get_value(&self, key: Key) -> Option<Value> {
             KvStore::inner_get_value(self, &key)
@@ -93,7 +138,6 @@ mod ink_client {
             MessageQueue::has_message(self)
         }
 
-        //#[openbrush::modifiers(access_control::only_role(ATTESTOR_ROLE))]
         #[ink(message)]
         fn rollup_cond_eq(
             &mut self,
@@ -102,12 +146,6 @@ mod ink_client {
             actions: Vec<HandleActionInput>,
         ) -> Result<(), RollupClientError> {
             self.inner_rollup_cond_eq(conditions, updates, actions)
-        }
-    }
-
-    impl MessageHandler for InkClient {
-        fn on_message_received(&mut self, action: Vec<u8>) -> Result<(), RollupClientError> {
-            Ok(())
         }
     }
 

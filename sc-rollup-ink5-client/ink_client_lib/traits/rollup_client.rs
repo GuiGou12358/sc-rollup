@@ -1,10 +1,10 @@
+use crate::traits::access_control::{BaseAccessControl, RoleType};
 use crate::traits::kv_store::{Key, Value};
 use crate::traits::message_queue::{MessageQueue, QueueIndex};
 use crate::traits::RollupClientError;
+use ink::env::DefaultEnvironment;
 use ink::prelude::vec::Vec;
 use ink::primitives::AccountId;
-
-type RoleType = u32;
 
 const ATTESTOR_ROLE: RoleType = ink::selector_id!("ATTESTOR_ROLE");
 
@@ -24,10 +24,6 @@ pub type RollupCondEqMethodParams = (
     Vec<HandleActionInput>,
 );
 
-pub trait MessageHandler {
-    fn on_message_received(&mut self, action: Vec<u8>) -> Result<(), RollupClientError>;
-}
-
 #[ink::trait_definition]
 pub trait RollupClient {
 
@@ -38,7 +34,6 @@ pub trait RollupClient {
     fn has_message(&self) -> Result<bool, RollupClientError>;
 
     #[ink(message)]
-    //#[openbrush::modifiers(access_control::only_role(ATTESTOR_ROLE))]
     fn rollup_cond_eq(
         &mut self,
         conditions: Vec<(Key, Option<Value>)>,
@@ -48,16 +43,7 @@ pub trait RollupClient {
 }
 
 
-pub trait BaseRollupAnchor: MessageQueue + MessageHandler {
-    fn check_attestor_role(&self, attestor: AccountId) -> Result<(), RollupClientError> {
-        /*
-        if !self.has_role(ATTESTOR_ROLE, Some(attestor)) {
-            return Err(RollupAnchorError::AccessControlError);
-        }
-         */
-
-        Ok(())
-    }
+pub trait BaseRollupAnchor: MessageQueue + BaseAccessControl {
 
     fn inner_rollup_cond_eq(
         &mut self,
@@ -65,6 +51,9 @@ pub trait BaseRollupAnchor: MessageQueue + MessageHandler {
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
+
+        self.inner_check_role(ATTESTOR_ROLE, ::ink::env::caller::<DefaultEnvironment>())?;
+
         // check the conditions
         for cond in conditions {
             let key = cond.0;
@@ -100,13 +89,15 @@ pub trait BaseRollupAnchor: MessageQueue + MessageHandler {
             HandleActionInput::Reply(action) => self.on_message_received(action)?,
             HandleActionInput::SetQueueHead(id) => self.pop_to(id)?,
             HandleActionInput::GrantAttestor(address) => {
-                //self.grant_role(ATTESTOR_ROLE, Some(address))?
+                self.inner_grant_role(ATTESTOR_ROLE, address)?
             }
             HandleActionInput::RevokeAttestor(address) => {
-                //self.revoke_role(ATTESTOR_ROLE, Some(address))?
+                self.inner_revoke_role(ATTESTOR_ROLE, address)?
             }
         }
-
         Ok(())
     }
+
+    fn on_message_received(&mut self, action: Vec<u8>) -> Result<(), RollupClientError>;
+
 }
