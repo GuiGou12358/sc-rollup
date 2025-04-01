@@ -1,10 +1,8 @@
-use crate::traits::kv_store::{Key, KvStore, Value};
+use crate::traits::kv_store::{Key, Value};
 use crate::traits::message_queue::{MessageQueue, QueueIndex};
-use crate::traits::{Result, RollupClientError};
+use crate::traits::RollupClientError;
 use ink::prelude::vec::Vec;
 use ink::primitives::AccountId;
-use ink::scale::{Decode, Encode};
-use ink::storage::Mapping;
 
 type RoleType = u32;
 
@@ -27,7 +25,7 @@ pub type RollupCondEqMethodParams = (
 );
 
 pub trait MessageHandler {
-    fn on_message_received(&mut self, action: Vec<u8>) -> Result<()>;
+    fn on_message_received(&mut self, action: Vec<u8>) -> Result<(), RollupClientError>;
 }
 
 #[ink::trait_definition]
@@ -37,7 +35,7 @@ pub trait RollupClient {
     fn get_value(&self, key: Key) -> Option<Value>;
 
     #[ink(message)]
-    fn has_message(&self) -> Result<bool>;
+    fn has_message(&self) -> Result<bool, RollupClientError>;
 
     #[ink(message)]
     //#[openbrush::modifiers(access_control::only_role(ATTESTOR_ROLE))]
@@ -46,12 +44,12 @@ pub trait RollupClient {
         conditions: Vec<(Key, Option<Value>)>,
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
-    ) -> Result<()>;
+    ) -> Result<(), RollupClientError>;
 }
 
 
 pub trait BaseRollupAnchor: MessageQueue + MessageHandler {
-    fn check_attestor_role(&self, attestor: AccountId) -> Result<()> {
+    fn check_attestor_role(&self, attestor: AccountId) -> Result<(), RollupClientError> {
         /*
         if !self.has_role(ATTESTOR_ROLE, Some(attestor)) {
             return Err(RollupAnchorError::AccessControlError);
@@ -66,7 +64,7 @@ pub trait BaseRollupAnchor: MessageQueue + MessageHandler {
         conditions: Vec<(Key, Option<Value>)>,
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
-    ) -> Result<()> {
+    ) -> Result<(), RollupClientError> {
         // check the conditions
         for cond in conditions {
             let key = cond.0;
@@ -97,7 +95,7 @@ pub trait BaseRollupAnchor: MessageQueue + MessageHandler {
         Ok(())
     }
 
-    fn handle_action(&mut self, input: HandleActionInput) -> Result<()> {
+    fn handle_action(&mut self, input: HandleActionInput) -> Result<(), RollupClientError> {
         match input {
             HandleActionInput::Reply(action) => self.on_message_received(action)?,
             HandleActionInput::SetQueueHead(id) => self.pop_to(id)?,

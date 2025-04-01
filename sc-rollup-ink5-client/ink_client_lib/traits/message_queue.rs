@@ -1,10 +1,8 @@
-use ink::codegen::StaticEnv;
+use crate::traits::kv_store::KvStore;
+use crate::traits::RollupClientError;
 use ink::env::DefaultEnvironment;
-use crate::traits::kv_store::{Key, KvStore, Value};
-use crate::traits::{Result, RollupClientError};
 use ink::prelude::vec::Vec;
 use ink::scale::{Decode, Encode};
-use crate::traits::rollup_client::HandleActionInput;
 
 pub type QueueIndex = u32;
 
@@ -57,7 +55,7 @@ pub struct MessageProcessed {
 
 //#[ink::trait_definition]
 pub trait MessageQueue: KvStore {
-    fn push_message<M: ink::scale::Encode>(&mut self, data: &M) -> Result<QueueIndex> {
+    fn push_message<M: ink::scale::Encode>(&mut self, data: &M) -> Result<QueueIndex, RollupClientError> {
         let id = self.get_queue_tail()?;
         let key = get_key!(id);
         let encoded_value = data.encode();
@@ -75,7 +73,7 @@ pub trait MessageQueue: KvStore {
         Ok(id)
     }
 
-    fn get_message<M: ink::scale::Decode>(&self, id: QueueIndex) -> Result<Option<M>> {
+    fn get_message<M: ink::scale::Decode>(&self, id: QueueIndex) -> Result<Option<M>, RollupClientError> {
         let key = get_key!(id);
         match self.inner_get_value(&key) {
             Some(v) => {
@@ -87,25 +85,25 @@ pub trait MessageQueue: KvStore {
         }
     }
 
-    fn has_message(&self) -> Result<bool> {
+    fn has_message(&self) -> Result<bool, RollupClientError> {
         let current_tail_id = self.get_queue_tail()?;
         let current_head_id = self.get_queue_head()?;
         Ok(current_tail_id > current_head_id)
     }
 
-    fn get_queue_tail(&self) -> Result<QueueIndex> {
+    fn get_queue_tail(&self) -> Result<QueueIndex, RollupClientError> {
         let key = get_tail_key!();
         let index = get_queue_index!(self, key);
         Ok(index)
     }
 
-    fn get_queue_head(&self) -> Result<QueueIndex> {
+    fn get_queue_head(&self) -> Result<QueueIndex, RollupClientError> {
         let key = get_head_key!();
         let index = get_queue_index!(self, key);
         Ok(index)
     }
 
-    fn pop_to(&mut self, target_id: QueueIndex) -> Result<()> {
+    fn pop_to(&mut self, target_id: QueueIndex) -> Result<(), RollupClientError> {
         let current_tail_id = self.get_queue_tail()?;
         if target_id > current_tail_id {
             return Err(RollupClientError::InvalidPopTarget);

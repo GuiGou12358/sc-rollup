@@ -1,5 +1,4 @@
 use ink::prelude::vec::Vec;
-use ink::storage::Mapping;
 
 pub type Key = Vec<u8>;
 pub type Value = Vec<u8>;
@@ -7,7 +6,7 @@ pub type Value = Vec<u8>;
 /*
 #[derive(Default, Debug)]
 #[ink::storage_item]
-pub struct RollupAnchorContract {
+pub struct Data {
     pub kv_store: Mapping<Key, Value>,
 }
  */

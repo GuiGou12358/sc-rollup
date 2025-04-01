@@ -1,6 +1,7 @@
 pub mod kv_store;
 pub mod message_queue;
 pub mod rollup_client;
+pub mod ownable;
 
 #[derive(Debug, Eq, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
@@ -13,5 +14,3 @@ pub enum RollupClientError {
     AccessControlError,
     QueueIndexOverflow,
 }
-
-pub type Result<T> = core::result::Result<T, RollupClientError>;
