@@ -4,81 +4,14 @@ import {ContractPromise} from "@polkadot/api-contract";
 import type {HexString} from "@polkadot/util/types";
 import {ApiDecoration, SubmittableExtrinsic} from "@polkadot/api/types";
 //import {query, tx} from "./ink-contract-helper";
-import {Action, Condition, None, Option, Some} from "../../core/src/types";
+import {Action, None, Option, Some} from "../../core/src/types";
 import {KeyringPair} from "@polkadot/keyring/types";
 import type {ISubmittableResult} from "@polkadot/types/types";
 import {setTimeout} from "timers/promises";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 
-import {
-    createStructDecoder,
-    createStructEncoder,
-    decodeStr,
-    encodeStr,
-    encodeU64,
-    encodeU128,
-    variant,
-    WalkerImpl, createEnumDecoder, createTupleEncoder, encodeU32, Enumerate, createEnumEncoder, Encode, encodeU16,
-} from "@scale-codec/core";
-
-import {VariantAny} from "@scale-codec/enum";
 
 const METADATA_FILE = 'metadata/ink_client.json';
-
-/*
-  Reply(Vec<u8>),
-  SetQueueHead(QueueIndex),
-  GrantAttestor(AccountId),
-  RevokeAttestor(AccountId),
- */
-type ActionEnum = Enumerate<{
-    Reply : [string],
-    SetQueueHead: [number],
-    GrantAttestor : [string],
-    RevokeAttestor : [string],
-}>;
-
-const encodeReply = createTupleEncoder<[string]>(
-    [encodeStr]
-);
-
-const encodeSetQueueHead = createTupleEncoder<[number]>(
-  [encodeU32]
-);
-
-const encodeGrantAttestor = createTupleEncoder<[string]>(
-  [encodeStr]
-);
-
-const encodeRevokeAttestor = createTupleEncoder<[string]>(
-  [encodeStr]
-);
-
-const encodeActionEnum = createEnumEncoder<ActionEnum>({
-    "Reply" : [0, encodeStr],
-    "SetQueueHead": [1, encodeU32],
-    "GrantAttestor" : [2, encodeStr],
-    "RevokeAttestor" : [3, encodeStr],
-});
-
-/*
-//  { [tag in keyof E]: E[tag] extends [infer C] ? EncodeTuple<C> : number }
-const decodeAction2 = createEnumEncoder<ActionTuple>({
-    Reply : createTupleEncoder<[string]>(
-      [encodeStr]
-    ),
-    SetQueueHead: encodeSetQueueHead,
-    GrantAttestor : encodeGrantAttestor,
-    RevokeAttestor : encodeRevokeAttestor,
-});
- */
-
-/*
-const decodeAction = createEnumEncoder<ActionTuple>(
-  [encodeReply, encodeSetQueueHead,  encodeGrantAttestor, encodeRevokeAttestor]
-);
- */
-
 
 
 export class InkClient {

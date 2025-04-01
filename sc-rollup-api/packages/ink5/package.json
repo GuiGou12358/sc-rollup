@@ -15,15 +15,10 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
-    "@polkadot-api/descriptors": "file:.papi/descriptors",
-    "@polkadot-api/sdk-ink": "0.0.1-1",
     "@polkadot/api": "^15.8.1",
     "@polkadot/api-contract": "^15.8.1",
     "@polkadot/keyring": "^13.4.3",
     "@polkadot/types": "^15.8.1",
-    "@scale-codec/core": "^2.0.1",
-    "@scale-codec/enum": "^2.1.1",
-    "dotenv": "^16.4.7",
-    "polkadot-api": "^1.9.7"
+    "dotenv": "^16.4.7"
   }
 }

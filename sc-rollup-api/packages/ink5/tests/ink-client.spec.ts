@@ -8,15 +8,15 @@ import {configDotenv} from "dotenv";
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'X9Fmz7823BWqgX4g3aZCUfbx1HKocHPzteMimEMAnrt6iVw';
 
-// grace ready roast engine harvest sting open amused enforce use problem very
-//configDotenv().config();
-
 configDotenv();
 const pk = process.env.pk;
 
-/*
+
 test('encoding / decoding', async () => {
 
+  if (pk == undefined){
+    return;
+  }
 
   const client = new InkClient(rpc, address, pk);
   await client.connect();
@@ -47,6 +47,10 @@ test('encoding / decoding', async () => {
 
 test('Read / Write values', async () => {
 
+  if (pk == undefined){
+    return;
+  }
+
   const client = new InkClient(rpc, address, pk);
 
   await client.connect();
@@ -74,7 +78,6 @@ test('Read / Write values', async () => {
   const tx = await client.commit();
   console.log('tx: %s', tx);
 });
- */
 
 
 test('Poll message', async () => {
