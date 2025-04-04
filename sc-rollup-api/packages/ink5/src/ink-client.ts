@@ -72,7 +72,7 @@ export class InkClient {
 
         console.log("getIndex : ", value)
 
-        const encodedValue : HexString =  value.response?.asHex();
+        const encodedValue =  value.response?.asHex();
         if (!encodedValue){
             return 0;
         }
@@ -86,14 +86,10 @@ export class InkClient {
 
     async getQueueHeadIndex(): Promise<number> {
         // q/_head : 0x712f5f68656164
-
-        console.log('getQueueHeadIndex');
-
         return await this.getIndex(stringToHex('q/_head'));
     }
 
     async getMessage(index: number): Promise<HexString> {
-        console.log('111');
         const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
         const key = u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
         console.log('Key for getting the message for index ' + index + ' : ' + key);
@@ -106,16 +102,13 @@ export class InkClient {
         });
 
         if (!success){
+            console.error('Error to getMessage fro index %s - value: %s ', index, value);
             return Promise.reject('No message');
         }
         return value.response?.asHex();
     }
 
     async pollMessage(): Promise<Option<HexString>> {
-
-
-        console.log('0000');
-
         if (this.currentSession.currentIndex == undefined
           || this.currentSession.minIndex == undefined
           || this.currentSession.maxIndex == undefined
@@ -141,7 +134,6 @@ export class InkClient {
             console.error('Error to query hasMessage - value: %s ', value);
             return Promise.reject('Error to query hasMessage' );
         }
-        console.log('hasMessage :' + value.response);
         return value.response;
     }
 
@@ -176,12 +168,8 @@ export class InkClient {
         if (value.isNone()){
             return value;
         }
-        console.log('value %s', value);
         const some = value as Some<HexString>;
         const decodedValue = this.decodeNumericValue(some.getValue());
-        if (decodedValue == undefined){
-            return Promise.reject('Error to decode the numeric value ' + some.getValue());
-        }
         return new Some(decodedValue);
     }
 
@@ -192,9 +180,6 @@ export class InkClient {
         }
         const some = value as Some<HexString>;
         const decodedValue = this.decodeStringValue(some.getValue());
-        if (decodedValue == undefined){
-            return Promise.reject('Error to decode the numeric value ' + some.getValue());
-        }
         return new Some(decodedValue);
     }
 
@@ -205,9 +190,6 @@ export class InkClient {
         }
         const some = value as Some<HexString>;
         const decodedValue = this.decodeBooleanValue(some.getValue());
-        if (decodedValue == undefined){
-            return Promise.reject('Error to decode the boolean value ' + some.getValue());
-        }
         return new Some(decodedValue);
     }
 
@@ -254,23 +236,17 @@ export class InkClient {
 
     setStringValue(key: HexString, value : string)  {
         const v = this.encodeStringValue(value);
-        if (v) {
-            this.setValue(key, new Some(v));
-        }
+        this.setValue(key, new Some(v));
     }
 
     setBooleanValue(key: HexString, value : boolean)  {
         const v = this.encodeBooleanValue(value);
-        if (v) {
-            this.setValue(key, new Some(v));
-        }
+        this.setValue(key, new Some(v));
     }
 
     setNumericValue(key: HexString, value : number)  {
         const v = this.encodeNumericValue(value);
-        if (v) {
-            this.setValue(key, new Some(v));
-        }
+        this.setValue(key, new Some(v));
     }
 
     removeValue(key: HexString)  {
@@ -305,9 +281,6 @@ export class InkClient {
         */
 
         const signer = new Keyring({type: 'sr25519'}).addFromSeed(hexToU8a(this.pk));
-
-        console.log('address22');
-
         console.log('address %s', signer.publicKey);
 
         //contracts.ink_client.__types;
@@ -318,8 +291,6 @@ export class InkClient {
         let conditions: (Binary | undefined)[][] =  [];
         //let conditions : Array<[Binary, Anonymize<T2>]> = [];
 
-
-
 /*
         conditions.push(
           [Binary.fromHex('0x0000'), {
@@ -328,7 +299,6 @@ export class InkClient {
           }]);
 
  */
-
         //let updates: [] =  [];
         //let updates: (Binary | Option<Binary>)[][] =  [];
         //let updates: (Binary | {})[][] =  [];
@@ -374,7 +344,7 @@ export class InkClient {
  */
 
 
-        console.log('Dry Run')
+        console.log('Dry Run 1')
         const {value, success} = await this.contract.query('RollupClient::rollup_cond_eq',{
             origin: signer.publicKey,
             data: {
@@ -387,7 +357,6 @@ export class InkClient {
             console.log('Error when dry run tx ', value)
             return Promise.reject('Error in the tx');
         }
-
 
         console.log('Submitting tx ')
 
