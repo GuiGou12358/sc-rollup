@@ -12,41 +12,49 @@ export type Signature = string;
 export type Target = string;
 
 
-interface OptionBase {
-  isSome() : boolean
-  isNone() : boolean;
-  //value() : T;
-}
+export class Option<T> {
 
-export class None implements OptionBase {
-  isNone(): boolean {
-    return true;
-  }
+  private readonly value: T | undefined;
 
-  isSome(): boolean {
-    return false;
-  }
-}
-
-export class Some<T> implements OptionBase {
-
-  private readonly value: T;
-
-  isNone(): boolean {
-    return false;
-  }
-
-  isSome(): boolean {
-    return true;
-  }
-
-  public constructor(value: T) {
+  protected constructor(value: T | undefined) {
     this.value = value;
   }
 
-  getValue(): T {
+  isSome() : boolean{
+    return !this.isNone();
+  }
+
+  isNone() {
+    return this.value === undefined;
+  }
+
+  valueOf() : T | undefined {
     return this.value;
+  }
+
+  map<U>(fn: (arg: T) => U) : Option<U> {
+    if (this.value == undefined){
+      return new None();
+    }
+    return new Some(fn(this.value));
+  }
+
+  static of<T>(value : T | undefined) : Option<T> {
+    if (value == undefined){
+      return new None();
+    }
+    return new Some(value);
   }
 }
 
-export type Option<T> = None | Some<T>;
+export class None extends Option<any> {
+  constructor() {
+    super(undefined);
+  }
+}
+
+export class Some<T> extends Option<T> {
+  constructor(value: T) {
+    super(value);
+  }
+}

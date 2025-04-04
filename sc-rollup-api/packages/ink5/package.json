@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build-core": "tsc",
-    "test": "vitest",
+    "test": "vitest --no-isolate",
     "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
     "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },

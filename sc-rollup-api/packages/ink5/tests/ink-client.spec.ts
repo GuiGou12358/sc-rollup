@@ -2,7 +2,6 @@ import {assert, expect, test} from "vitest";
 import {InkClient} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
-import {Some} from "../../core/src/types";
 import {stringToHex} from "@polkadot/util";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
@@ -62,19 +61,22 @@ test('Read / Write values', async () => {
   const key1 = stringToHex('key1')
   const value1 = await client.getNumericValue(key1);
   console.log('key1 %s - value : %s', key1, value1);
-  const newValue1 = value1.isNone() ? 1 : (value1 as Some<number>).getValue() + 1;
+  const v1 = value1.valueOf();
+  const newValue1 = v1 ? v1 + 1 : 1;
   client.setNumericValue(key1, newValue1);
 
   const key2 = stringToHex('key2')
   const value2 = await client.getStringValue(key2);
   console.log('key2 %s - value : %s', key2, value2);
-  const newValue2 = value2.isNone() ? '1': (value2 as Some<string>).getValue() + 1;
-  client.setStringValue(key2, newValue2);
+  const v2 = value2.valueOf();
+  const newValue2 = v2 ? Number(v2) + 1 : 1;
+  client.setStringValue(key2, newValue2.toString());
 
   const key3 = stringToHex('key3')
   const value3 = await client.getBooleanValue(key3);
   console.log('key3 %s - value : %s', key3, value3);
-  const newValue3 = value3.isNone() ? false : !(value3 as Some<boolean>).getValue();
+  const v3 = value3.valueOf();
+  const newValue3 = v3 ? !v3 : false;
   client.setBooleanValue(key3, newValue3);
 
   client.removeValue(stringToHex('key4'));
@@ -84,7 +86,6 @@ test('Read / Write values', async () => {
 });
 
 
-/*
 test('Poll message', async () => {
 
   if (pk == undefined){
@@ -104,8 +105,7 @@ test('Poll message', async () => {
   do {
     message = await client.pollMessage();
     if (message.isSome()){
-      const some = message as Some<HexString>;
-      console.log('message : ' + some.getValue());
+      console.log('message : ' + message.valueOf());
     } else {
       console.log('No more message ');
     }
@@ -114,20 +114,4 @@ test('Poll message', async () => {
   await client.commit();
 
 });
- */
 
-/*
-test('Test 0', async () => {
-
-  if (pk == undefined){
-    return;
-  }
-
-  const client = new InkClient(rpc, address, pk);
-
-  await client.isCompatible();
-
-  await client.test0();
-
-});
-*/

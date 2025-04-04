@@ -1,4 +1,4 @@
-import {Action, HexString, None, Option, Some} from "../../core/src/types";
+import {Action, HexString, None, Option} from "../../core/src/types";
 import {contracts, shibuya} from "@polkadot-api/descriptors";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
@@ -109,8 +109,7 @@ export class InkClient {
         });
 
         if (!success){
-            console.error('Error to getMessage fro index %s - value: %s ', index, value);
-            return Promise.reject('No message');
+            return Promise.reject('Error to get the message for index ' + index);
         }
         return value.response?.asHex();
     }
@@ -128,9 +127,9 @@ export class InkClient {
         if (this.currentSession.currentIndex >= this.currentSession.maxIndex){
             return new None();
         }
-        const message =  await this.getMessage(this.currentSession.currentIndex);
+        const message = await this.getMessage(this.currentSession.currentIndex);
         this.currentSession.currentIndex += 1;
-        return new Some(message);
+        return Option.of(message);
     }
 
     async hasMessage(): Promise<Boolean> {
@@ -138,8 +137,7 @@ export class InkClient {
             origin: this.signerAddress,
         });
         if (!success){
-            console.error('Error to query hasMessage - value: %s ', value);
-            return Promise.reject('Error to query hasMessage' );
+            return Promise.reject('Error to query has_message method');
         }
         return value.response;
     }
@@ -160,44 +158,26 @@ export class InkClient {
         });
 
         if (!success){
-            return new None();
+            return Promise.reject('Error to query get_value method for key ' + key);
         }
 
         const remoteValue = value.response?.asHex();
-        if (!remoteValue || remoteValue == '0x'){
-            return new None();
-        }
-        return new Some(remoteValue);
+        return Option.of(remoteValue);
     };
 
-    async getNumericValue(key: HexString): Promise<Option<Number>> {
-        const value = await this.getValue(key)
-        if (value.isNone()){
-            return value;
-        }
-        const some = value as Some<HexString>;
-        const decodedValue = this.decodeNumericValue(some.getValue());
-        return new Some(decodedValue);
+    async getNumericValue(key: HexString): Promise<Option<number>> {
+        const value = await this.getValue(key);
+        return value.map(this.decodeNumericValue);
     }
 
     async getStringValue(key: HexString): Promise<Option<String>> {
         const value = await this.getValue(key)
-        if (value.isNone()){
-            return value;
-        }
-        const some = value as Some<HexString>;
-        const decodedValue = this.decodeStringValue(some.getValue());
-        return new Some(decodedValue);
+        return value.map(this.decodeStringValue);
     }
 
     async getBooleanValue(key: HexString): Promise<Option<Boolean>> {
         const value = await this.getValue(key)
-        if (value.isNone()){
-            return value;
-        }
-        const some = value as Some<HexString>;
-        const decodedValue = this.decodeBooleanValue(some.getValue());
-        return new Some(decodedValue);
+        return value.map(this.decodeBooleanValue);
     }
 
     decodeStringValue(value: HexString): string {
@@ -208,7 +188,6 @@ export class InkClient {
     }
 
     decodeBooleanValue(value: HexString): boolean {
-        console.log('boolean value: ', value);
         return value === '0x01';
     }
 
@@ -223,7 +202,6 @@ export class InkClient {
     }
 
     encodeBooleanValue(value: boolean): HexString {
-        console.log('encode boolean value: ', value);
         return value ? '0x01' : '0x00';
     }
 
@@ -245,17 +223,17 @@ export class InkClient {
 
     setStringValue(key: HexString, value : string)  {
         const v = this.encodeStringValue(value);
-        this.setValue(key, new Some(v));
+        this.setValue(key, Option.of(v));
     }
 
     setBooleanValue(key: HexString, value : boolean)  {
         const v = this.encodeBooleanValue(value);
-        this.setValue(key, new Some(v));
+        this.setValue(key, Option.of(v));
     }
 
     setNumericValue(key: HexString, value : number)  {
         const v = this.encodeNumericValue(value);
-        this.setValue(key, new Some(v));
+        this.setValue(key, Option.of(v));
     }
 
     removeValue(key: HexString)  {
@@ -274,12 +252,14 @@ export class InkClient {
 
         let conditions: (Binary | undefined)[][] =  [];
 
+        const converter = (input: HexString): Binary => {
+            return Binary.fromHex(input);
+        }
+
         let updates: (Binary | undefined)[][] =  [];
         this.currentSession.updates.forEach(
           (value, key) => {
-              const v =  value.isNone()
-                ? undefined
-                : Binary.fromHex((value as Some<HexString>).getValue());
+              const v = value.map(converter).valueOf();
               //console.log('update key %s with value %s', key, v);
               updates.push([Binary.fromHex(key), v]);
           }
@@ -305,8 +285,7 @@ export class InkClient {
             }
         });
         if (!success){
-            console.log('Error when dry run tx ', value)
-            return Promise.reject('Error in the tx');
+            return Promise.reject('Error when dry run tx ' + value);
         }
 
         console.log('Submitting tx ... ')
@@ -318,8 +297,7 @@ export class InkClient {
         }).signAndSubmit(this.signer);
 
         if (!result.ok){
-            console.log('Error when submitting tx ', result)
-            return Promise.reject('Error in the tx');
+            return Promise.reject('Error when submitting tx ' + result);
         }
         const txHash = result.txHash;
         console.log('Tx hash ', txHash)
