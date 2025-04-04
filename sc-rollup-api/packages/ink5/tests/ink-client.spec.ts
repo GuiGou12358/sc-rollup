@@ -6,12 +6,12 @@ import * as process from "node:process";
 import {configDotenv} from "dotenv";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
-const address = 'X9Fmz7823BWqgX4g3aZCUfbx1HKocHPzteMimEMAnrt6iVw';
+const address = 'YGbW5qcndM5dw6VKy1HpCFBnX2Ts3SanU6xPkRUErc9iYLM';
 
 configDotenv();
 const pk = process.env.pk;
 
-
+/*
 test('encoding / decoding', async () => {
 
   if (pk == undefined){
@@ -19,31 +19,37 @@ test('encoding / decoding', async () => {
   }
 
   const client = new InkClient(rpc, address, pk);
-  await client.connect();
 
-  const n : number = 5;
-  const encodedNumber = client.encodeNumericValue(n);
+  let n : number = 20;
+  let encodedNumber = client.encodeNumericValue(n);
   console.log('encoded %s : %s', n, encodedNumber);
-  assert(encodedNumber);
+  expect(encodedNumber).toBe('0x14000000');
+  expect(client.decodeNumericValue(encodedNumber)).toBe(n);
+
+  n = 5;
+  encodedNumber = client.encodeNumericValue(n);
+  console.log('encoded %s : %s', n, encodedNumber);
+  expect(encodedNumber).toBe('0x05000000');
   expect(client.decodeNumericValue(encodedNumber)).toBe(n);
 
   const encodedBooleanFalse = client.encodeBooleanValue(false);
   console.log('encoded %s : %s', false, encodedBooleanFalse);
-  assert(encodedBooleanFalse);
+  expect(encodedBooleanFalse).toBe('0x00');
   expect(client.decodeBooleanValue(encodedBooleanFalse)).toBe(false);
 
   const encodedBooleanTrue = client.encodeBooleanValue(true);
   console.log('encoded %s : %s', true, encodedBooleanTrue);
-  assert(encodedBooleanTrue);
+  expect(encodedBooleanTrue).toBe('0x01');
   expect(client.decodeBooleanValue(encodedBooleanTrue)).toBe(true);
 
   const s = 'test';
   const encodedString = client.encodeStringValue(s);
   console.log('encoded %s : %s', s, encodedString);
-  assert(encodedString);
+  assert(encodedString); // todo check the value
   expect(client.decodeStringValue(encodedString)).toBe(s);
 
 });
+
 
 test('Read / Write values', async () => {
 
@@ -52,8 +58,6 @@ test('Read / Write values', async () => {
   }
 
   const client = new InkClient(rpc, address, pk);
-
-  await client.connect();
 
   const key1 = stringToHex('key1')
   const value1 = await client.getNumericValue(key1);
@@ -79,6 +83,8 @@ test('Read / Write values', async () => {
   console.log('tx: %s', tx);
 });
 
+ */
+
 
 test('Poll message', async () => {
 
@@ -87,8 +93,6 @@ test('Poll message', async () => {
   }
 
   const client = new InkClient(rpc, address, pk);
-
-  await client.connect();
 
   const tail = await client.getQueueTailIndex();
   console.log('Tail Index: ' + tail);

@@ -1,60 +1,50 @@
-import {ApiPromise, Keyring, WsProvider} from "@polkadot/api";
-import {readFileSync} from "fs";
-import {ContractPromise} from "@polkadot/api-contract";
 import type {HexString} from "@polkadot/util/types";
-import {ApiDecoration, SubmittableExtrinsic} from "@polkadot/api/types";
-//import {query, tx} from "./ink-contract-helper";
 import {Action, None, Option, Some} from "../../core/src/types";
-import {KeyringPair} from "@polkadot/keyring/types";
-import type {ISubmittableResult} from "@polkadot/types/types";
-import {setTimeout} from "timers/promises";
+
+import {contracts, shibuya} from "@polkadot-api/descriptors";
+
+
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
+import {createInkSdk} from "@polkadot-api/sdk-ink";
+import {createClient, ResultPayload, SS58String, Enum, FixedSizeBinary, FixedSizeArray, Binary} from 'polkadot-api';
+import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat";
+import {getWsProvider} from "polkadot-api/ws-provider/web";
+import {Contract} from "@polkadot/api-contract/base";
+import {entropyToMiniSecret, mnemonicToEntropy, sr25519} from "@polkadot-labs/hdkd-helpers";
+import {sr25519CreateDerive} from "@polkadot-labs/hdkd";
+import {getPolkadotSigner} from "polkadot-api/signer";
+import {u32} from "scale-ts";
+import {Keyring} from "@polkadot/api";
 
 
-const METADATA_FILE = 'metadata/ink_client.json';
 
+const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
 
 export class InkClient {
 
     readonly rpc: string;
     readonly address: string;
     readonly pk: string;
-    contract: ContractPromise | undefined;
-    apiAt: ApiDecoration<any> | undefined;
+    contract: any | Contract<any>;
     currentSession: Session;
-    signer : KeyringPair | undefined;
 
     public constructor(rpc: string, address: string, pk: string){
         this.rpc = rpc;
         this.address = address;
         this.pk = pk;
         this.currentSession = new Session();
-    }
 
-    public async connect() : Promise<void> {
-
-        if (this.contract){
-            return;
+        const client = createClient(
+          withPolkadotSdkCompat(
+            getWsProvider(this.rpc),
+          )
+        );
+        const typedApi = client.getTypedApi(shibuya);
+        const sdk = createInkSdk(typedApi, contracts.ink_client)
+        this.contract = sdk.getContract(this.address);
+        if (!this.contract.isCompatible()){
+            throw new Error("Contract has changed");
         }
-
-        const api = await ApiPromise.create({ provider: new WsProvider(this.rpc)});
-        const[chain, nodeName, nodeVersion] = await Promise.all([
-            api.rpc.system.chain(),
-            api.rpc.system.name(),
-            api.rpc.system.version()
-        ]);
-        console.log('You are connected to chain %s using %s v%s', chain, nodeName, nodeVersion);
-
-        const finalizedHead = await api.rpc.chain.getFinalizedHead();
-        console.log("finalizedHead %s ", finalizedHead);
-        const block = await api.rpc.chain.getBlock(finalizedHead);
-        //console.log("block %s ", block);
-        this.apiAt = await api.at(finalizedHead);
-        //console.log("apiAt %s ", this.apiAt);
-
-        const metadata = readFileSync(METADATA_FILE);
-        this.contract = new ContractPromise(api, metadata.toString(), this.address);
-
     }
 
     /*
@@ -64,15 +54,29 @@ export class InkClient {
      */
 
     async getIndex(key: HexString): Promise<number> {
-        const encodedValue : HexString = await query(this.contract, 'rollupClient::getValue', key);
+
+
+        console.log('getIndex');
+
+        const {success, value} = await this.contract.query('RollupClient::get_value',{
+           origin: ALICE,
+            data: {
+               key : Binary.fromHex(key)
+            }
+        });
+
+        if (!success){
+            console.error('Error to get value for key %s  - value: %s ', key, value);
+            return Promise.reject('Error to get value for key ' + key);
+        }
+
+        console.log("getIndex : ", value)
+
+        const encodedValue : HexString =  value.response?.asHex();
         if (!encodedValue){
             return 0;
         }
-        const index = this.contract?.api.createType('u32', hexToU8a(encodedValue)).toNumber();
-        if (!index){
-            return Promise.reject('Error to decode the index ' + encodedValue);
-        }
-        return index;
+        return this.decodeNumericValue(encodedValue);
     }
 
     async getQueueTailIndex(): Promise<number> {
@@ -82,20 +86,35 @@ export class InkClient {
 
     async getQueueHeadIndex(): Promise<number> {
         // q/_head : 0x712f5f68656164
+
+        console.log('getQueueHeadIndex');
+
         return await this.getIndex(stringToHex('q/_head'));
     }
 
     async getMessage(index: number): Promise<HexString> {
-        const encodedIndex = this.contract?.api.createType('u32', index)?.toU8a();
-        if (!encodedIndex){
-            return Promise.reject('Error to encode the message index ' + index);
-        }
+        console.log('111');
+        const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
         const key = u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
         console.log('Key for getting the message for index ' + index + ' : ' + key);
-        return await query(this.contract, 'rollupClient::getValue', key);
+
+        const {value, success} = await this.contract.query('RollupClient::get_value',{
+            origin: ALICE,
+            data: {
+                key : Binary.fromHex(key)
+            }
+        });
+
+        if (!success){
+            return Promise.reject('No message');
+        }
+        return value.response?.asHex();
     }
 
     async pollMessage(): Promise<Option<HexString>> {
+
+
+        console.log('0000');
 
         if (this.currentSession.currentIndex == undefined
           || this.currentSession.minIndex == undefined
@@ -115,9 +134,15 @@ export class InkClient {
     }
 
     async hasMessage(): Promise<Boolean> {
-        const value = await query(this.contract, 'rollupClient::hasMessage');
-        console.log('hasMessage :' + value);
-        return (value as boolean).valueOf();
+        const {value, success} = await this.contract.query('RollupClient::has_message',{
+            origin: ALICE,
+        });
+        if (!success){
+            console.error('Error to query hasMessage - value: %s ', value);
+            return Promise.reject('Error to query hasMessage' );
+        }
+        console.log('hasMessage :' + value.response);
+        return value.response;
     }
 
     async getValue(key: HexString): Promise<Option<HexString>> {
@@ -128,15 +153,22 @@ export class InkClient {
             return localValue;
         }
 
-        const remoteValue: HexString = await query(this.contract, 'rollupClient::getValue', key);
-        //if (!remoteValue || remoteValue == '0x00'){
+        const {value, success} = await this.contract.query('RollupClient::get_value',{
+            origin: ALICE,
+            data: {
+                key : Binary.fromHex(key)
+            }
+        });
+
+        if (!success){
+            return new None();
+        }
+
+        const remoteValue = value.response?.asHex();
         if (!remoteValue || remoteValue == '0x00'){
             return new None();
         }
-        // remove 0x01 from Options type
-        //return new Some(remoteValue.replace('0x01', '0x'));
         return new Some(remoteValue);
-
     };
 
     async getNumericValue(key: HexString): Promise<Option<Number>> {
@@ -179,28 +211,45 @@ export class InkClient {
         return new Some(decodedValue);
     }
 
-    decodeStringValue(value: HexString): string | undefined {
-        return this.contract?.api.createType('String', String(value)).toString();
+    decodeStringValue(value: HexString): string {
+        return value.replace(/^0x/i, '')
+          .match(/.{1,2}/g)!
+          .map(byte => String.fromCharCode(parseInt(byte, 16)))
+          .join('');
     }
 
-    decodeBooleanValue(value: HexString): boolean | undefined {
-        return this.contract?.api.createType('bool', hexToU8a(value)).toPrimitive();
+    decodeBooleanValue(value: HexString): boolean {
+        return value === '0x01';
     }
 
-    decodeNumericValue(value: HexString): number | undefined {
-        return this.contract?.api.createType('u32', hexToU8a(value)).toNumber();
+    decodeNumericValue(value: HexString): number {
+        //return u8aToNumber(hexToU8a(value, 8));
+        return parseInt(value.replace(/(00)+$/, ''), 16);
+
     }
 
-    encodeStringValue(value: string): HexString | undefined {
-        return this.contract?.api.createType('String', value).toHex();
+    encodeStringValue(value: string): HexString {
+        return hexAddPrefix(Binary.fromText(value).asHex());
     }
 
-    encodeBooleanValue(value: boolean): HexString | undefined {
-        return this.contract?.api.createType('bool', value).toHex();
+    encodeBooleanValue(value: boolean): HexString {
+        return value ? '0x01' : '0x00';
     }
 
-    encodeNumericValue(value: number): HexString | undefined {
-        return this.contract?.api.createType('u32', value).toHex(true);
+    encodeNumericValue(value: number): HexString {
+        //return u8aToHex(numberToU8a(value, 8));
+        //return numberToHex(value, 8);
+
+        let v = value.toString(16);
+        if (v.length % 2 != 0) {
+            v = '0' + v;
+        }
+        if (v.length > 8) {
+            throw new Error('Too big number for u32');
+        }
+        // u32
+        return hexAddPrefix(v.padEnd(8, '0'));
+
     }
 
     setStringValue(key: HexString, value : string)  {
@@ -236,39 +285,128 @@ export class InkClient {
         this.currentSession.actions.push(action);
     }
 
-
     async commit(): Promise<Option<HexString>> {
 
-        if (!this.signer) {
-            this.signer = new Keyring({type: 'sr25519'}).addFromSeed(hexToU8a(this.pk));
-            console.log('address %s', this.signer.address);
-        }
+        /*
+        const entropy = mnemonicToEntropy(this.pk);
+        const miniSecret = entropyToMiniSecret(entropy);
+        const derive = sr25519CreateDerive(miniSecret);
+        const hdkdKeyPair = derive("//Alice");
 
-        let conditions: (HexString | Option<HexString>)[][] =  [];
+        //console.log('pk : %s - length : %s', this.pk, this.pk.length);
+        //console.log('public key : %s', sr25519.getPublicKey(this.pk));
+        const signer = getPolkadotSigner(
+          //sr25519.getPublicKey(this.pk),
+          hdkdKeyPair.publicKey,
+          "Sr25519",
+          //(input) => sr25519.sign(input, this.pk)
+          hdkdKeyPair.sign
+        );
+        */
 
-        let updates: (HexString | Option<HexString>)[][] =  [];
+        const signer = new Keyring({type: 'sr25519'}).addFromSeed(hexToU8a(this.pk));
+
+        console.log('address22');
+
+        console.log('address %s', signer.publicKey);
+
+        //contracts.ink_client.__types;
+
+          //type T2 = (Binary) | undefined;
+
+        //let conditions: (Binary | Option<Binary>)[][] =  [];
+        let conditions: (Binary | undefined)[][] =  [];
+        //let conditions : Array<[Binary, Anonymize<T2>]> = [];
+
+
+
+/*
+        conditions.push(
+          [Binary.fromHex('0x0000'), {
+              type: 'Some',
+              value: Binary.fromHex('0x0000'),
+          }]);
+
+ */
+
+        //let updates: [] =  [];
+        //let updates: (Binary | Option<Binary>)[][] =  [];
+        //let updates: (Binary | {})[][] =  [];
+        let updates: (Binary | undefined)[][] =  [];
+        //let updates : Array<[Binary, Anonymize<T2>]> = []
+/*
         this.currentSession.updates.forEach(
           (value, key) => {
               const v =  value.isNone()
-                ? hexAddPrefix('0x')
-                : (value as Some<HexString>).getValue();
+                ? {
+                    type: 'None',
+                }
+                : {
+                    type: 'Some',
+                    value: Binary.fromHex((value as Some<HexString>).getValue()),
+                };
               console.log('update key %s with value %s', key, v);
-              updates.push([key, v]);
+              //updates.push([Binary.fromHex(key), Binary.fromHex(v)]);
+              updates.push([Binary.fromHex(key), v]);
           }
         );
+ */
 
-        let actions =  [];
+        let actions: Array<Enum<{
+            "Reply": Binary;
+            "SetQueueHead": number;
+            "GrantAttestor": SS58String;
+            "RevokeAttestor": SS58String;
+        }>> =  [];
 
+
+/*
         if (this.currentSession.currentIndex != undefined && this.currentSession.minIndex != undefined
           && this.currentSession.currentIndex > this.currentSession.minIndex){
             actions.push(
               {
-                  SetQueueHead: this.currentSession.currentIndex
+                  type: "SetQueueHead",
+                  value : this.currentSession.currentIndex,
               }
             );
         }
 
-        const txHash = await tx(this.contract, this.signer, 'rollupClient::rollupCondEq', conditions, updates, actions);
+ */
+
+
+        console.log('Dry Run')
+        const {value, success} = await this.contract.query('RollupClient::rollup_cond_eq',{
+            origin: signer.publicKey,
+            data: {
+                conditions, updates, actions
+            }
+        });
+
+        console.log('Dry Run 2')
+        if (!success){
+            console.log('Error when dry run tx ', value)
+            return Promise.reject('Error in the tx');
+        }
+
+
+        console.log('Submitting tx ')
+
+        const result = await this.contract.send('RollupClient::rollup_cond_eq',{
+            origin: signer.publicKey,
+            data: {
+                conditions, updates, actions
+            }
+        }).signAndSubmit(signer);
+
+
+        if (!result.ok){
+            console.log('Error when submitting tx ', result)
+            return Promise.reject('Error in the tx');
+        }
+        const txHash = result.txHash;
+
+
+        //const txHash = await tx(this.contract, this.signer, 'rollupClient::rollupCondEq', conditions, updates, actions);
         this.currentSession = new Session();
         return txHash;
     }
@@ -276,9 +414,7 @@ export class InkClient {
     rollback() {
         this.currentSession = new Session();
     }
-
 }
-
 
 
 class Session {
@@ -290,52 +426,7 @@ class Session {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-export async function query(
-  smartContract: ContractPromise | undefined,
-  methodName: string,
-  ...params: any[]
-) : Promise<any> {
-
-    if (!smartContract){
-        return Promise.reject("ERROR Contract is not connected");
-    }
-
-    const alice = new Keyring({ type: 'sr25519' }).addFromUri("//Alice");
-
-    // maximum gas to be consumed for the call. if limit is too small the call will fail.
-    const gasLimit : any = smartContract.api.registry.createType('WeightV2',
-      {refTime: 30000000000, proofSize: 1000000}
-    );
-
-    // a limit to how much Balance to be used to pay for the storage created by the contract call
-    // if null is passed, unlimited balance can be used
-    const storageDepositLimit = null;
-
-    const {result, output}  = await smartContract.query[methodName](
-      alice.address,
-      {gasLimit, storageDepositLimit},
-      ...params
-    );
-
-    if (result.isOk){
-        const value : string = output?.toString() ?? '';
-        return JSON.parse(value).ok;
-    }
-    return Promise.reject("ERROR when query " + result.asErr);
-}
-
-
+/*
 export async function tx(
   smartContract: ContractPromise | undefined,
   signer : KeyringPair | undefined,
@@ -461,3 +552,4 @@ function readResult(result: ISubmittableResult, extrinsicResult: ExtrinsicResult
     }
     return false;
 }
+ */
