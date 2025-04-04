@@ -25,7 +25,7 @@ export class Option<T> {
   }
 
   isNone() {
-    return this.value === undefined;
+    return this.value == undefined;
   }
 
   valueOf() : T | undefined {

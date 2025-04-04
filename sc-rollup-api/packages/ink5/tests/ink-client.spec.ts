@@ -88,7 +88,8 @@ test('Read / Write values', async () => {
   const value3 = await client.getBooleanValue(key3);
   console.log('key3 %s - value : %s', key3, value3);
   const v3 = value3.valueOf();
-  const newValue3 = v3 ? !v3 : false;
+  const newValue3 = v3 == undefined ? false : !v3;
+  console.log('new boolean value ' + newValue3);
   client.setBooleanValue(key3, newValue3);
 
   client.removeValue(stringToHex('key4'));
@@ -116,11 +117,7 @@ test('Poll message', async () => {
   let message;
   do {
     message = await client.pollMessage();
-    if (message.isSome()){
-      console.log('message : ' + message.valueOf());
-    } else {
-      console.log('No more message ');
-    }
+    console.log('message %s', message);
   } while (message.isSome());
 
   await client.commit();

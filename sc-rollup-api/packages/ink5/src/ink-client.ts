@@ -1,4 +1,4 @@
-import {Action, HexString, None, Option} from "../../core/src/types";
+import {HexString, None, Option} from "../../core/src/types";
 import {contracts, shibuya} from "@polkadot-api/descriptors";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
@@ -97,9 +97,10 @@ export class InkClient {
     }
 
     async getMessage(index: number): Promise<HexString> {
-        const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
+        //const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
+        const encodedIndex = hexToU8a(this.encodeNumericValue(index));
         const key = u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
-        console.log('Key for getting the message for index ' + index + ' : ' + key);
+        //console.log('key for getting the message ' + index + ' : ' + key);
 
         const {value, success} = await this.contract.query('RollupClient::get_value',{
             origin: this.signerAddress,
@@ -115,20 +116,18 @@ export class InkClient {
     }
 
     async pollMessage(): Promise<Option<HexString>> {
-        if (this.currentSession.currentIndex == undefined
-          || this.currentSession.minIndex == undefined
-          || this.currentSession.maxIndex == undefined
-        ){
-            this.currentSession.minIndex = await this.getQueueHeadIndex();
-            this.currentSession.maxIndex = await this.getQueueTailIndex();
-            this.currentSession.currentIndex = this.currentSession.minIndex;
-        }
 
-        if (this.currentSession.currentIndex >= this.currentSession.maxIndex){
+        const tailIndex = await this.getQueueTailIndex();
+
+        if (this.currentSession.currentIndex == undefined){
+            this.currentSession.currentIndex = await this.getQueueHeadIndex();
+        }
+        if (this.currentSession.currentIndex >= tailIndex){
             return new None();
         }
         const message = await this.getMessage(this.currentSession.currentIndex);
         this.currentSession.currentIndex += 1;
+        this.currentSession.indexUpdated = true;
         return Option.of(message);
     }
 
@@ -144,12 +143,19 @@ export class InkClient {
 
     async getValue(key: HexString): Promise<Option<HexString>> {
 
+        // search in the updated values
+        const updatedValue = this.currentSession.updates.get(key);
+        if (updatedValue){
+            return updatedValue;
+        }
+
         // search in the session
-        const localValue = this.currentSession.updates.get(key);
+        const localValue = this.currentSession.values.get(key);
         if (localValue){
             return localValue;
         }
 
+        // load the value
         const {value, success} = await this.contract.query('RollupClient::get_value',{
             origin: this.signerAddress,
             data: {
@@ -161,8 +167,10 @@ export class InkClient {
             return Promise.reject('Error to query get_value method for key ' + key);
         }
 
-        const remoteValue = value.response?.asHex();
-        return Option.of(remoteValue);
+        const remoteValue = Option.of(value.response?.asHex());
+        // save the value in the session
+        this.currentSession.values.set(key, remoteValue);
+        return remoteValue;
     };
 
     async getNumericValue(key: HexString): Promise<Option<number>> {
@@ -170,12 +178,12 @@ export class InkClient {
         return value.map(this.decodeNumericValue);
     }
 
-    async getStringValue(key: HexString): Promise<Option<String>> {
+    async getStringValue(key: HexString): Promise<Option<string>> {
         const value = await this.getValue(key)
         return value.map(this.decodeStringValue);
     }
 
-    async getBooleanValue(key: HexString): Promise<Option<Boolean>> {
+    async getBooleanValue(key: HexString): Promise<Option<boolean>> {
         const value = await this.getValue(key)
         return value.map(this.decodeBooleanValue);
     }
@@ -244,37 +252,60 @@ export class InkClient {
         this.currentSession.updates.set(key, value);
     }
 
-    addAction(action: Action) {
+    addAction(action: HexString) {
         this.currentSession.actions.push(action);
     }
 
     async commit(): Promise<Option<HexString>> {
 
-        let conditions: (Binary | undefined)[][] =  [];
-
         const converter = (input: HexString): Binary => {
             return Binary.fromHex(input);
         }
 
+        let conditions: (Binary | undefined)[][] =  [];
+        this.currentSession.values.forEach(
+          (value, key) => {
+              console.log('condition: key %s equals to with value %s', key, value);
+              conditions.push([Binary.fromHex(key), value.map(converter).valueOf()]);
+          }
+        );
+
         let updates: (Binary | undefined)[][] =  [];
         this.currentSession.updates.forEach(
           (value, key) => {
-              const v = value.map(converter).valueOf();
-              //console.log('update key %s with value %s', key, v);
-              updates.push([Binary.fromHex(key), v]);
+              console.log('update key %s with value %s', key, value);
+              updates.push([Binary.fromHex(key), value.map(converter).valueOf()]);
           }
         );
 
         let actions =  [];
-        if (this.currentSession.currentIndex != undefined && this.currentSession.minIndex != undefined
-          && this.currentSession.currentIndex > this.currentSession.minIndex){
-            console.log("SetQueueHead " + this.currentSession.currentIndex);
+        if (this.currentSession.indexUpdated){
+            console.log("SetQueueHead %s", this.currentSession.currentIndex);
             actions.push(
               {
                   type: "SetQueueHead",
                   value : this.currentSession.currentIndex,
               }
             );
+        }
+        this.currentSession.actions.forEach(
+          (action) => {
+              console.log("Action : %s " + action);
+              actions.push(
+                {
+                    type: "Reply",
+                    value : Binary.fromHex(action),
+                }
+              );
+          }
+        );
+
+        if (updates.length === 0 && actions.length === 0){
+            // nothing to commit
+            console.log('Nothing to commit ')
+            // clear the current session
+            this.currentSession = new Session();
+            return new None();
         }
 
         console.log('Dry Run ...')
@@ -311,12 +342,11 @@ export class InkClient {
     }
 }
 
-
 class Session {
-    actions: Action[] = [];
+    values: Map<HexString, Option<HexString>> = new Map();
     updates: Map<HexString, Option<HexString>> = new Map();
-    minIndex: number | undefined;
-    maxIndex: number | undefined;
+    actions: HexString[] = [];
     currentIndex: number | undefined;
+    indexUpdated: boolean = false;
 }
 
