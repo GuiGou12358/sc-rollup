@@ -4,7 +4,10 @@
   "main": "index.js",
   "scripts": {
     "build-core": "tsc",
-    "test": "vitest"
+    "test": "vitest",
+    "gen-ah-metadata": "pnpm exec papi add ah -n polkadot_asset_hub",
+    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
+    "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +18,16 @@
     "vitest": "^3.0.9"
   },
   "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/sdk-ink": "0.0.1-1",
+    "@polkadot-labs/hdkd": "^0.0.13",
+    "@polkadot-labs/hdkd-helpers": "^0.0.13",
     "@polkadot/api": "^15.8.1",
     "@polkadot/api-contract": "^15.8.1",
     "@polkadot/keyring": "^13.4.3",
     "@polkadot/types": "^15.8.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "polkadot-api": "^1.9.7",
+    "scale-ts": "^1.6.1"
   }
 }
