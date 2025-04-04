@@ -1,17 +1,18 @@
 import {assert, expect, test} from "vitest";
 import {InkClient} from "../src/ink-client";
-import {stringToHex} from "@polkadot/util";
-import {Some} from "../../core/src/types";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
+import {Some} from "../../core/src/types";
+import type {HexString} from "@polkadot/util/types";
+import {stringToHex} from "@polkadot/util";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
-const address = 'YGbW5qcndM5dw6VKy1HpCFBnX2Ts3SanU6xPkRUErc9iYLM';
+const address = 'ZNSgeEfQDyEi4C6eLwMYeXQVQx5x4LVvxhKyVwrBDK3Z9gY';
 
 configDotenv();
 const pk = process.env.pk;
 
-/*
+
 test('encoding / decoding', async () => {
 
   if (pk == undefined){
@@ -74,18 +75,17 @@ test('Read / Write values', async () => {
   const key3 = stringToHex('key3')
   const value3 = await client.getBooleanValue(key3);
   console.log('key3 %s - value : %s', key3, value3);
-  const newValue3 = value3.isNone() ? false : !(value3 as Some<boolean>);
+  const newValue3 = value3.isNone() ? false : !(value3 as Some<boolean>).getValue();
   client.setBooleanValue(key3, newValue3);
 
   client.removeValue(stringToHex('key4'));
 
   const tx = await client.commit();
-  console.log('tx: %s', tx);
+  assert(tx)
 });
 
- */
 
-
+/*
 test('Poll message', async () => {
 
   if (pk == undefined){
@@ -104,9 +104,31 @@ test('Poll message', async () => {
   let message;
   do {
     message = await client.pollMessage();
-    console.log('message : ' + message);
+    if (message.isSome()){
+      const some = message as Some<HexString>;
+      console.log('message : ' + some.getValue());
+    } else {
+      console.log('No more message ');
+    }
   } while (message.isSome());
 
   await client.commit();
 
 });
+ */
+
+/*
+test('Test 0', async () => {
+
+  if (pk == undefined){
+    return;
+  }
+
+  const client = new InkClient(rpc, address, pk);
+
+  await client.isCompatible();
+
+  await client.test0();
+
+});
+*/

@@ -5,7 +5,6 @@
   "scripts": {
     "build-core": "tsc",
     "test": "vitest",
-    "gen-ah-metadata": "pnpm exec papi add ah -n polkadot_asset_hub",
     "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
     "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },
