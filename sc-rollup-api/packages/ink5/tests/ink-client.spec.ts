@@ -49,6 +49,18 @@ test('encoding / decoding', async () => {
 
 });
 
+/*
+test('Check compatibility', async () => {
+
+  if (pk == undefined){
+    return;
+  }
+
+  const client = new InkClient(rpc, address, pk);
+  await client.checkCompatibility();
+
+});
+*/
 
 test('Read / Write values', async () => {
 
