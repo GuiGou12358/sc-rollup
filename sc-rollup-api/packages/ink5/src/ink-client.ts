@@ -1,22 +1,17 @@
-import type {HexString} from "@polkadot/util/types";
-import {Action, None, Option, Some} from "../../core/src/types";
-
+import {Action, HexString, None, Option, Some} from "../../core/src/types";
 import {contracts, shibuya} from "@polkadot-api/descriptors";
-
-
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
-import {Binary, createClient, Enum, PolkadotSigner, SS58String} from 'polkadot-api';
+import {Binary, createClient, PolkadotSigner, SS58String} from 'polkadot-api';
 import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat";
 import {getWsProvider} from "polkadot-api/ws-provider/web";
-import {Contract} from "@polkadot/api-contract/base";
 import {getPolkadotSigner} from "polkadot-api/signer";
-import {Keyring} from "@polkadot/api";
+import {Keyring} from "@polkadot/keyring";
 
 export class InkClient {
 
     currentSession: Session;
-    contract: any | Contract<any>;
+    contract: any;
     readonly signer : PolkadotSigner;
     readonly signerAddress : SS58String;
 
@@ -328,7 +323,7 @@ export class InkClient {
         }
         const txHash = result.txHash;
         console.log('Tx hash ', txHash)
-        // clear the curret session
+        // clear the current session
         this.currentSession = new Session();
         return txHash;
     }

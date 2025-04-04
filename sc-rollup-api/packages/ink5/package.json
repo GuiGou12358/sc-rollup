@@ -12,21 +12,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@polkadot/util": "^13.4.3",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.9"
+    "vitest": "^3.0.9",
+    "dotenv": "^16.4.7"
   },
   "dependencies": {
+    "polkadot-api": "^1.9.7",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/sdk-ink": "0.0.1-1",
     "@polkadot-labs/hdkd": "^0.0.13",
     "@polkadot-labs/hdkd-helpers": "^0.0.13",
-    "@polkadot/api": "^15.8.1",
-    "@polkadot/api-contract": "^15.8.1",
     "@polkadot/keyring": "^13.4.3",
-    "@polkadot/types": "^15.8.1",
-    "dotenv": "^16.4.7",
-    "polkadot-api": "^1.9.7",
+    "@polkadot/util": "^13.4.3",
     "scale-ts": "^1.6.1"
   }
 }

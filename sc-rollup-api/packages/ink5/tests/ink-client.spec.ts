@@ -3,7 +3,6 @@ import {InkClient} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {Some} from "../../core/src/types";
-import type {HexString} from "@polkadot/util/types";
 import {stringToHex} from "@polkadot/util";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
