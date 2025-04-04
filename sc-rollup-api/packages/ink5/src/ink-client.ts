@@ -6,42 +6,59 @@ import {contracts, shibuya} from "@polkadot-api/descriptors";
 
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
-import {Binary, createClient, Enum, SS58String} from 'polkadot-api';
+import {Binary, createClient, Enum, PolkadotSigner, SS58String} from 'polkadot-api';
 import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat";
 import {getWsProvider} from "polkadot-api/ws-provider/web";
 import {Contract} from "@polkadot/api-contract/base";
 import {getPolkadotSigner} from "polkadot-api/signer";
 import {Keyring} from "@polkadot/api";
 
-
-const ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY";
-
 export class InkClient {
 
-    readonly rpc: string;
-    readonly address: string;
-    readonly pk: string;
-    contract: any | Contract<any>;
     currentSession: Session;
+    contract: any | Contract<any>;
+    readonly signer : PolkadotSigner;
+    readonly signerAddress : SS58String;
 
     public constructor(rpc: string, address: string, pk: string){
-        this.rpc = rpc;
-        this.address = address;
-        this.pk = pk;
         this.currentSession = new Session();
 
         const client = createClient(
           withPolkadotSdkCompat(
-            getWsProvider(this.rpc),
+            getWsProvider(rpc),
           )
         );
         const typedApi = client.getTypedApi(shibuya);
         const sdk = createInkSdk(typedApi, contracts.ink_client)
-        this.contract = sdk.getContract(this.address);
+        this.contract = sdk.getContract(address);
 
+        /*
+        const entropy = mnemonicToEntropy(this.pk);
+        const miniSecret = entropyToMiniSecret(entropy);
+        const derive = sr25519CreateDerive(miniSecret);
+        const hdkdKeyPair = derive("//Alice");
+
+        //console.log('pk : %s - length : %s', this.pk, this.pk.length);
+        //console.log('public key : %s', sr25519.getPublicKey(this.pk));
+        const signer = getPolkadotSigner(
+          //sr25519.getPublicKey(this.pk),
+          hdkdKeyPair.publicKey,
+          "Sr25519",
+          //(input) => sr25519.sign(input, this.pk)
+          hdkdKeyPair.sign
+        );
+        */
+
+        const keyringPair = new Keyring({type: 'sr25519'}).addFromSeed(hexToU8a(pk));
+        this.signerAddress = keyringPair.address;
+        this.signer = getPolkadotSigner(
+          keyringPair.publicKey,
+          "Sr25519",
+          keyringPair.sign
+        );
     }
 
-    public async isCompatible(){
+    public async checkCompatibility(){
         if (!await this.contract.isCompatible()){
             return Promise.reject('Contract has changed');
         }
@@ -56,7 +73,7 @@ export class InkClient {
     async getIndex(key: HexString): Promise<number> {
 
         const {success, value} = await this.contract.query('RollupClient::get_value',{
-           origin: ALICE,
+           origin: this.signerAddress,
             data: {
                key : Binary.fromHex(key)
             }
@@ -90,7 +107,7 @@ export class InkClient {
         console.log('Key for getting the message for index ' + index + ' : ' + key);
 
         const {value, success} = await this.contract.query('RollupClient::get_value',{
-            origin: ALICE,
+            origin: this.signerAddress,
             data: {
                 key : Binary.fromHex(key)
             }
@@ -123,7 +140,7 @@ export class InkClient {
 
     async hasMessage(): Promise<Boolean> {
         const {value, success} = await this.contract.query('RollupClient::has_message',{
-            origin: ALICE,
+            origin: this.signerAddress,
         });
         if (!success){
             console.error('Error to query hasMessage - value: %s ', value);
@@ -141,7 +158,7 @@ export class InkClient {
         }
 
         const {value, success} = await this.contract.query('RollupClient::get_value',{
-            origin: ALICE,
+            origin: this.signerAddress,
             data: {
                 key : Binary.fromHex(key)
             }
@@ -260,33 +277,6 @@ export class InkClient {
 
     async commit(): Promise<Option<HexString>> {
 
-        const keyringPair = new Keyring({type: 'sr25519'}).addFromSeed(hexToU8a(this.pk));
-        console.log('address %s', keyringPair.publicKey);
-
-
-        const signer = getPolkadotSigner(
-          keyringPair.publicKey,
-          "Sr25519",
-          keyringPair.sign
-        );
-
-        /*
-        const entropy = mnemonicToEntropy(this.pk);
-        const miniSecret = entropyToMiniSecret(entropy);
-        const derive = sr25519CreateDerive(miniSecret);
-        const hdkdKeyPair = derive("//Alice");
-
-        //console.log('pk : %s - length : %s', this.pk, this.pk.length);
-        //console.log('public key : %s', sr25519.getPublicKey(this.pk));
-        const signer = getPolkadotSigner(
-          //sr25519.getPublicKey(this.pk),
-          hdkdKeyPair.publicKey,
-          "Sr25519",
-          //(input) => sr25519.sign(input, this.pk)
-          hdkdKeyPair.sign
-        );
-        */
-
         let conditions: (Binary | undefined)[][] =  [];
 
         let updates: (Binary | undefined)[][] =  [];
@@ -314,7 +304,7 @@ export class InkClient {
 
         console.log('Dry Run ...')
         const {value, success} = await this.contract.query('RollupClient::rollup_cond_eq',{
-            origin: keyringPair.address,
+            origin: this.signerAddress,
             data: {
                 conditions, updates, actions
             }
@@ -326,11 +316,11 @@ export class InkClient {
 
         console.log('Submitting tx ... ')
         const result = await this.contract.send('RollupClient::rollup_cond_eq',{
-            origin: keyringPair.address,
+            origin: this.signerAddress,
             data: {
                 conditions, updates, actions
             }
-        }).signAndSubmit(signer);
+        }).signAndSubmit(this.signer);
 
         if (!result.ok){
             console.log('Error when submitting tx ', result)
