@@ -6,7 +6,7 @@ use ink::env::DefaultEnvironment;
 use ink::prelude::vec::Vec;
 use ink::primitives::AccountId;
 
-const ATTESTOR_ROLE: RoleType = ink::selector_id!("ATTESTOR_ROLE");
+pub const ATTESTOR_ROLE: RoleType = ink::selector_id!("ATTESTOR_ROLE");
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]

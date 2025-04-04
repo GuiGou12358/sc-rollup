@@ -3,7 +3,7 @@ use ink::primitives::AccountId;
 
 pub type RoleType = u32;
 
-const ADMIN_ROLE: RoleType = ink::selector_id!("ADMIN_ROLE");
+pub const ADMIN_ROLE: RoleType = ink::selector_id!("ADMIN_ROLE");
 
 /*
 #[derive(Default, Debug)]

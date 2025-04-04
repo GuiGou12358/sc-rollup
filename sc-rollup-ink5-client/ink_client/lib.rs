@@ -5,13 +5,11 @@ mod ink_client {
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
     use ink::storage::Mapping;
-    use ink_client_lib::traits::access_control::{AccessControl, AccessControlError, BaseAccessControl, RoleType};
+    use ink_client_lib::traits::access_control::{AccessControl, AccessControlError, BaseAccessControl, RoleType, ADMIN_ROLE};
     use ink_client_lib::traits::kv_store::{Key, KvStore, Value};
     use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
     use ink_client_lib::traits::ownable::{BaseOwnable, Ownable, OwnableError};
-    use ink_client_lib::traits::rollup_client::{
-        BaseRollupAnchor, HandleActionInput, RollupClient,
-    };
+    use ink_client_lib::traits::rollup_client::{BaseRollupAnchor, HandleActionInput, RollupClient, ATTESTOR_ROLE};
     use ink_client_lib::traits::RollupClientError;
 
     #[derive(Default, Debug)]
@@ -34,6 +32,16 @@ mod ink_client {
         #[ink(message)]
         pub fn push_message(&mut self, message: String) -> Result<QueueIndex, RollupClientError>  {
             MessageQueue::push_message(self, &message)
+        }
+
+        #[ink(message)]
+        pub fn get_admin_role(&self) -> RoleType{
+            ADMIN_ROLE
+        }
+
+        #[ink(message)]
+        pub fn get_attestor_role(&self) -> RoleType{
+            ATTESTOR_ROLE
         }
     }
 
@@ -61,7 +69,7 @@ mod ink_client {
 
         #[ink(message)]
         fn transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
-            self.transfer_ownership(new_owner)
+            self.inner_transfer_ownership(new_owner)
         }
     }
 
@@ -94,12 +102,12 @@ mod ink_client {
 
         #[ink(message)]
         fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
-            self.revoke_role(role, account)
+            self.inner_revoke_role(role, account)
         }
 
         #[ink(message)]
         fn renounce_role(&mut self, role: RoleType) -> Result<(), AccessControlError> {
-            self.renounce_role(role)
+            self.inner_renounce_role(role)
         }
 
     }
@@ -126,6 +134,7 @@ mod ink_client {
             Ok(())
         }
     }
+
     impl RollupClient for InkClient {
 
         #[ink(message)]
