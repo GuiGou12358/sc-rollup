@@ -274,11 +274,14 @@ export class InkClient {
 
         let conditions: (Binary | undefined)[][] =  [];
         // optimistic locking: check the version of the current session
+        // because all data read in the session are already put in the condition, we don't need to add this code
+        /*
         console.log('condition: key %s equals to with value %s', VERSION_NUMBER_KEY, this.currentSession.version);
         conditions.push([
             Binary.fromHex(VERSION_NUMBER_KEY),
             this.currentSession.version?.map(this.encodeNumericValue).map(converter).valueOf()
         ]);
+         */
         // check if there is no change in the read values
         this.currentSession.values.forEach(
           (value, key) => {
