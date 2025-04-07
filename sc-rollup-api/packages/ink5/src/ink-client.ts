@@ -268,6 +268,13 @@ export class InkClient {
 
     async commit(): Promise<Option<HexString>> {
 
+        if (!this.currentSession.hasUpdates()){
+            // nothing to commit
+            console.log('Nothing to commit ');
+            // do we need to clear the session?
+            return new None();
+        }
+
         const converter = (input: HexString): Binary => {
             return Binary.fromHex(input);
         }
@@ -389,6 +396,10 @@ class Session {
     actions: HexString[] = [];
     currentIndex: number | undefined;
     indexUpdated: boolean = false;
+
+    hasUpdates() : boolean {
+        return this.indexUpdated || this.updates.size > 0 || this.actions.length > 0;
+    }
 
 }
 
