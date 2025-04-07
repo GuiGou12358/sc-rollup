@@ -1,4 +1,4 @@
-import {HexString, None, Option} from "../../core/src/types";
+import {HexString, None, Option, Some} from "../../core/src/types";
 import {contracts, shibuya} from "@polkadot-api/descriptors";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
@@ -8,6 +8,13 @@ import {getWsProvider} from "polkadot-api/ws-provider/web";
 import {getPolkadotSigner} from "polkadot-api/signer";
 import {Keyring} from "@polkadot/keyring";
 
+
+// q/_tail : 0x712f5f7461696c
+const QUEUE_TAIL_KEY = stringToHex('q/_tail');
+// q/_head : 0x712f5f68656164
+const QUEUE_HEAD_KEY = stringToHex('q/_head');
+const VERSION_NUMBER_KEY = stringToHex('v/_number');
+
 export class InkClient {
 
     currentSession: Session;
@@ -16,6 +23,7 @@ export class InkClient {
     readonly signerAddress : SS58String;
 
     public constructor(rpc: string, address: string, pk: string){
+
         this.currentSession = new Session();
 
         const client = createClient(
@@ -26,7 +34,6 @@ export class InkClient {
         const typedApi = client.getTypedApi(shibuya);
         const sdk = createInkSdk(typedApi, contracts.ink_client)
         this.contract = sdk.getContract(address);
-
         /*
         const entropy = mnemonicToEntropy(this.pk);
         const miniSecret = entropyToMiniSecret(entropy);
@@ -59,6 +66,11 @@ export class InkClient {
         }
     }
 
+    async startSession(){
+        this.currentSession = new Session();
+        this.currentSession.version = await this.getNumericValue(VERSION_NUMBER_KEY);
+    }
+
     /*
     getSnapshotId(): SnapshotId {
         return "";
@@ -87,13 +99,11 @@ export class InkClient {
     }
 
     async getQueueTailIndex(): Promise<number> {
-        // q/_tail : 0x712f5f7461696c
-        return await this.getIndex(stringToHex('q/_tail'));
+        return await this.getIndex(QUEUE_TAIL_KEY);
     }
 
     async getQueueHeadIndex(): Promise<number> {
-        // q/_head : 0x712f5f68656164
-        return await this.getIndex(stringToHex('q/_head'));
+        return await this.getIndex(QUEUE_HEAD_KEY);
     }
 
     async getMessage(index: number): Promise<HexString> {
@@ -263,6 +273,13 @@ export class InkClient {
         }
 
         let conditions: (Binary | undefined)[][] =  [];
+        // optimistic locking: check the version of the current session
+        console.log('condition: key %s equals to with value %s', VERSION_NUMBER_KEY, this.currentSession.version);
+        conditions.push([
+            Binary.fromHex(VERSION_NUMBER_KEY),
+            this.currentSession.version?.map(this.encodeNumericValue).map(converter).valueOf()
+        ]);
+        // check if there is no change in the read values
         this.currentSession.values.forEach(
           (value, key) => {
               console.log('condition: key %s equals to with value %s', key, value);
@@ -271,6 +288,14 @@ export class InkClient {
         );
 
         let updates: (Binary | undefined)[][] =  [];
+        // optimistic locking: bump the version
+        const newVersion = this.bumpVersion();
+        console.log('update key %s with value %s', VERSION_NUMBER_KEY, newVersion);
+        updates.push([
+            Binary.fromHex(VERSION_NUMBER_KEY),
+            newVersion.map(this.encodeNumericValue).map(converter).valueOf()
+        ]);
+
         this.currentSession.updates.forEach(
           (value, key) => {
               console.log('update key %s with value %s', key, value);
@@ -332,21 +357,35 @@ export class InkClient {
         }
         const txHash = result.txHash;
         console.log('Tx hash ', txHash)
-        // clear the current session
-        this.currentSession = new Session();
+        // clear the current session and start a new one
+        await this.startSession();
         return txHash;
     }
 
-    rollback() {
-        this.currentSession = new Session();
+    async rollback() {
+        // start a new session
+        await this.startSession();
     }
+
+     bumpVersion() : Option<number> {
+        if (this.currentSession.version == undefined){
+            throw new Error('the session is not started');
+        }
+        const version = this.currentSession.version.valueOf()
+        if (version == undefined){
+            return new Some(1);
+        }
+        return new Some(version + 1);
+     }
 }
 
 class Session {
+    version: Option<number> | undefined;
     values: Map<HexString, Option<HexString>> = new Map();
     updates: Map<HexString, Option<HexString>> = new Map();
     actions: HexString[] = [];
     currentIndex: number | undefined;
     indexUpdated: boolean = false;
+
 }
 

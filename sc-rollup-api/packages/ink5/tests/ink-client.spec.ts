@@ -70,6 +70,8 @@ test('Read / Write values', async () => {
 
   const client = new InkClient(rpc, address, pk);
 
+  await client.startSession();
+
   const key1 = stringToHex('key1')
   const value1 = await client.getNumericValue(key1);
   console.log('key1 %s - value : %s', key1, value1);
@@ -106,6 +108,8 @@ test('Poll message', async () => {
   }
 
   const client = new InkClient(rpc, address, pk);
+
+  await client.startSession();
 
   const tail = await client.getQueueTailIndex();
   console.log('Tail Index: ' + tail);
