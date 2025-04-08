@@ -7,22 +7,64 @@ export abstract class Client<KV, A> {
   protected currentSession: Session;
   protected readonly codec: Codec;
   protected readonly actionEncoder: ActionEncoder<KV, A>;
-  protected versionNumberKey: HexString;
+  protected readonly versionNumberKey: HexString;
+  protected readonly queueTailKey: HexString;
+  protected readonly queueHeadKey: HexString;
 
-  protected constructor(codec: Codec, actionEncoder: ActionEncoder<KV, A>, versionNumberKey: HexString) {
+  protected constructor(
+    codec: Codec,
+    actionEncoder: ActionEncoder<KV, A>,
+    versionNumberKey: HexString,
+    queueTailKey: HexString,
+    queueHeadKey: HexString,
+  ) {
     this.currentSession = new Session();
     this.codec = codec;
     this.actionEncoder = actionEncoder;
     this.versionNumberKey = versionNumberKey;
+    this.queueTailKey = queueTailKey;
+    this.queueHeadKey = queueHeadKey;
   }
 
-  abstract getQueueTailIndex(): Promise<number>;
+  private async getIndex(key: HexString): Promise<number> {
 
-  abstract getQueueHeadIndex(): Promise<number>;
+    const encodedIndex = await this.getRemoteValue(key)
+    /*
+    const {success, value} = await this.contract.query('RollupClient::get_value',{
+      origin: this.signerAddress,
+      data: {
+        key : Binary.fromHex(key)
+      }
+    });
+
+    if (!success){
+      console.error('Error to get value for key %s  - value: %s ', key, value);
+      return Promise.reject('Error to get value for key ' + key);
+    }
+
+    const encodedValue =  value.response?.asHex();
+    if (!encodedValue){
+      return 0;
+    }
+    */
+
+    const index = encodedIndex.map(this.codec.decodeNumeric).valueOf();
+    return (index == undefined) ? 0 : index;
+
+  }
+
+  async getQueueTailIndex(): Promise<number> {
+    return await this.getIndex(this.queueTailKey);
+  }
+
+  async getQueueHeadIndex(): Promise<number> {
+    return await this.getIndex(this.queueHeadKey);
+  }
+
 
   abstract getMessage(index: number): Promise<HexString>;
 
-  protected abstract fetchValue(key: HexString): Promise<Option<HexString>>;
+  protected abstract getRemoteValue(key: HexString): Promise<Option<HexString>>;
 
   protected abstract sendTransaction(conditions: KV[], updates: KV[], actions: A[]) : Promise<HexString>;
 
@@ -62,7 +104,7 @@ export abstract class Client<KV, A> {
     }
 
     // fetch the value remotely
-    const remoteValue = await this.fetchValue(key);
+    const remoteValue = await this.getRemoteValue(key);
     // save the value in the session
     this.currentSession.values.set(key, remoteValue);
     return remoteValue;

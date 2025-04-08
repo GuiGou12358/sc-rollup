@@ -28,7 +28,7 @@ export class InkClient extends Client<KV, Action>{
 
     public constructor(rpc: string, address: string, pk: string){
 
-        super(new InkCodec(), new InkActionDecoder(), VERSION_NUMBER_KEY);
+        super(new InkCodec(), new InkActionDecoder(), VERSION_NUMBER_KEY, QUEUE_TAIL_KEY, QUEUE_HEAD_KEY);
 
         const client = createClient(
           withPolkadotSdkCompat(
@@ -70,35 +70,6 @@ export class InkClient extends Client<KV, Action>{
         }
     }
 
-    async getIndex(key: HexString): Promise<number> {
-
-        const {success, value} = await this.contract.query('RollupClient::get_value',{
-           origin: this.signerAddress,
-            data: {
-               key : Binary.fromHex(key)
-            }
-        });
-
-        if (!success){
-            console.error('Error to get value for key %s  - value: %s ', key, value);
-            return Promise.reject('Error to get value for key ' + key);
-        }
-
-        const encodedValue =  value.response?.asHex();
-        if (!encodedValue){
-            return 0;
-        }
-        return this.codec.decodeNumeric(encodedValue);
-    }
-
-    async getQueueTailIndex(): Promise<number> {
-        return await this.getIndex(QUEUE_TAIL_KEY);
-    }
-
-    async getQueueHeadIndex(): Promise<number> {
-        return await this.getIndex(QUEUE_HEAD_KEY);
-    }
-
     async getMessage(index: number): Promise<HexString> {
         //const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
         const encodedIndex = hexToU8a(this.codec.encodeNumeric(index));
@@ -128,7 +99,7 @@ export class InkClient extends Client<KV, Action>{
         return value.response;
     }
 
-    async fetchValue(key: HexString): Promise<Option<HexString>> {
+    async getRemoteValue(key: HexString): Promise<Option<HexString>> {
 
         const {value, success} = await this.contract.query('RollupClient::get_value',{
             origin: this.signerAddress,
