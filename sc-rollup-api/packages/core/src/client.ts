@@ -1,17 +1,16 @@
 import {HexString, None, Option, Some} from "./types";
+import {Codec} from "./codec";
 
 export abstract class Client<KV, A> {
 
   protected currentSession: Session;
-  protected readonly encoder: Encoder;
-  protected readonly decoder: Decoder;
+  protected readonly codec: Codec;
   protected readonly actionEncoder: ActionEncoder<KV, A>;
   protected versionNumberKey: HexString;
 
-  protected constructor(encoder: Encoder, decoder: Decoder, actionEncoder: ActionEncoder<KV, A>, versionNumberKey: HexString) {
+  protected constructor(codec: Codec, actionEncoder: ActionEncoder<KV, A>, versionNumberKey: HexString) {
     this.currentSession = new Session();
-    this.encoder = encoder;
-    this.decoder = decoder;
+    this.codec = codec;
     this.actionEncoder = actionEncoder;
     this.versionNumberKey = versionNumberKey;
   }
@@ -73,31 +72,31 @@ export abstract class Client<KV, A> {
 
   public async getNumericValue(key: HexString): Promise<Option<number>> {
     const value = await this.getValue(key);
-    return value.map(this.decoder.decodeNumeric);
+    return value.map(this.codec.decodeNumeric);
   }
 
   public async getStringValue(key: HexString): Promise<Option<string>> {
     const value = await this.getValue(key)
-    return value.map(this.decoder.decodeString);
+    return value.map(this.codec.decodeString);
   }
 
   public async getBooleanValue(key: HexString): Promise<Option<boolean>> {
     const value = await this.getValue(key)
-    return value.map(this.decoder.decodeBoolean);
+    return value.map(this.codec.decodeBoolean);
   }
 
   public setStringValue(key: HexString, value : string)  {
-    const v = this.encoder.encodeString(value);
+    const v = this.codec.encodeString(value);
     this.setValue(key, Option.of(v));
   }
 
   public setBooleanValue(key: HexString, value : boolean)  {
-    const v = this.encoder.encodeBoolean(value);
+    const v = this.codec.encodeBoolean(value);
     this.setValue(key, Option.of(v));
   }
 
   public setNumericValue(key: HexString, value : number)  {
-    const v = this.encoder.encodeNumeric(value);
+    const v = this.codec.encodeNumeric(value);
     this.setValue(key, Option.of(v));
   }
 
@@ -154,7 +153,7 @@ export abstract class Client<KV, A> {
     // optimistic locking: bump the version
     const newVersion = this.bumpVersion();
     console.log('update key %s with value %s', this.versionNumberKey, newVersion);
-    updates.push(this.actionEncoder.encodeKeyValue(this.versionNumberKey, newVersion.map(this.encoder.encodeNumeric)));
+    updates.push(this.actionEncoder.encodeKeyValue(this.versionNumberKey, newVersion.map(this.codec.encodeNumeric)));
 
     this.currentSession.updates.forEach(
       (value, key) => {

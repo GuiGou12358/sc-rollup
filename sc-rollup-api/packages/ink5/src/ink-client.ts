@@ -1,5 +1,6 @@
 import {HexString, Option} from "../../core/src/types";
-import {ActionEncoder, Client, Decoder, Encoder} from "../../core/src/client";
+import {Client} from "../../core/src/client";
+import {ActionEncoder, Codec} from "../../core/src/codec";
 import {contracts, shibuya} from "@polkadot-api/descriptors";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
@@ -27,7 +28,7 @@ export class InkClient extends Client<KV, Action>{
 
     public constructor(rpc: string, address: string, pk: string){
 
-        super(new InkEncoder(), new InkDecoder(), new InkActionDecoder(), VERSION_NUMBER_KEY);
+        super(new InkCodec(), new InkActionDecoder(), VERSION_NUMBER_KEY);
 
         const client = createClient(
           withPolkadotSdkCompat(
@@ -87,7 +88,7 @@ export class InkClient extends Client<KV, Action>{
         if (!encodedValue){
             return 0;
         }
-        return this.decoder.decodeNumeric(encodedValue);
+        return this.codec.decodeNumeric(encodedValue);
     }
 
     async getQueueTailIndex(): Promise<number> {
@@ -100,7 +101,7 @@ export class InkClient extends Client<KV, Action>{
 
     async getMessage(index: number): Promise<HexString> {
         //const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
-        const encodedIndex = hexToU8a(this.encoder.encodeNumeric(index));
+        const encodedIndex = hexToU8a(this.codec.encodeNumeric(index));
         const key = u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
         //console.log('key for getting the message ' + index + ' : ' + key);
 
@@ -173,7 +174,7 @@ export class InkClient extends Client<KV, Action>{
 
 }
 
-export class InkEncoder implements Encoder {
+export class InkCodec implements Codec {
 
     encodeString(value: string): HexString {
         return hexAddPrefix(Binary.fromText(value).asHex());
@@ -197,9 +198,6 @@ export class InkEncoder implements Encoder {
         // u32
         return hexAddPrefix(v.padEnd(8, '0'));
     }
-}
-
-export class InkDecoder implements Decoder {
 
     decodeString(value: HexString): string {
         return value.replace(/^0x/i, '')

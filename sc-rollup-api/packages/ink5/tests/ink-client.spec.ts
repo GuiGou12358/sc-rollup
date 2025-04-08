@@ -1,5 +1,5 @@
 import {assert, expect, test} from "vitest";
-import {InkClient, InkDecoder, InkEncoder} from "../src/ink-client";
+import {InkClient, InkCodec} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {stringToHex} from "@polkadot/util";
@@ -17,36 +17,35 @@ test('encoding / decoding', async () => {
     return;
   }
 
-  const encoder = new InkEncoder();
-  const decoder = new InkDecoder();
+  const codec = new InkCodec();
 
   let n : number = 20;
-  let encodedNumber = encoder.encodeNumeric(n);
+  let encodedNumber = codec.encodeNumeric(n);
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x14000000');
-  expect(decoder.decodeNumeric(encodedNumber)).toBe(n);
+  expect(codec.decodeNumeric(encodedNumber)).toBe(n);
 
   n = 5;
-  encodedNumber = encoder.encodeNumeric(n);
+  encodedNumber = codec.encodeNumeric(n);
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x05000000');
-  expect(decoder.decodeNumeric(encodedNumber)).toBe(n);
+  expect(codec.decodeNumeric(encodedNumber)).toBe(n);
 
-  const encodedBooleanFalse = encoder.encodeBoolean(false);
+  const encodedBooleanFalse = codec.encodeBoolean(false);
   console.log('encoded %s : %s', false, encodedBooleanFalse);
   expect(encodedBooleanFalse).toBe('0x00');
-  expect(decoder.decodeBoolean(encodedBooleanFalse)).toBe(false);
+  expect(codec.decodeBoolean(encodedBooleanFalse)).toBe(false);
 
-  const encodedBooleanTrue = encoder.encodeBoolean(true);
+  const encodedBooleanTrue = codec.encodeBoolean(true);
   console.log('encoded %s : %s', true, encodedBooleanTrue);
   expect(encodedBooleanTrue).toBe('0x01');
-  expect(decoder.decodeBoolean(encodedBooleanTrue)).toBe(true);
+  expect(codec.decodeBoolean(encodedBooleanTrue)).toBe(true);
 
   const s = 'test';
-  const encodedString = encoder.encodeString(s);
+  const encodedString = codec.encodeString(s);
   console.log('encoded %s : %s', s, encodedString);
   assert(encodedString); // todo check the value
-  expect(decoder.decodeString(encodedString)).toBe(s);
+  expect(codec.decodeString(encodedString)).toBe(s);
 
 });
 
