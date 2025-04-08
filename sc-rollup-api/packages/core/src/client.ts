@@ -1,5 +1,6 @@
 import {HexString, None, Option, Some} from "./types";
 import {Codec} from "./codec";
+import {Session} from "./session";
 
 export abstract class Client<KV, A> {
 
@@ -118,7 +119,7 @@ export abstract class Client<KV, A> {
   protected abstract sendTransaction(conditions: KV[], updates: KV[], actions: A[]) : Promise<HexString>;
 
 
-  addAction(action: HexString) {
+  public addAction(action: HexString) {
     this.currentSession.actions.push(action);
   }
 
@@ -187,33 +188,6 @@ export abstract class Client<KV, A> {
     await this.startSession();
   }
 
-}
-
-
-
-class Session {
-  version: Option<number> | undefined;
-  values: Map<HexString, Option<HexString>> = new Map();
-  updates: Map<HexString, Option<HexString>> = new Map();
-  actions: HexString[] = [];
-  currentIndex: number | undefined;
-  indexUpdated: boolean = false;
-
-  hasUpdates() : boolean {
-    return this.indexUpdated || this.updates.size > 0 || this.actions.length > 0;
-  }
-}
-
-export interface Encoder {
-  encodeString(value: string): HexString ;
-  encodeBoolean(value: boolean): HexString ;
-  encodeNumeric(value: number): HexString ;
-}
-
-export interface Decoder {
-  decodeString(value: HexString): string ;
-  decodeBoolean(value: HexString): boolean ;
-  decodeNumeric(value: HexString): number;
 }
 
 export interface ActionEncoder<KV, A> {
