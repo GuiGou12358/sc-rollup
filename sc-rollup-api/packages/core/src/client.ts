@@ -26,31 +26,21 @@ export abstract class Client<KV, A> {
     this.queueHeadKey = queueHeadKey;
   }
 
+  protected abstract getMessageKey(index: number): HexString;
+
+  protected abstract getRemoteValue(key: HexString): Promise<Option<HexString>>;
+
+  protected abstract sendTransaction(conditions: KV[], updates: KV[], actions: A[]) : Promise<HexString>;
+
+  public async startSession(){
+    this.currentSession = new Session();
+    this.currentSession.version = await this.getNumericValue(this.versionNumberKey);
+  }
+
   private async getIndex(key: HexString): Promise<number> {
-
-    const encodedIndex = await this.getRemoteValue(key)
-    /*
-    const {success, value} = await this.contract.query('RollupClient::get_value',{
-      origin: this.signerAddress,
-      data: {
-        key : Binary.fromHex(key)
-      }
-    });
-
-    if (!success){
-      console.error('Error to get value for key %s  - value: %s ', key, value);
-      return Promise.reject('Error to get value for key ' + key);
-    }
-
-    const encodedValue =  value.response?.asHex();
-    if (!encodedValue){
-      return 0;
-    }
-    */
-
+    const encodedIndex = await this.getRemoteValue(key);
     const index = encodedIndex.map(this.codec.decodeNumeric).valueOf();
     return (index == undefined) ? 0 : index;
-
   }
 
   async getQueueTailIndex(): Promise<number> {
@@ -61,16 +51,14 @@ export abstract class Client<KV, A> {
     return await this.getIndex(this.queueHeadKey);
   }
 
-
-  abstract getMessage(index: number): Promise<HexString>;
-
-  protected abstract getRemoteValue(key: HexString): Promise<Option<HexString>>;
-
-  protected abstract sendTransaction(conditions: KV[], updates: KV[], actions: A[]) : Promise<HexString>;
-
-  public async startSession(){
-    this.currentSession = new Session();
-    this.currentSession.version = await this.getNumericValue(this.versionNumberKey);
+  public async getMessage(index: number): Promise<HexString> {
+    const key = this.getMessageKey(index);
+    const optionalMessage = await this.getRemoteValue(key);
+    const message = optionalMessage.valueOf();
+    if (message == undefined){
+      return Promise.reject('Error to get the message for index ' + index);
+    }
+    return message;
   }
 
   public async pollMessage(): Promise<Option<HexString>> {

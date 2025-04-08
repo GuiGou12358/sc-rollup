@@ -70,23 +70,10 @@ export class InkClient extends Client<KV, Action>{
         }
     }
 
-    async getMessage(index: number): Promise<HexString> {
+    getMessageKey(index: number): HexString {
         //const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
         const encodedIndex = hexToU8a(this.codec.encodeNumeric(index));
-        const key = u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
-        //console.log('key for getting the message ' + index + ' : ' + key);
-
-        const {value, success} = await this.contract.query('RollupClient::get_value',{
-            origin: this.signerAddress,
-            data: {
-                key : Binary.fromHex(key)
-            }
-        });
-
-        if (!success){
-            return Promise.reject('Error to get the message for index ' + index);
-        }
-        return value.response?.asHex();
+        return u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
     }
 
     async hasMessage(): Promise<Boolean> {
