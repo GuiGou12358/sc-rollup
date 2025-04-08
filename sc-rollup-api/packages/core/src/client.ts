@@ -16,16 +16,20 @@ export abstract class Client<KV, A> {
     this.versionNumberKey = versionNumberKey;
   }
 
-  public async startSession(){
-    this.currentSession = new Session();
-    this.currentSession.version = await this.getNumericValue(this.versionNumberKey);
-  }
-
   abstract getQueueTailIndex(): Promise<number>;
 
   abstract getQueueHeadIndex(): Promise<number>;
 
   abstract getMessage(index: number): Promise<HexString>;
+
+  protected abstract fetchValue(key: HexString): Promise<Option<HexString>>;
+
+  protected abstract sendTransaction(conditions: KV[], updates: KV[], actions: A[]) : Promise<HexString>;
+
+  public async startSession(){
+    this.currentSession = new Session();
+    this.currentSession.version = await this.getNumericValue(this.versionNumberKey);
+  }
 
   public async pollMessage(): Promise<Option<HexString>> {
 
@@ -43,9 +47,6 @@ export abstract class Client<KV, A> {
     return Option.of(message);
   }
 
-  protected abstract fetchValue(key: HexString): Promise<Option<HexString>>;
-
-
   public async getValue(key: HexString): Promise<Option<HexString>> {
 
     // search in the updated values
@@ -60,7 +61,7 @@ export abstract class Client<KV, A> {
       return localValue;
     }
 
-    // fetch teh value remotely
+    // fetch the value remotely
     const remoteValue = await this.fetchValue(key);
     // save the value in the session
     this.currentSession.values.set(key, remoteValue);
@@ -105,7 +106,7 @@ export abstract class Client<KV, A> {
     this.setValue(key, new None());
   }
 
-  bumpVersion() : Option<number> {
+  private bumpVersion() : Option<number> {
     if (this.currentSession.version == undefined){
       throw new Error('the session is not started');
     }
@@ -115,9 +116,6 @@ export abstract class Client<KV, A> {
     }
     return new Some(version + 1);
   }
-
-  protected abstract sendTransaction(conditions: KV[], updates: KV[], actions: A[]) : Promise<HexString>;
-
 
   public addAction(action: HexString) {
     this.currentSession.actions.push(action);
@@ -183,7 +181,7 @@ export abstract class Client<KV, A> {
 
   }
 
-  async rollback() {
+  public async rollback() {
     // start a new session
     await this.startSession();
   }
