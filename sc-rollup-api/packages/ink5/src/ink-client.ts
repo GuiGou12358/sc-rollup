@@ -1,4 +1,5 @@
-import {HexString, None, Option, Some} from "../../core/src/types";
+import {HexString, Option} from "../../core/src/types";
+import {ActionEncoder, Client, Decoder, Encoder} from "../../core/src/client";
 import {contracts, shibuya} from "@polkadot-api/descriptors";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
 import {createInkSdk} from "@polkadot-api/sdk-ink";
@@ -15,16 +16,18 @@ const QUEUE_TAIL_KEY = stringToHex('q/_tail');
 const QUEUE_HEAD_KEY = stringToHex('q/_head');
 const VERSION_NUMBER_KEY = stringToHex('v/_number');
 
-export class InkClient {
+type KV = [Binary, Binary | undefined];
+type Action = {};
 
-    currentSession: Session;
+export class InkClient extends Client<KV, Action>{
+
     contract: any;
     readonly signer : PolkadotSigner;
     readonly signerAddress : SS58String;
 
     public constructor(rpc: string, address: string, pk: string){
 
-        this.currentSession = new Session();
+        super(new InkEncoder(), new InkDecoder(), new InkActionDecoder(), VERSION_NUMBER_KEY);
 
         const client = createClient(
           withPolkadotSdkCompat(
@@ -66,17 +69,6 @@ export class InkClient {
         }
     }
 
-    async startSession(){
-        this.currentSession = new Session();
-        this.currentSession.version = await this.getNumericValue(VERSION_NUMBER_KEY);
-    }
-
-    /*
-    getSnapshotId(): SnapshotId {
-        return "";
-    }
-     */
-
     async getIndex(key: HexString): Promise<number> {
 
         const {success, value} = await this.contract.query('RollupClient::get_value',{
@@ -95,7 +87,7 @@ export class InkClient {
         if (!encodedValue){
             return 0;
         }
-        return this.decodeNumericValue(encodedValue);
+        return this.decoder.decodeNumeric(encodedValue);
     }
 
     async getQueueTailIndex(): Promise<number> {
@@ -108,7 +100,7 @@ export class InkClient {
 
     async getMessage(index: number): Promise<HexString> {
         //const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
-        const encodedIndex = hexToU8a(this.encodeNumericValue(index));
+        const encodedIndex = hexToU8a(this.encoder.encodeNumeric(index));
         const key = u8aToHex(u8aConcat(stringToU8a('q/'), encodedIndex));
         //console.log('key for getting the message ' + index + ' : ' + key);
 
@@ -125,22 +117,6 @@ export class InkClient {
         return value.response?.asHex();
     }
 
-    async pollMessage(): Promise<Option<HexString>> {
-
-        const tailIndex = await this.getQueueTailIndex();
-
-        if (this.currentSession.currentIndex == undefined){
-            this.currentSession.currentIndex = await this.getQueueHeadIndex();
-        }
-        if (this.currentSession.currentIndex >= tailIndex){
-            return new None();
-        }
-        const message = await this.getMessage(this.currentSession.currentIndex);
-        this.currentSession.currentIndex += 1;
-        this.currentSession.indexUpdated = true;
-        return Option.of(message);
-    }
-
     async hasMessage(): Promise<Boolean> {
         const {value, success} = await this.contract.query('RollupClient::has_message',{
             origin: this.signerAddress,
@@ -151,21 +127,8 @@ export class InkClient {
         return value.response;
     }
 
-    async getValue(key: HexString): Promise<Option<HexString>> {
+    async fetchValue(key: HexString): Promise<Option<HexString>> {
 
-        // search in the updated values
-        const updatedValue = this.currentSession.updates.get(key);
-        if (updatedValue){
-            return updatedValue;
-        }
-
-        // search in the session
-        const localValue = this.currentSession.values.get(key);
-        if (localValue){
-            return localValue;
-        }
-
-        // load the value
         const {value, success} = await this.contract.query('RollupClient::get_value',{
             origin: this.signerAddress,
             data: {
@@ -177,171 +140,11 @@ export class InkClient {
             return Promise.reject('Error to query get_value method for key ' + key);
         }
 
-        const remoteValue = Option.of(value.response?.asHex());
-        // save the value in the session
-        this.currentSession.values.set(key, remoteValue);
-        return remoteValue;
+        return Option.of(value.response?.asHex());
     };
 
-    async getNumericValue(key: HexString): Promise<Option<number>> {
-        const value = await this.getValue(key);
-        return value.map(this.decodeNumericValue);
-    }
 
-    async getStringValue(key: HexString): Promise<Option<string>> {
-        const value = await this.getValue(key)
-        return value.map(this.decodeStringValue);
-    }
-
-    async getBooleanValue(key: HexString): Promise<Option<boolean>> {
-        const value = await this.getValue(key)
-        return value.map(this.decodeBooleanValue);
-    }
-
-    decodeStringValue(value: HexString): string {
-        return value.replace(/^0x/i, '')
-          .match(/.{1,2}/g)!
-          .map(byte => String.fromCharCode(parseInt(byte, 16)))
-          .join('');
-    }
-
-    decodeBooleanValue(value: HexString): boolean {
-        return value === '0x01';
-    }
-
-    decodeNumericValue(value: HexString): number {
-        //return u8aToNumber(hexToU8a(value, 8));
-        return parseInt(value.replace(/(00)+$/, ''), 16);
-
-    }
-
-    encodeStringValue(value: string): HexString {
-        return hexAddPrefix(Binary.fromText(value).asHex());
-    }
-
-    encodeBooleanValue(value: boolean): HexString {
-        return value ? '0x01' : '0x00';
-    }
-
-    encodeNumericValue(value: number): HexString {
-        //return u8aToHex(numberToU8a(value, 8));
-        //return numberToHex(value, 8);
-
-        let v = value.toString(16);
-        if (v.length % 2 != 0) {
-            v = '0' + v;
-        }
-        if (v.length > 8) {
-            throw new Error('Too big number for u32');
-        }
-        // u32
-        return hexAddPrefix(v.padEnd(8, '0'));
-
-    }
-
-    setStringValue(key: HexString, value : string)  {
-        const v = this.encodeStringValue(value);
-        this.setValue(key, Option.of(v));
-    }
-
-    setBooleanValue(key: HexString, value : boolean)  {
-        const v = this.encodeBooleanValue(value);
-        this.setValue(key, Option.of(v));
-    }
-
-    setNumericValue(key: HexString, value : number)  {
-        const v = this.encodeNumericValue(value);
-        this.setValue(key, Option.of(v));
-    }
-
-    removeValue(key: HexString)  {
-        this.setValue(key, new None());
-    }
-
-    setValue(key: HexString, value: Option<HexString>) {
-        this.currentSession.updates.set(key, value);
-    }
-
-    addAction(action: HexString) {
-        this.currentSession.actions.push(action);
-    }
-
-    async commit(): Promise<Option<HexString>> {
-
-        if (!this.currentSession.hasUpdates()){
-            // nothing to commit
-            console.log('Nothing to commit ');
-            // do we need to clear the session?
-            return new None();
-        }
-
-        const converter = (input: HexString): Binary => {
-            return Binary.fromHex(input);
-        }
-
-        let conditions: (Binary | undefined)[][] =  [];
-        // optimistic locking: check the version of the current session
-        // because all data read in the session are already put in the condition, we don't need to add this code
-        /*
-        console.log('condition: key %s equals to with value %s', VERSION_NUMBER_KEY, this.currentSession.version);
-        conditions.push([
-            Binary.fromHex(VERSION_NUMBER_KEY),
-            this.currentSession.version?.map(this.encodeNumericValue).map(converter).valueOf()
-        ]);
-         */
-        // check if there is no change in the read values
-        this.currentSession.values.forEach(
-          (value, key) => {
-              console.log('condition: key %s equals to with value %s', key, value);
-              conditions.push([Binary.fromHex(key), value.map(converter).valueOf()]);
-          }
-        );
-
-        let updates: (Binary | undefined)[][] =  [];
-        // optimistic locking: bump the version
-        const newVersion = this.bumpVersion();
-        console.log('update key %s with value %s', VERSION_NUMBER_KEY, newVersion);
-        updates.push([
-            Binary.fromHex(VERSION_NUMBER_KEY),
-            newVersion.map(this.encodeNumericValue).map(converter).valueOf()
-        ]);
-
-        this.currentSession.updates.forEach(
-          (value, key) => {
-              console.log('update key %s with value %s', key, value);
-              updates.push([Binary.fromHex(key), value.map(converter).valueOf()]);
-          }
-        );
-
-        let actions =  [];
-        if (this.currentSession.indexUpdated){
-            console.log("SetQueueHead %s", this.currentSession.currentIndex);
-            actions.push(
-              {
-                  type: "SetQueueHead",
-                  value : this.currentSession.currentIndex,
-              }
-            );
-        }
-        this.currentSession.actions.forEach(
-          (action) => {
-              console.log("Action : %s " + action);
-              actions.push(
-                {
-                    type: "Reply",
-                    value : Binary.fromHex(action),
-                }
-              );
-          }
-        );
-
-        if (updates.length === 0 && actions.length === 0){
-            // nothing to commit
-            console.log('Nothing to commit ')
-            // clear the current session
-            this.currentSession = new Session();
-            return new None();
-        }
+    async sendTransaction(conditions: KV[], updates: KV[], actions: Action[]) : Promise<HexString> {
 
         console.log('Dry Run ...')
         const {value, success} = await this.contract.query('RollupClient::rollup_cond_eq',{
@@ -365,41 +168,80 @@ export class InkClient {
         if (!result.ok){
             return Promise.reject('Error when submitting tx ' + result);
         }
-        const txHash = result.txHash;
-        console.log('Tx hash ', txHash)
-        // clear the current session and start a new one
-        await this.startSession();
-        return txHash;
-    }
-
-    async rollback() {
-        // start a new session
-        await this.startSession();
-    }
-
-     bumpVersion() : Option<number> {
-        if (this.currentSession.version == undefined){
-            throw new Error('the session is not started');
-        }
-        const version = this.currentSession.version.valueOf()
-        if (version == undefined){
-            return new Some(1);
-        }
-        return new Some(version + 1);
-     }
-}
-
-class Session {
-    version: Option<number> | undefined;
-    values: Map<HexString, Option<HexString>> = new Map();
-    updates: Map<HexString, Option<HexString>> = new Map();
-    actions: HexString[] = [];
-    currentIndex: number | undefined;
-    indexUpdated: boolean = false;
-
-    hasUpdates() : boolean {
-        return this.indexUpdated || this.updates.size > 0 || this.actions.length > 0;
+        return result.txHash;
     }
 
 }
+
+export class InkEncoder implements Encoder {
+
+    encodeString(value: string): HexString {
+        return hexAddPrefix(Binary.fromText(value).asHex());
+    }
+
+    encodeBoolean(value: boolean): HexString {
+        return value ? '0x01' : '0x00';
+    }
+
+    encodeNumeric(value: number): HexString {
+        //return u8aToHex(numberToU8a(value, 8));
+        //return numberToHex(value, 8);
+
+        let v = value.toString(16);
+        if (v.length % 2 != 0) {
+            v = '0' + v;
+        }
+        if (v.length > 8) {
+            throw new Error('Too big number for u32');
+        }
+        // u32
+        return hexAddPrefix(v.padEnd(8, '0'));
+    }
+}
+
+export class InkDecoder implements Decoder {
+
+    decodeString(value: HexString): string {
+        return value.replace(/^0x/i, '')
+          .match(/.{1,2}/g)!
+          .map(byte => String.fromCharCode(parseInt(byte, 16)))
+          .join('');
+    }
+
+    decodeBoolean(value: HexString): boolean {
+        return value === '0x01';
+    }
+
+    decodeNumeric(value: HexString): number {
+        //return u8aToNumber(hexToU8a(value, 8));
+        return parseInt(value.replace(/(00)+$/, ''), 16);
+    }
+}
+
+const converter = (input: HexString): Binary => {
+    return Binary.fromHex(input);
+}
+
+class InkActionDecoder implements ActionEncoder<KV, Action> {
+
+    encodeKeyValue(key: HexString, value: Option<HexString>): KV {
+        return [Binary.fromHex(key), value.map(converter).valueOf()];
+    }
+
+    encodeReply(action: HexString): Action {
+        return {
+            type: "Reply",
+            value : Binary.fromHex(action),
+        }
+    }
+
+    encodeSetQueueHead(index: number): Action {
+        return {
+            type: "SetQueueHead",
+            value : index,
+        }
+    }
+
+}
+
 

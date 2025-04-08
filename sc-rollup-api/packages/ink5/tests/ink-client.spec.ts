@@ -1,5 +1,5 @@
 import {assert, expect, test} from "vitest";
-import {InkClient} from "../src/ink-client";
+import {InkClient, InkDecoder, InkEncoder} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {stringToHex} from "@polkadot/util";
@@ -17,35 +17,36 @@ test('encoding / decoding', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk);
+  const encoder = new InkEncoder();
+  const decoder = new InkDecoder();
 
   let n : number = 20;
-  let encodedNumber = client.encodeNumericValue(n);
+  let encodedNumber = encoder.encodeNumeric(n);
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x14000000');
-  expect(client.decodeNumericValue(encodedNumber)).toBe(n);
+  expect(decoder.decodeNumeric(encodedNumber)).toBe(n);
 
   n = 5;
-  encodedNumber = client.encodeNumericValue(n);
+  encodedNumber = encoder.encodeNumeric(n);
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x05000000');
-  expect(client.decodeNumericValue(encodedNumber)).toBe(n);
+  expect(decoder.decodeNumeric(encodedNumber)).toBe(n);
 
-  const encodedBooleanFalse = client.encodeBooleanValue(false);
+  const encodedBooleanFalse = encoder.encodeBoolean(false);
   console.log('encoded %s : %s', false, encodedBooleanFalse);
   expect(encodedBooleanFalse).toBe('0x00');
-  expect(client.decodeBooleanValue(encodedBooleanFalse)).toBe(false);
+  expect(decoder.decodeBoolean(encodedBooleanFalse)).toBe(false);
 
-  const encodedBooleanTrue = client.encodeBooleanValue(true);
+  const encodedBooleanTrue = encoder.encodeBoolean(true);
   console.log('encoded %s : %s', true, encodedBooleanTrue);
   expect(encodedBooleanTrue).toBe('0x01');
-  expect(client.decodeBooleanValue(encodedBooleanTrue)).toBe(true);
+  expect(decoder.decodeBoolean(encodedBooleanTrue)).toBe(true);
 
   const s = 'test';
-  const encodedString = client.encodeStringValue(s);
+  const encodedString = encoder.encodeString(s);
   console.log('encoded %s : %s', s, encodedString);
   assert(encodedString); // todo check the value
-  expect(client.decodeStringValue(encodedString)).toBe(s);
+  expect(decoder.decodeString(encodedString)).toBe(s);
 
 });
 
