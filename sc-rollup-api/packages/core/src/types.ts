@@ -38,6 +38,13 @@ export class Option<T> {
     return new Some(fn(this.value));
   }
 
+  orElse(other : T) : T {
+    if (this.value == undefined){
+      return other
+    }
+    return this.value;
+  }
+
   static of<T>(value : T | undefined) : Option<T> {
     if (value == undefined){
       return new None();
