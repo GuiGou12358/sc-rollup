@@ -1,4 +1,4 @@
-import {HexString, Option} from "../../core/src/types";
+import {HexString, None, Option} from "../../core/src/types";
 import {Client} from "../../core/src/client";
 import {ActionEncoder, Codec} from "../../core/src/codec";
 import {BytesLike, ethers, JsonRpcProvider, Wallet} from "ethers";
@@ -73,7 +73,7 @@ const ABI = [
     },
 ];
 
-function hexAddPrefix(value: string) : HexString {
+export function hexAddPrefix(value: string) : HexString {
     if (value.startsWith('0x')){
         return value as HexString;
     }
@@ -99,7 +99,8 @@ export class EvmClient extends Client<KV, Action>{
     public constructor(rpc: string, address: string, pk: string){
         super(new EvmCodec(), new EvmActionDecoder(), VERSION_NUMBER_KEY, QUEUE_TAIL_KEY, QUEUE_HEAD_KEY);
         this.provider = new ethers.JsonRpcProvider(rpc);
-        this.signerAddress = new ethers.Wallet(pk);
+        this.signerAddress = new ethers.Wallet(pk).connect(this.provider);
+        console.log("Attestor address: " + this.signerAddress.address);
         this.contract = new ethers.Contract(address, ABI, this.signerAddress);
     }
 
@@ -111,6 +112,9 @@ export class EvmClient extends Client<KV, Action>{
 
     async getRemoteValue(key: HexString): Promise<Option<HexString>> {
         const value = await this.contract.getStorage(key);
+        if (value === '0x'){
+            return new None();
+        }
         return Option.of(value);
     };
 
@@ -127,7 +131,24 @@ export class EvmClient extends Client<KV, Action>{
           [conditionKeys, conditionValues, updateKeys, updatesValues, actions],
         );
 
-        return await this.contract.rollupU256CondEq(data);
+        return await this.contract.rollupU256CondEq(conditionKeys, conditionValues, updateKeys, updatesValues, actions);
+    }
+
+    async update(keys: BytesLike[], values: BytesLike[]) : Promise<HexString> {
+
+        // [string[], string[], string[], string[], string[]];
+        const conditionKeys : BytesLike[] = [];
+        const conditionValues: BytesLike[] = [];
+        //const updateKeys = updates.map(v => v[0]);
+        //const updatesValues = updates.map(v => v[1]);
+        const actions: BytesLike[] = [];
+
+        const data = ethers.AbiCoder.defaultAbiCoder().encode(
+          ['bytes[]', 'bytes[]', 'bytes[]', 'bytes[]', 'bytes[]'],
+          [conditionKeys, conditionValues, keys, values, actions],
+        );
+
+        return await this.contract.rollupU256CondEq(conditionKeys, conditionValues, keys, values, actions);
     }
 
 }
@@ -165,7 +186,7 @@ export class EvmCodec implements Codec {
 class EvmActionDecoder implements ActionEncoder<KV, Action> {
 
     encodeKeyValue(key: HexString, value: Option<HexString>): KV {
-        return [key, value.orElse('0x00')];
+        return [key, value.orElse('0x0000000000000000000000000000000000000000000000000000000000000000')];
     }
 
     encodeReply(action: HexString): Action {
