@@ -21,8 +21,8 @@ contract EvmClient is Ownable, AccessControl, PhatRollupAnchor {
 		grantRole(PhatRollupAnchor.ATTESTOR_ROLE, _attestor);
 	}
 
-	function pushMessage(bytes calldata message) external {
-
+	function pushMessage(bytes memory data) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		_pushMessage(data);
 	}
 
 	function _onMessageReceived(bytes calldata _action) internal override {
