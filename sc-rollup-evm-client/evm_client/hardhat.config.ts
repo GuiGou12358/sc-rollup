@@ -1,10 +1,10 @@
 import { HardhatUserConfig, vars, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
-const DEV_OWNER_PRIVATE_KEY = vars.get("SC_ROLLUP_DEV_OWNER_PRIVATE_KEY");
-const DEV_ATTESTOR_PRIVATE_KEY = vars.get("SC_ROLLUP_DEV_ATTESTOR_PRIVATE_KEY");
-const DEV_USER1_PRIVATE_KEY = vars.get("DEV_USER1_PRIVATE_KEY");
-const DEV_USER2_PRIVATE_KEY = vars.get("DEV_USER2_PRIVATE_KEY");
+const DEV_OWNER_PRIVATE_KEY = vars.get("LOTTO_MINATO_OWNER_KEY");
+const DEV_ATTESTOR_PRIVATE_KEY = vars.get("LOTTO_MINATO_ATTESTOR_KEY");
+const DEV_USER1_PRIVATE_KEY = vars.get("LOTTO_MINATO_USER1_KEY");
+const DEV_USER2_PRIVATE_KEY = vars.get("LOTTO_MINATO_USER2_KEY");
 const MOONBASE_API_KEY = vars.get("MOONBASE_API_KEY");
 
 task("accounts", "Prints the list of accounts", async (_taskArgs, hre) => {
