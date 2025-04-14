@@ -13,10 +13,6 @@ const pk = process.env.pk;
 
 test('encoding / decoding', async () => {
 
-  if (pk == undefined){
-    return;
-  }
-
   const codec = new InkCodec();
 
   let n : number = 20;
