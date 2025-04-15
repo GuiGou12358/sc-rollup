@@ -67,6 +67,7 @@ abstract contract PhatRollupAnchor is ReentrancyGuard, MetaTxReceiver, AccessCon
     event MetaTxDecoded();
     event MessageQueued(uint256 idx, bytes data);
     event MessageProcessedTo(uint256);
+    event ActionReceived(uint8);
 
     error BadAttestor();
     error BadCondLen(uint kenLen, uint valueLen);
@@ -79,8 +80,8 @@ abstract contract PhatRollupAnchor is ReentrancyGuard, MetaTxReceiver, AccessCon
 
     uint8 constant ACTION_REPLY = 0;
     uint8 constant ACTION_SET_QUEUE_HEAD = 1;
-    uint8 constant ACTION_GRANT_ATTESTOR = 10;
-    uint8 constant ACTION_REVOKE_ATTESTOR = 11;
+    uint8 constant ACTION_GRANT_ATTESTOR = 2;
+    uint8 constant ACTION_REVOKE_ATTESTOR = 3;
 
     mapping (bytes => bytes) kvStore;
 
@@ -169,6 +170,7 @@ abstract contract PhatRollupAnchor is ReentrancyGuard, MetaTxReceiver, AccessCon
 
     function handleAction(bytes calldata action) private {
         uint8 actionType = uint8(action[0]);
+        emit ActionReceived(actionType);
         if (actionType == ACTION_REPLY) {
             _onMessageReceived(action[1:]);
         } else if (actionType == ACTION_SET_QUEUE_HEAD) {
