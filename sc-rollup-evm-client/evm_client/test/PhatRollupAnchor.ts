@@ -5,6 +5,17 @@ import { ethers } from "hardhat";
 import {EvmClient} from "../typechain-types";
 import {Signer} from "ethers";
 
+function abiEncode(type: string, value: any) {
+  return ethers.AbiCoder.defaultAbiCoder().encode([type], [value]);
+}
+function encodeIndex(v: number) {
+  return abiEncode('uint', v);
+}
+function encodeVersion(v: number) {
+  return abiEncode('uint', v);
+}
+
+
 describe("RollupAnchor", function () {
 
   async function registerAttestor(contract: EvmClient, owner : Signer, attestor : Signer){
@@ -82,10 +93,31 @@ describe("RollupAnchor", function () {
           // updates
           [], [],
           // actions
-          ['0x09'],
+          ['0xff'],
         )
       ).to.be.revertedWithCustomError(contract, 'UnsupportedAction');
     });
+
+    it("Should update values", async function () {
+      const { contract, attestor } = await loadFixture(deployContractFixture);
+
+      await expect(
+        contract.connect(attestor).rollupU256CondEq(
+          // cond
+          [], [],
+          // updates
+          ['0xbeef'],
+          ['0xdead'],
+          // actions
+          [],
+        )
+      ).not.to.be.reverted;
+
+      // check the storage
+      expect(await contract.getStorage('0xbeef')).to.be.equals('0xdead');
+    });
+
+  });
 
     it("Should forward actions", async function () {
       const { contract, attestor } = await loadFixture(deployContractFixture);
@@ -93,20 +125,67 @@ describe("RollupAnchor", function () {
       await expect(
         contract.connect(attestor).rollupU256CondEq(
           // cond
-          ['0x01'],
-          ['0x'],
+          [], [],
           // updates
-          ['0x01'],
-          [encodeUint32(1)],
+          [], [],
           // actions
-          [],
+          [
+            // Callback: req 00 responded with 0xDEADBEEF
+            ethers.concat(['0x00', '0xDEADBEEF']),
+          ],
+        )
+      ).not.to.be.reverted;
+    });
+
+
+    it("Push and poll messages", async function () {
+      const { contract, owner, attestor } = await loadFixture(deployContractFixture);
+
+
+      const QUEUE_HEAD = '0x712f5f68656164';
+      const QUEUE_TAIL = '0x712f5f7461696c';
+      expect(ethers.hexlify(ethers.toUtf8Bytes('q/_head'))).to.be.equals(QUEUE_HEAD);
+      expect(ethers.hexlify(ethers.toUtf8Bytes('q/_tail'))).to.be.equals(QUEUE_TAIL);
+
+      expect(await contract.getStorage(QUEUE_HEAD)).to.be.equals('0x');
+      expect(await contract.getStorage(QUEUE_TAIL)).to.be.equals('0x');
+
+      await expect(contract.connect(owner).pushMessage('0xbeef')).to.not.reverted;
+      await expect(contract.connect(owner).pushMessage('0xdead')).to.not.reverted;
+
+
+      // check the storage
+      expect(await contract.getStorage(QUEUE_HEAD)).to.be.equals('0x');
+      expect(await contract.getStorage(QUEUE_TAIL)).to.be.equals(encodeIndex(2));
+      expect(await contract.getStorage('0x712f0000000000000000000000000000000000000000000000000000000000000000')).to.be.equals('0xbeef');
+      expect(await contract.getStorage('0x712f0000000000000000000000000000000000000000000000000000000000000001')).to.be.equals('0xdead');
+      expect(await contract.getStorage('0x712f0000000000000000000000000000000000000000000000000000000000000002')).to.be.equals('0x');
+
+      // set queue head => remove messages
+      await expect(
+        contract.connect(attestor).rollupU256CondEq(
+          // cond
+          [], [],
+          // updates
+          [], [],
+          // actions
+          [
+            // Custom: queue processed to 2
+            ethers.concat(['0x01', encodeIndex(2)]),
+          ],
         )
       ).not.to.be.reverted;
 
       // check the storage
-      expect(await contract.getStorage('0x01')).to.be.equals(encodeUint32(1));
+      // check the storage
+      expect(await contract.getStorage(QUEUE_HEAD)).to.be.equals(encodeIndex(2));
+      expect(await contract.getStorage(QUEUE_TAIL)).to.be.equals(encodeIndex(2));
+      expect(await contract.getStorage('0x712f0000000000000000000000000000000000000000000000000000000000000001')).to.be.equals('0x');
+      expect(await contract.getStorage('0x712f0000000000000000000000000000000000000000000000000000000000000002')).to.be.equals('0x');
+
     });
-  });
+
+
 
   describe("OptimisticLock", function () {
     it("Should reject conflicting transaction", async function () {
@@ -119,12 +198,14 @@ describe("RollupAnchor", function () {
           ['0x'],
           // updates
           ['0x01'],
-          [encodeUint32(1)],
+          [encodeVersion(1)],
           // actions
           [],
         )
       ).not.to.be.reverted;
-      expect(await contract.getStorage('0x01')).to.be.equals(encodeUint32(1));
+
+      expect(await contract.getStorage('0x01')).to.be.equals(encodeVersion(1));
+
       // Rollup to v1 again
       await expect(
         contract.connect(attestor).rollupU256CondEq(
@@ -133,14 +214,14 @@ describe("RollupAnchor", function () {
           ['0x'],
           // updates
           ['0x01'],
-          [encodeUint32(1)],
+          [encodeVersion(1)],
           // actions
           [],
         )
       ).to.be
         .revertedWithCustomError(contract, 'CondNotMet')
         // We want to ensure 0x01 to match 0, but the value is 1.
-        .withArgs('0x01', encodeUint32(1), '0x');
+        .withArgs('0x01', encodeVersion(1), '0x');
     });
   });
 
@@ -161,14 +242,6 @@ describe("RollupAnchor", function () {
     })
   });
 });
-
-
-function abiEncode(type: string, value: any) {
-  return ethers.AbiCoder.defaultAbiCoder().encode([type], [value]);
-}
-function encodeUint32(v: number) {
-  return abiEncode('uint32', v);
-}
 
 interface MetaTxData {
   from: string;
