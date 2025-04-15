@@ -125,6 +125,11 @@ export class EvmClient extends Client<KV, Action>{
         const updateKeys = updates.map(v => v[0]);
         const updatesValues = updates.map(v => v[1]);
 
+        conditions.forEach(v => console.log('condition - key : ' + v[0] + ' - value : ' + v[1]));
+        updates.forEach(v => console.log('updates - key : ' + v[0] + ' - value : ' + v[1]));
+        actions.forEach(v => console.log('action : ' + v));
+
+
         const tx = await this.contract.rollupU256CondEq(conditionKeys, conditionValues, updateKeys, updatesValues, actions);
         return tx.hash;
     }
