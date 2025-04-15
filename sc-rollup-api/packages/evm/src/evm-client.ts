@@ -11,6 +11,11 @@ function abiEncode(type: string, value: any) {
     return abiCoder.encode([type], [value]);
 }
 
+function abiEncodeIndex(index: number) {
+    //return ethers.solidityPacked(['uint32'], [index]);
+    return abiCoder.encode(['uint'], [index]);
+}
+
 
 const ABI = [
     {
@@ -105,7 +110,7 @@ export class EvmClient extends Client<KV, Action>{
     }
 
     getMessageKey(index: number): HexString {
-        const encodedIndex = abiEncode('uint32', index);
+        const encodedIndex = abiEncodeIndex(index);
         const prefix = ethers.toUtf8Bytes('q/');
         return hexAddPrefix(ethers.concat([prefix, encodedIndex]));
     }
@@ -129,7 +134,6 @@ export class EvmClient extends Client<KV, Action>{
         updates.forEach(v => console.log('updates - key : ' + v[0] + ' - value : ' + v[1]));
         actions.forEach(v => console.log('action : ' + v));
 
-
         const tx = await this.contract.rollupU256CondEq(conditionKeys, conditionValues, updateKeys, updatesValues, actions);
         return tx.hash;
     }
@@ -147,7 +151,7 @@ export class EvmCodec implements Codec {
     }
 
     encodeNumeric(value: number): HexString {
-        return hexAddPrefix(abiEncode('uint256', value));
+        return hexAddPrefix(abiEncode('uint', value));
     }
 
     decodeString(value: HexString): string {
@@ -170,11 +174,11 @@ class EvmActionDecoder implements ActionEncoder<KV, Action> {
     }
 
     encodeReply(action: HexString): Action {
-        return hexAddPrefix(ethers.concat(['0x00',  abiEncode('uint32', 0), action]));
+        return hexAddPrefix(ethers.concat(['0x00',  action]));
     }
 
     encodeSetQueueHead(index: number): Action {
-        return hexAddPrefix(ethers.concat(['0x01',  abiEncode('uint32', index)]));
+        return hexAddPrefix(ethers.concat(['0x01',  abiEncodeIndex(index)]));
     }
 
 }
