@@ -120,35 +120,13 @@ export class EvmClient extends Client<KV, Action>{
 
     async sendTransaction(conditions: KV[], updates: KV[], actions: Action[]) : Promise<HexString> {
 
-          // [string[], string[], string[], string[], string[]];
         const conditionKeys = conditions.map(v => v[0]);
         const conditionValues = conditions.map(v => v[1]);
         const updateKeys = updates.map(v => v[0]);
         const updatesValues = updates.map(v => v[1]);
 
-        const data = ethers.AbiCoder.defaultAbiCoder().encode(
-          ['bytes[]', 'bytes[]', 'bytes[]', 'bytes[]', 'bytes[]'],
-          [conditionKeys, conditionValues, updateKeys, updatesValues, actions],
-        );
-
-        return await this.contract.rollupU256CondEq(conditionKeys, conditionValues, updateKeys, updatesValues, actions);
-    }
-
-    async update(keys: BytesLike[], values: BytesLike[]) : Promise<HexString> {
-
-        // [string[], string[], string[], string[], string[]];
-        const conditionKeys : BytesLike[] = [];
-        const conditionValues: BytesLike[] = [];
-        //const updateKeys = updates.map(v => v[0]);
-        //const updatesValues = updates.map(v => v[1]);
-        const actions: BytesLike[] = [];
-
-        const data = ethers.AbiCoder.defaultAbiCoder().encode(
-          ['bytes[]', 'bytes[]', 'bytes[]', 'bytes[]', 'bytes[]'],
-          [conditionKeys, conditionValues, keys, values, actions],
-        );
-
-        return await this.contract.rollupU256CondEq(conditionKeys, conditionValues, keys, values, actions);
+        const tx = await this.contract.rollupU256CondEq(conditionKeys, conditionValues, updateKeys, updatesValues, actions);
+        return tx.hash;
     }
 
 }
@@ -168,25 +146,22 @@ export class EvmCodec implements Codec {
     }
 
     decodeString(value: HexString): string {
-        return value.replace(/^0x/i, '')
-          .match(/.{1,2}/g)!
-          .map(byte => String.fromCharCode(parseInt(byte, 16)))
-          .join('');
+        return ethers.toUtf8String(value);
     }
 
     decodeBoolean(value: HexString): boolean {
-        return value === '0x01';
+        return ethers.getNumber(value) === 1;
     }
 
     decodeNumeric(value: HexString): number {
-        return Number(ethers.getUint(value));
+        return ethers.getNumber(value);
     }
 }
 
 class EvmActionDecoder implements ActionEncoder<KV, Action> {
 
     encodeKeyValue(key: HexString, value: Option<HexString>): KV {
-        return [key, value.orElse('0x0000000000000000000000000000000000000000000000000000000000000000')];
+        return [key, value.orElse('0x')];
     }
 
     encodeReply(action: HexString): Action {
