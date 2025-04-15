@@ -2,17 +2,23 @@ import {assert, expect, test} from "vitest";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {EvmClient, EvmCodec, hexAddPrefix} from "../src/evm-client";
-import {BytesLike, ethers} from "ethers";
-import {HexString, Option} from "../../core/src/types";
+import {ethers} from "ethers";
 
 const rpc = 'https://rpc.minato.soneium.org';
-const address = '0x8122f5742fBe3456930F8dBCA2AdE3cD678089ff';
+const address = '0x51E561EAca24c91D6A3227c60Cbfdf0F527fA43e';
 
 configDotenv();
 const pk = process.env.pk;
 
-
 test('encoding / decoding', async () => {
+
+  const QUEUE_TAIL_KEY = hexAddPrefix(ethers.hexlify(ethers.toUtf8Bytes('q/_tail')));
+  const QUEUE_HEAD_KEY = hexAddPrefix(ethers.hexlify(ethers.toUtf8Bytes('q/_head')));
+  const VERSION_NUMBER_KEY = hexAddPrefix(ethers.hexlify(ethers.toUtf8Bytes('v/_number')));
+
+  console.log(QUEUE_TAIL_KEY)
+  console.log(QUEUE_HEAD_KEY)
+  console.log(VERSION_NUMBER_KEY)
 
   const codec = new EvmCodec();
 
@@ -48,7 +54,7 @@ test('encoding / decoding', async () => {
 
 });
 
-test('Read / Write values', async () => {
+test('Read / Write values and Poll messages', async () => {
 
   if (pk == undefined){
     return;
@@ -83,21 +89,6 @@ test('Read / Write values', async () => {
   client.setBooleanValue(key3, newValue3);
 
   client.removeValue(hexAddPrefix(ethers.hexlify(ethers.toUtf8Bytes('key4'))));
-
-  const tx = await client.commit();
-  assert(tx)
-});
-
-
-test('Poll message', async () => {
-
-  if (pk == undefined){
-    return;
-  }
-
-  const client = new EvmClient(rpc, address, pk);
-
-  await client.startSession();
 
   const tail = await client.getQueueTailIndex();
   console.log('Tail Index: ' + tail);
