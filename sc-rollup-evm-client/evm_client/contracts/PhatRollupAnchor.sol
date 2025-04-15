@@ -71,7 +71,7 @@ abstract contract PhatRollupAnchor is ReentrancyGuard, MetaTxReceiver, AccessCon
     error BadAttestor();
     error BadCondLen(uint kenLen, uint valueLen);
     error BadUpdateLen(uint kenLen, uint valueLen);
-    error CondNotMet(bytes cond, uint32 expected, uint32 actual);
+    error CondNotMet(bytes cond, bytes expected, bytes actual);
     error CannotDecodeAction(uint8 actionId);
     error UnsupportedAction(uint8 actionId);
     error Internal_toUint32Strict_outOfBounds(bytes data);
@@ -147,10 +147,10 @@ abstract contract PhatRollupAnchor is ReentrancyGuard, MetaTxReceiver, AccessCon
 
         // check cond
         for (uint i = 0; i < condKeys.length; i++) {
-            uint32 value = toUint32Strict(kvStore[condKeys[i]]);
-            uint32 expected = toUint32Strict(condValues[i]);
-            if (value != expected) {
-                revert CondNotMet(condKeys[i], expected, value);
+            //uint32 value = toUint32Strict(kvStore[condKeys[i]]);
+            //uint32 expected = toUint32Strict(condValues[i]);
+            if (keccak256(kvStore[condKeys[i]]) != keccak256(condValues[i])) {
+                revert CondNotMet(condKeys[i], kvStore[condKeys[i]], condValues[i]);
             }
         }
 
