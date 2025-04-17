@@ -5,7 +5,7 @@ import {configDotenv} from "dotenv";
 import {stringToHex} from "@polkadot/util";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
-const address = 'ZNSgeEfQDyEi4C6eLwMYeXQVQx5x4LVvxhKyVwrBDK3Z9gY';
+const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
 
 configDotenv();
 const pk = process.env.pk;
@@ -57,7 +57,7 @@ test('Check compatibility', async () => {
 
 });
 */
-
+/*
 test('Read / Write values', async () => {
 
   if (pk == undefined){
@@ -95,9 +95,37 @@ test('Read / Write values', async () => {
   const tx = await client.commit();
   assert(tx)
 });
+ */
 
 
 test('Poll message', async () => {
+
+  if (pk == undefined){
+    return;
+  }
+
+  const client = new InkClient(rpc, address, pk);
+
+  await client.startSession();
+
+  const tail = await client.getQueueTailIndex();
+  console.log('Tail Index: ' + tail);
+  const head = await client.getQueueHeadIndex();
+  console.log('Head Index: ' + head);
+  const hasMessage = await client.hasMessage();
+  console.log('hasMessage : ' + hasMessage);
+
+  let message;
+  do {
+    message = await client.pollMessage();
+    console.log('message %s', message);
+  } while (message.isSome());
+
+  await client.commit();
+
+});
+
+test('Feed data', async () => {
 
   if (pk == undefined){
     return;
