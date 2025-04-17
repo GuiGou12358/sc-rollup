@@ -1,5 +1,5 @@
 {
-  "name": "sc-rollup-ink5",
+  "name": "@guigou/sc-rollup-ink5",
   "description": "",
   "main": "index.js",
   "scripts": {

@@ -1,5 +1,5 @@
 {
-  "name": "sc-rollup-evm",
+  "name": "@guigou/sc-rollup-evm",
   "description": "",
   "main": "index.js",
   "scripts": {

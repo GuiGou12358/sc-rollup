@@ -1,7 +1,11 @@
 {
-  "name": "sc-rollup-api",
+  "name": "@guigou/sc-rollup-api",
   "version": "0.0.1",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GuiGou12358/sc-rollup"
+  },
   "workspaces": [
     "packages/*"
   ],
