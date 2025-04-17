@@ -2,7 +2,6 @@ import {assert, expect, test} from "vitest";
 import {InkClient, InkCodec} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
-import {stringToHex} from "@polkadot/util";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
@@ -135,18 +134,7 @@ test('Feed data', async () => {
 
   await client.startSession();
 
-  const tail = await client.getQueueTailIndex();
-  console.log('Tail Index: ' + tail);
-  const head = await client.getQueueHeadIndex();
-  console.log('Head Index: ' + head);
-  const hasMessage = await client.hasMessage();
-  console.log('hasMessage : ' + hasMessage);
-
-  let message;
-  do {
-    message = await client.pollMessage();
-    console.log('message %s', message);
-  } while (message.isSome());
+  client.addAction('0x00');
 
   await client.commit();
 
