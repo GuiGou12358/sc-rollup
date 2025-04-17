@@ -1,5 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink5",
+  "version": "0.0.1",
   "description": "",
   "repository": {
     "type": "git",
@@ -7,6 +8,7 @@
     "directory": "sc-rollup-api/packages/ink5"
   },
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build-core": "tsc",
     "test": "vitest --no-isolate",
@@ -22,6 +24,7 @@
     "dotenv": "^16.4.7"
   },
   "dependencies": {
+    "@guigou/sc-rollup-core": "^0.0.1",
     "polkadot-api": "^1.9.7",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/sdk-ink": "0.0.1-1",

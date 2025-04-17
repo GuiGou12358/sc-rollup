@@ -1,5 +1,6 @@
 {
   "name": "@guigou/sc-rollup-evm",
+  "version": "0.0.1",
   "description": "",
   "repository": {
     "type": "git",
@@ -7,6 +8,7 @@
     "directory": "sc-rollup-api/packages/evm"
   },
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build-core": "tsc",
     "test": "vitest --no-isolate"

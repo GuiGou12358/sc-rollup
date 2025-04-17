@@ -1,12 +1,14 @@
 {
-  "name": "sc-rollup-core",
+  "name": "@guigou/sc-rollup-core",
+  "version": "0.0.1",
   "description": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "url": "git+https://github.com/GuiGou12358/sc-rollup.git",
     "directory": "sc-rollup-api/packages/core"
   },
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build-core": "tsc",
     "test": "vitest"
