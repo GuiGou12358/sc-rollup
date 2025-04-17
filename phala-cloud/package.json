@@ -1,0 +1,20 @@
+{
+  "name": "phala-cloud-feed-ink5-contract",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --hot index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@phala/dstack-sdk": "^0.1.10",
+    "sc-rollup-ink5" : "file:../sc-rollup-api/packages/ink5",
+    "viem": "^2.23.5"
+  }
+}
