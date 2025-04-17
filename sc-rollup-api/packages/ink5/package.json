@@ -1,6 +1,11 @@
 {
   "name": "@guigou/sc-rollup-ink5",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api/packages/ink5"
+  },
   "main": "index.js",
   "scripts": {
     "build-core": "tsc",

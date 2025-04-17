@@ -4,7 +4,8 @@
   "description": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GuiGou12358/sc-rollup"
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api"
   },
   "workspaces": [
     "packages/*"

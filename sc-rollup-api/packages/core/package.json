@@ -1,6 +1,11 @@
 {
   "name": "sc-rollup-core",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api/packages/core"
+  },
   "main": "index.js",
   "scripts": {
     "build-core": "tsc",

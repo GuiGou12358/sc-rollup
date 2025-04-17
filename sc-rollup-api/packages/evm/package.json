@@ -1,6 +1,11 @@
 {
   "name": "@guigou/sc-rollup-evm",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api/packages/evm"
+  },
   "main": "index.js",
   "scripts": {
     "build-core": "tsc",
