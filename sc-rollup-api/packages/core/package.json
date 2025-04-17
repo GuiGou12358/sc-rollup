@@ -1,21 +1,27 @@
 {
   "name": "@guigou/sc-rollup-core",
   "version": "0.0.1",
-  "description": "",
+  "author": "GuiGou",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GuiGou12358/sc-rollup.git",
     "directory": "sc-rollup-api/packages/core"
   },
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "main": "index.js",
-  "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build-core": "tsc",
     "test": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "typescript": "^5.8.2"
   }
