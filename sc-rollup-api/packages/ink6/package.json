@@ -1,0 +1,24 @@
+{
+  "name": "@guigou/sc-rollup-ink6",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build-core": "tsc",
+    "test": "vitest",
+    "generate-metadata-pah" : "pnpm exec papi add ah -n polkadot_asset_hub"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@polkadot/util": "^13.4.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  },
+  "dependencies": {
+    "@polkadot/keyring": "^13.4.3",
+    "@polkadot/types": "^15.8.1",
+    "dotenv": "^16.4.7",
+    "polkadot-api": "^1.9.7"
+  }
+}
