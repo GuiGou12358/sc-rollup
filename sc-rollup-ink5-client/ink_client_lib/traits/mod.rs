@@ -17,6 +17,8 @@ pub enum RollupClientError {
     QueueIndexOverflow,
     NotGranted(AccessControlError),
     AccessControlError(AccessControlError),
+    RuntimeError(u128),
+    BusinessError(u128),
 }
 
 impl From<AccessControlError> for RollupClientError {
