@@ -1,8 +1,12 @@
 services:
   app:
-    image: guigoudev/phala-cloud-ink5-test:latest
+    image: guigoudev/phala-cloud-ink5-test-1:latest
     container_name: app
     ports:
       - "3000:3000"
     volumes:
       - /var/run/tappd.sock:/var/run/tappd.sock
+    environment:
+      - INK_CLIENT_RPC=${INK_CLIENT_RPC}
+      - INK_CLIENT_ADDRESS=${INK_CLIENT_ADDRESS}
+      - ATTESTOR_PK=${ATTESTOR_PK}
