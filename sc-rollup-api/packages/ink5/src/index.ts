@@ -1,1 +1,1 @@
-export * from "./ink-client";
+export * from "./ink-client"
