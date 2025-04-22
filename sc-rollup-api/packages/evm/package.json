@@ -1,22 +1,38 @@
 {
   "name": "@guigou/sc-rollup-evm",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.2-beta",
+  "author": "GuiGou",
   "repository": {
     "type": "git",
     "url": "https://github.com/GuiGou12358/sc-rollup.git",
-    "directory": "sc-rollup-api/packages/evm"
+    "directory": "sc-rollup-api/packages/ink5"
   },
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "build-core": "tsc",
-    "test": "vitest --no-isolate"
-  },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
+  "exports": {
+    ".": {
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
+    "build": "pnpm build-core",
+    "test": "vitest --no-isolate",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
+  },
   "dependencies": {
+    "@guigou/sc-rollup-core": "workspace:*",
     "ethers": "^6.13.5"
   },
   "devDependencies": {

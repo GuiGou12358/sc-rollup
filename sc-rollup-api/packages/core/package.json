@@ -4,24 +4,32 @@
   "author": "GuiGou",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GuiGou12358/sc-rollup.git",
-    "directory": "sc-rollup-api/packages/core"
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api/packages/ink5"
   },
   "license": "ISC",
   "exports": {
     ".": {
-      "node": "./dist/index.js",
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build-core": "tsc",
-    "test": "vitest"
+    "clean": "rm -rf dist",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
+    "build": "pnpm build-core",
+    "test": "vitest --no-isolate",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build"
   },
   "devDependencies": {
     "typescript": "^5.8.2"
