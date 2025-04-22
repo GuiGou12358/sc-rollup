@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink5",
-  "version": "0.0.2-beta2",
+  "version": "0.0.2-beta6",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -10,31 +10,27 @@
   "license": "ISC",
   "exports": {
     ".": {
-      "node": {
-        "require": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
     "ink-client": {
-      "types": "./dist/ink-client.d.ts",
-      "node": {
-        "require": "./dist/ink-client.js",
-        "default": "./dist/ink-client.js"
-      },
+      "import": "./dist/ink-client.d.js",
       "require": "./dist/ink-client.js",
-      "default": "./dist/ink-client.js"
+      "types": "./dist/ink-client.d.ts"
     },
     "./package.json": "./package.json"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist/**"
   ],
   "scripts": {
-    "build-core": "tsc",
+    "build-core": "tsc --noEmit",
+    "build": "pnpm build-core",
     "test": "vitest --no-isolate",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run build",
     "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
     "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },
