@@ -1,6 +1,10 @@
-import { HexString, Option } from "../../core/src/types"
-import { Client } from "../../core/src/client"
-import { ActionEncoder, Codec } from "../../core/src/codec"
+import {
+  ActionEncoder,
+  Client,
+  Codec,
+  HexString,
+  Option,
+} from "@guigou/sc-rollup-core"
 import { contracts, shibuya } from "@polkadot-api/descriptors"
 import {
   hexAddPrefix,
