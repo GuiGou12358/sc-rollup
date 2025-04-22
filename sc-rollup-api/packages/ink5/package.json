@@ -1,30 +1,50 @@
 {
   "name": "@guigou/sc-rollup-ink5",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.2-beta2",
+  "author": "GuiGou",
   "repository": {
     "type": "git",
     "url": "https://github.com/GuiGou12358/sc-rollup.git",
     "directory": "sc-rollup-api/packages/ink5"
   },
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "node": {
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "ink-client": {
+      "types": "./dist/ink-client.d.ts",
+      "node": {
+        "require": "./dist/ink-client.js",
+        "default": "./dist/ink-client.js"
+      },
+      "require": "./dist/ink-client.js",
+      "default": "./dist/ink-client.js"
+    },
+    "./package.json": "./package.json"
+  },
   "main": "index.js",
-  "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build-core": "tsc",
     "test": "vitest --no-isolate",
     "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
     "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "typescript": "^5.8.2",
     "vitest": "^3.0.9",
     "dotenv": "^16.4.7"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.1",
+    "@guigou/sc-rollup-core": "^0.0.2-beta",
     "polkadot-api": "^1.9.7",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/sdk-ink": "0.0.1-1",

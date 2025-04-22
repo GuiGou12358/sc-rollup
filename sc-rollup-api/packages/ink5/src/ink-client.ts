@@ -17,8 +17,8 @@ const QUEUE_TAIL_KEY = stringToHex('q/_tail');
 const QUEUE_HEAD_KEY = stringToHex('q/_head');
 const VERSION_NUMBER_KEY = stringToHex('v/_number');
 
-type KV = [Binary, Binary | undefined];
-type Action = {};
+export type KV = [Binary, Binary | undefined];
+export type Action = {};
 
 export class InkClient extends Client<KV, Action>{
 

@@ -1,7 +1,8 @@
 {
   "name": "@guigou/sc-rollup-api",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.0.2-beta",
+  "author": "GuiGou",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/GuiGou12358/sc-rollup.git",
@@ -10,14 +11,11 @@
   "workspaces": [
     "packages/*"
   ],
-  "type": "module",
   "scripts": {
     "build-core": "pnpm -r build-core",
     "test": "vitest",
     "dev": "pnpm build-core & pnpm test"
   },
-  "author": "GuiGou",
-  "license": "ISC",
   "devDependencies": {
     "typescript": "^5.8.2",
     "vite-tsconfig-paths": "^5.1.4",

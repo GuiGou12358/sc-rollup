@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-core",
-  "version": "0.0.1",
+  "version": "0.0.2-beta",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -10,6 +10,7 @@
   "license": "ISC",
   "exports": {
     ".": {
+      "node": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
