@@ -1,8 +1,7 @@
 import { HexString, None, Option } from "../../core/src/types"
 import { Client } from "../../core/src/client"
 import { ActionEncoder, Codec } from "../../core/src/codec"
-import { BytesLike, ethers, JsonRpcProvider, Wallet } from "ethers"
-import { Contract } from "ethers/lib.commonjs/contract/contract"
+import { BytesLike, ethers, JsonRpcProvider, Wallet, Contract } from "ethers"
 
 const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
