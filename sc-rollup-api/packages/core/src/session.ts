@@ -1,4 +1,4 @@
-import { HexString, Option } from "./types"
+import type { HexString, Option } from "./types"
 
 export class Session {
   version: Option<number> | undefined

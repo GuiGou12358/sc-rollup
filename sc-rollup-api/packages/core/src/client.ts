@@ -1,5 +1,5 @@
 import { HexString, None, Option, Some } from "./types"
-import { Codec } from "./codec"
+import { ActionEncoder, Codec } from "./codec"
 import { Session } from "./session"
 
 export abstract class Client<KV, A> {
@@ -224,10 +224,4 @@ export abstract class Client<KV, A> {
     // start a new session
     await this.startSession()
   }
-}
-
-export interface ActionEncoder<KV, A> {
-  encodeKeyValue(key: HexString, value: Option<HexString>): KV
-  encodeReply(action: HexString): A
-  encodeSetQueueHead(index: number): A
 }
