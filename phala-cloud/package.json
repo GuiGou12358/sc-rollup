@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@phala/dstack-sdk": "^0.1.10",
-    "sc-rollup-ink5" : "file:../sc-rollup-api/packages/ink5",
+    "@guigou/sc-rollup-ink5" : "^0.0.3-beta16",
     "viem": "^2.23.5"
   }
 }

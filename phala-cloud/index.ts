@@ -2,7 +2,7 @@ import {serve} from "bun";
 import {TappdClient} from "@phala/dstack-sdk";
 import {Keyring} from "@polkadot/keyring";
 import type {KeyringPair} from "@polkadot/keyring/types";
-import {InkClient}  from "../sc-rollup-api/packages/ink5/src";
+import type {InkClient} from "@guigou/sc-rollup-ink5";
 
 const inkClientRpc = process.env.INK_CLIENT_RPC;
 const inkClientAddress = process.env.INK_CLIENT_ADDRESS;
