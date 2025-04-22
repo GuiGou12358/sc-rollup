@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink5",
-  "version": "0.0.2-beta6",
+  "version": "0.0.2-beta7",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -10,22 +10,21 @@
   "license": "ISC",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "ink-client": {
-      "import": "./dist/ink-client.d.js",
-      "require": "./dist/ink-client.js",
-      "types": "./dist/ink-client.d.ts"
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
   "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
-    "dist/**"
+    "dist"
   ],
   "scripts": {
-    "build-core": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm build-core",
     "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
