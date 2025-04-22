@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-core",
-  "version": "0.0.2-beta",
+  "version": "0.0.3-beta16",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -15,9 +15,29 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "client": {
+      "module": "./dist/esm/client.mjs",
+      "import": "./dist/esm/client.mjs",
+      "require": "./dist/client.js",
+      "default": "./dist/client.js"
+    },
+    "codec": {
+      "module": "./dist/esm/codec.mjs",
+      "import": "./dist/esm/codec.mjs",
+      "require": "./dist/codec.js",
+      "default": "./dist/codec.js"
+    },
+    "session": {
+      "module": "./dist/esm/session.mjs",
+      "import": "./dist/esm/session.mjs",
+      "require": "./dist/session.js",
+      "default": "./dist/session.js"
+    },
+    "package.json": "./package.json",
+    "types": "./dist/index.d.ts"
   },
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
@@ -29,7 +49,8 @@
     "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build",
+    "release": "pnpm publish --access public --tag tag0.0.3-beta16 --no-git-checks"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-evm",
-  "version": "0.0.2-beta",
+  "version": "0.0.3-beta11",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -15,10 +15,16 @@
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "evm-client": {
+      "module": "./dist/esm/evm-client.mjs",
+      "import": "./dist/esm/evm-client.mjs",
+      "require": "./dist/evm-client.js",
+      "default": "./dist/evm-client.js"
+    },
     "./package.json": "./package.json"
   },
-  "main": "dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
   "files": [
     "dist"
   ],
@@ -29,7 +35,8 @@
     "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build",
+    "release": "pnpm publish --access public --tag tag0.0.3-beta11 --no-git-checks"
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "workspace:*",
