@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink5",
-  "version": "0.0.3-beta33",
+  "version": "0.0.3-beta43",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -10,33 +10,33 @@
   "license": "ISC",
   "exports": {
     ".": {
-      "module": "./dist/esm/ink5/src/index.mjs",
-      "import": "./dist/esm/ink5/src/index.mjs",
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./ink-client": {
-      "module": "./dist/esm/ink5/src/ink-client.mjs",
-      "import": "./dist/esm/ink5/src/ink-client.mjs",
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/ink-client.mjs",
+      "import": "./dist/esm/ink-client.mjs",
       "require": "./dist/ink-client.js",
       "default": "./dist/ink-client.js"
     },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
-  "module": "./dist/esm/ink5/src/index.mjs",
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not ie <= 99",
-      "not android <= 4.4.4",
-      "not dead",
-      "not op_mini all"
-    ]
-  },
+  "module": "./dist/esm/index.mjs",
   "files": [
-    "dist",
-    ".papi"
+    "dist"
   ],
   "scripts": {
     "clean": "rm -rf dist",
@@ -45,8 +45,8 @@
     "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
-    "prepack": "pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.3-beta33 --no-git-checks",
+    "prepack": "pnpm run clean && pnpm run build",
+    "release": "pnpm publish --access public --tag tag0.0.3-beta43 --no-git-checks",
     "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
     "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },
@@ -56,13 +56,14 @@
     "dotenv": "^16.4.7"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.3-beta30",
+    "@guigou/sc-rollup-core": "workspace:*",
     "polkadot-api": "^1.9.7",
-    "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@guigou/sc-rollup-ink5-descriptors": "^0.1.0-beta1",
     "@polkadot-api/sdk-ink": "0.0.1-1",
     "@polkadot-labs/hdkd": "^0.0.13",
     "@polkadot-labs/hdkd-helpers": "^0.0.13",
     "@polkadot/util": "^13.4.4",
-    "@polkadot/util-crypto": "^13.4.4"
+    "@polkadot/util-crypto": "^13.4.4",
+    "@polkadot/keyring": "^13.4.4"
   }
 }

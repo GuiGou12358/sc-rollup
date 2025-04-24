@@ -1,5 +1,5 @@
 import {ActionEncoder, Client, Codec, HexString, Option,} from "@guigou/sc-rollup-core"
-import {contracts, shibuya} from "@polkadot-api/descriptors"
+import {contracts, shibuya} from "@guigou/sc-rollup-ink5-descriptors"
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
 import {encodeAddress} from "@polkadot/util-crypto"
 import {createInkSdk} from "@polkadot-api/sdk-ink"
@@ -8,6 +8,7 @@ import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
 import {getWsProvider} from "polkadot-api/ws-provider/web"
 import {getPolkadotSigner} from "polkadot-api/signer"
 import {sr25519} from "@polkadot-labs/hdkd-helpers";
+import {Keyring} from "@polkadot/keyring";
 
 // q/_tail : 0x712f5f7461696c
 const QUEUE_TAIL_KEY = stringToHex("q/_tail")
@@ -36,7 +37,7 @@ export class InkClient extends Client<KV, Action> {
     const typedApi = client.getTypedApi(shibuya)
     const sdk = createInkSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
-
+/*
     const publicKey = sr25519.getPublicKey(hexToU8a(pk))
     this.signer = getPolkadotSigner(
       publicKey,
@@ -45,7 +46,8 @@ export class InkClient extends Client<KV, Action> {
     );
     this.signerAddress = encodeAddress(publicKey)
 
-    /*
+ */
+
     const keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
       hexToU8a(pk),
     )
@@ -55,7 +57,6 @@ export class InkClient extends Client<KV, Action> {
       "Sr25519",
       keyringPair.sign,
     )
-     */
 
   }
 
