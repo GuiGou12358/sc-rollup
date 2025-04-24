@@ -1,25 +1,13 @@
-import {
-  ActionEncoder,
-  Client,
-  Codec,
-  HexString,
-  Option,
-} from "@guigou/sc-rollup-core"
-import { contracts, shibuya } from "@polkadot-api/descriptors"
-import {
-  hexAddPrefix,
-  hexToU8a,
-  stringToHex,
-  stringToU8a,
-  u8aConcat,
-  u8aToHex,
-} from "@polkadot/util"
-import { createInkSdk } from "@polkadot-api/sdk-ink"
-import { Binary, createClient, PolkadotSigner, SS58String } from "polkadot-api"
-import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
-import { getWsProvider } from "polkadot-api/ws-provider/web"
-import { getPolkadotSigner } from "polkadot-api/signer"
-import { Keyring } from "@polkadot/keyring"
+import {ActionEncoder, Client, Codec, HexString, Option,} from "@guigou/sc-rollup-core"
+import {contracts, shibuya} from "@polkadot-api/descriptors"
+import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
+import {encodeAddress} from "@polkadot/util-crypto"
+import {createInkSdk} from "@polkadot-api/sdk-ink"
+import {Binary, createClient, PolkadotSigner, SS58String} from "polkadot-api"
+import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
+import {getWsProvider} from "polkadot-api/ws-provider/web"
+import {getPolkadotSigner} from "polkadot-api/signer"
+import {sr25519} from "@polkadot-labs/hdkd-helpers";
 
 // q/_tail : 0x712f5f7461696c
 const QUEUE_TAIL_KEY = stringToHex("q/_tail")
@@ -32,8 +20,8 @@ export type Action = {}
 
 export class InkClient extends Client<KV, Action> {
   contract: any
-  readonly signer: PolkadotSigner
-  readonly signerAddress: SS58String
+  signer: PolkadotSigner
+  signerAddress: SS58String
 
   public constructor(rpc: string, address: string, pk: string) {
     super(
@@ -48,23 +36,16 @@ export class InkClient extends Client<KV, Action> {
     const typedApi = client.getTypedApi(shibuya)
     const sdk = createInkSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
+
+    const publicKey = sr25519.getPublicKey(hexToU8a(pk))
+    this.signer = getPolkadotSigner(
+      publicKey,
+      "Sr25519",
+      (input) => sr25519.sign(input, hexToU8a(pk))
+    );
+    this.signerAddress = encodeAddress(publicKey)
+
     /*
-        const entropy = mnemonicToEntropy(this.pk);
-        const miniSecret = entropyToMiniSecret(entropy);
-        const derive = sr25519CreateDerive(miniSecret);
-        const hdkdKeyPair = derive("//Alice");
-
-        //console.log('pk : %s - length : %s', this.pk, this.pk.length);
-        //console.log('public key : %s', sr25519.getPublicKey(this.pk));
-        const signer = getPolkadotSigner(
-          //sr25519.getPublicKey(this.pk),
-          hdkdKeyPair.publicKey,
-          "Sr25519",
-          //(input) => sr25519.sign(input, this.pk)
-          hdkdKeyPair.sign
-        );
-        */
-
     const keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
       hexToU8a(pk),
     )
@@ -74,6 +55,8 @@ export class InkClient extends Client<KV, Action> {
       "Sr25519",
       keyringPair.sign,
     )
+     */
+
   }
 
   public async checkCompatibility() {
