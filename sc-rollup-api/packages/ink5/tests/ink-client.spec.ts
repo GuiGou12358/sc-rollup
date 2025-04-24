@@ -2,6 +2,7 @@ import {assert, expect, test} from "vitest";
 import {InkClient, InkCodec} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
+import {stringToHex} from "@polkadot/util";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
@@ -56,7 +57,7 @@ test('Check compatibility', async () => {
 
 });
 */
-/*
+
 test('Read / Write values', async () => {
 
   if (pk == undefined){
@@ -94,7 +95,7 @@ test('Read / Write values', async () => {
   const tx = await client.commit();
   assert(tx)
 });
- */
+
 
 
 test('Poll message', async () => {
