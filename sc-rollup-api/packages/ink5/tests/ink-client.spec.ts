@@ -3,6 +3,8 @@ import {InkClient, InkCodec} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {stringToHex} from "@polkadot/util";
+import {HexString} from "@polkadot/util/types";
+import {MessageCoder} from "@guigou/sc-rollup-core";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
@@ -58,13 +60,22 @@ test('Check compatibility', async () => {
 });
 */
 
+class MyMessageCoder implements MessageCoder<HexString> {
+  decode(raw: HexString): HexString {
+    return raw
+  }
+  encode(message: HexString): HexString {
+    return message
+  }
+}
+
 test('Read / Write values', async () => {
 
   if (pk == undefined){
     return;
   }
 
-  const client = new InkClient(rpc, address, pk);
+  const client = new InkClient(rpc, address, pk, new MyMessageCoder());
 
   await client.startSession();
 
@@ -104,7 +115,7 @@ test('Poll message', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk);
+  const client = new InkClient(rpc, address, pk, new MyMessageCoder());
 
   await client.startSession();
 
@@ -131,7 +142,7 @@ test('Feed data', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk);
+  const client = new InkClient(rpc, address, pk, new MyMessageCoder());
 
   await client.startSession();
 
