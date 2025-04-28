@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-evm",
-  "version": "0.0.3-beta11",
+  "version": "0.0.4-beta1",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.3-beta11 --no-git-checks"
+    "release": "pnpm publish --access public --tag tag0.0.4-beta1 --no-git-checks"
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.0.4-beta1",
