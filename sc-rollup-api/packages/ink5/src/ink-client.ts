@@ -1,4 +1,4 @@
-import {ActionEncoder, Client, Codec, HexString, Option,} from "@guigou/sc-rollup-core"
+import {Client, Codec, HexString, Option, MessageCoder, RawTypeEncoder} from "@guigou/sc-rollup-core"
 import {contracts, shibuya} from "@guigou/sc-rollup-ink5-descriptors"
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
 import {encodeAddress} from "@polkadot/util-crypto"
@@ -16,18 +16,24 @@ const QUEUE_TAIL_KEY = stringToHex("q/_tail")
 const QUEUE_HEAD_KEY = stringToHex("q/_head")
 const VERSION_NUMBER_KEY = stringToHex("v/_number")
 
-export type KV = [Binary, Binary | undefined]
-export type Action = {}
+export type KvRawType = [Binary, Binary | undefined]
+export type ActionRawType = {}
 
-export class InkClient extends Client<KV, Action> {
+export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message> {
   contract: any
   signer: PolkadotSigner
   signerAddress: SS58String
 
-  public constructor(rpc: string, address: string, pk: string) {
+  public constructor(
+    rpc: string,
+    address: string,
+    pk: string,
+    messageCoder: MessageCoder<Message>
+    ) {
     super(
       new InkCodec(),
-      new InkActionDecoder(),
+      new InkEncoder(),
+      messageCoder,
       VERSION_NUMBER_KEY,
       QUEUE_TAIL_KEY,
       QUEUE_HEAD_KEY,
@@ -104,9 +110,9 @@ export class InkClient extends Client<KV, Action> {
   }
 
   async sendTransaction(
-    conditions: KV[],
-    updates: KV[],
-    actions: Action[],
+    conditions: KvRawType[],
+    updates: KvRawType[],
+    actions: ActionRawType[],
   ): Promise<HexString> {
     console.log("Dry Run ...")
     const { value, success } = await this.contract.query(
@@ -189,19 +195,19 @@ const converter = (input: HexString): Binary => {
   return Binary.fromHex(input)
 }
 
-class InkActionDecoder implements ActionEncoder<KV, Action> {
-  encodeKeyValue(key: HexString, value: Option<HexString>): KV {
+class InkEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
+  encodeKeyValue(key: HexString, value: Option<HexString>): KvRawType {
     return [Binary.fromHex(key), value.map(converter).valueOf()]
   }
 
-  encodeReply(action: HexString): Action {
+  encodeReply(action: HexString): ActionRawType {
     return {
       type: "Reply",
       value: Binary.fromHex(action),
     }
   }
 
-  encodeSetQueueHead(index: number): Action {
+  encodeSetQueueHead(index: number): ActionRawType {
     return {
       type: "SetQueueHead",
       value: index,

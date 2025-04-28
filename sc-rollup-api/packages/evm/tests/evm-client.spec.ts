@@ -1,8 +1,9 @@
-import {assert, expect, test} from "vitest";
+import {expect, test} from "vitest";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {EvmClient, EvmCodec, hexAddPrefix} from "../src/evm-client";
 import {ethers} from "ethers";
+import {RawMessageCoder} from "@/raw-message-coder";
 
 const rpc = 'https://rpc.minato.soneium.org';
 const address = '0x51E561EAca24c91D6A3227c60Cbfdf0F527fA43e';
@@ -61,7 +62,7 @@ test('Read / Write values and Poll messages', async () => {
   }
   console.log('start ');
 
-  const client = new EvmClient(rpc, address, pk);
+  const client = new EvmClient(rpc, address, pk, new RawMessageCoder());
 
   await client.startSession();
 

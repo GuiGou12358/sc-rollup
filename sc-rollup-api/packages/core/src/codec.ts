@@ -1,4 +1,4 @@
-import { HexString, Option } from "./types"
+import {HexString, Option} from "./types"
 
 export interface Codec {
   encodeString(value: string): HexString
@@ -9,8 +9,14 @@ export interface Codec {
   decodeNumeric(value: HexString): number
 }
 
-export interface ActionEncoder<KV, A> {
-  encodeKeyValue(key: HexString, value: Option<HexString>): KV
-  encodeReply(action: HexString): A
-  encodeSetQueueHead(index: number): A
+export interface RawTypeEncoder<KvRawType, ActionRawType> {
+  encodeKeyValue(key: HexString, value: Option<HexString>): KvRawType
+  encodeReply(action: HexString): ActionRawType
+  encodeSetQueueHead(index: number): ActionRawType
+}
+
+
+export interface MessageCoder<Message> {
+  decode(raw: HexString): Message
+  encode(message: Message): HexString
 }

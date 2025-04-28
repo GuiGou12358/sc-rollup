@@ -1,25 +1,28 @@
-import { HexString, None, Option, Some } from "./types"
-import { ActionEncoder, Codec } from "./codec"
-import { Session } from "./session"
+import {HexString, None, Option, Some} from "./types"
+import {Codec, MessageCoder, RawTypeEncoder} from "./codec"
+import {Session} from "./session"
 
-export abstract class Client<KV, A> {
+export abstract class Client<KvRawType, ActionRawType, Message> {
   protected currentSession: Session
   protected readonly codec: Codec
-  protected readonly actionEncoder: ActionEncoder<KV, A>
+  protected readonly encoder: RawTypeEncoder<KvRawType, ActionRawType>
+  protected readonly messageCoder: MessageCoder<Message>
   protected readonly versionNumberKey: HexString
   protected readonly queueTailKey: HexString
   protected readonly queueHeadKey: HexString
 
   protected constructor(
     codec: Codec,
-    actionEncoder: ActionEncoder<KV, A>,
+    encoder: RawTypeEncoder<KvRawType, ActionRawType>,
+    messageCoder: MessageCoder<Message>,
     versionNumberKey: HexString,
     queueTailKey: HexString,
     queueHeadKey: HexString,
   ) {
     this.currentSession = new Session()
     this.codec = codec
-    this.actionEncoder = actionEncoder
+    this.encoder = encoder
+    this.messageCoder = messageCoder
     this.versionNumberKey = versionNumberKey
     this.queueTailKey = queueTailKey
     this.queueHeadKey = queueHeadKey
@@ -30,9 +33,9 @@ export abstract class Client<KV, A> {
   protected abstract getRemoteValue(key: HexString): Promise<Option<HexString>>
 
   protected abstract sendTransaction(
-    conditions: KV[],
-    updates: KV[],
-    actions: A[],
+    conditions: KvRawType[],
+    updates: KvRawType[],
+    actions: ActionRawType[],
   ): Promise<HexString>
 
   public async startSession() {
@@ -56,17 +59,17 @@ export abstract class Client<KV, A> {
     return await this.getIndex(this.queueHeadKey)
   }
 
-  public async getMessage(index: number): Promise<HexString> {
+  public async getMessage(index: number): Promise<Message> {
     const key = this.getMessageKey(index)
     const optionalMessage = await this.getRemoteValue(key)
     const message = optionalMessage.valueOf()
     if (message == undefined) {
       return Promise.reject("Error to get the message for index " + index)
     }
-    return message
+    return this.messageCoder.decode(message)
   }
 
-  public async pollMessage(): Promise<Option<HexString>> {
+  public async pollMessage(): Promise<Option<Message>> {
     const tailIndex = await this.getQueueTailIndex()
 
     if (this.currentSession.currentIndex == undefined) {
@@ -150,8 +153,8 @@ export abstract class Client<KV, A> {
     return new Some(version + 1)
   }
 
-  public addAction(action: HexString) {
-    this.currentSession.actions.push(action)
+  public addAction(action: Message) {
+    this.currentSession.actions.push(this.messageCoder.encode(action))
   }
 
   public async commit(): Promise<Option<HexString>> {
@@ -162,7 +165,7 @@ export abstract class Client<KV, A> {
       return new None()
     }
 
-    let conditions: KV[] = []
+    let conditions: KvRawType[] = []
     // optimistic locking: check the version of the current session
     // because all data read in the session are already put in the condition, we don't need to add this code
     /*
@@ -175,10 +178,10 @@ export abstract class Client<KV, A> {
     // check if there is no change in the read values
     this.currentSession.values.forEach((value, key) => {
       console.log("condition: key %s equals to with value %s", key, value)
-      conditions.push(this.actionEncoder.encodeKeyValue(key, value))
+      conditions.push(this.encoder.encodeKeyValue(key, value))
     })
 
-    let updates: KV[] = []
+    let updates: KvRawType[] = []
     // optimistic locking: bump the version
     const newVersion = this.bumpVersion()
     console.log(
@@ -187,7 +190,7 @@ export abstract class Client<KV, A> {
       newVersion,
     )
     updates.push(
-      this.actionEncoder.encodeKeyValue(
+      this.encoder.encodeKeyValue(
         this.versionNumberKey,
         newVersion.map(this.codec.encodeNumeric),
       ),
@@ -195,23 +198,23 @@ export abstract class Client<KV, A> {
 
     this.currentSession.updates.forEach((value, key) => {
       console.log("update key %s with value %s", key, value)
-      updates.push(this.actionEncoder.encodeKeyValue(key, value))
+      updates.push(this.encoder.encodeKeyValue(key, value))
     })
 
-    let actions: A[] = []
+    let actions: ActionRawType[] = []
     if (
       this.currentSession.indexUpdated &&
       this.currentSession.currentIndex != undefined
     ) {
       console.log("SetQueueHead %s", this.currentSession.currentIndex)
       actions.push(
-        this.actionEncoder.encodeSetQueueHead(this.currentSession.currentIndex),
+        this.encoder.encodeSetQueueHead(this.currentSession.currentIndex),
       )
     }
 
     this.currentSession.actions.forEach((action) => {
       console.log("Action : %s " + action)
-      actions.push(this.actionEncoder.encodeReply(action))
+      actions.push(this.encoder.encodeReply(action))
     })
 
     const txHash = await this.sendTransaction(conditions, updates, actions)

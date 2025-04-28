@@ -39,7 +39,7 @@
     "release": "pnpm publish --access public --tag tag0.0.3-beta11 --no-git-checks"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "workspace:*",
+    "@guigou/sc-rollup-core": "^0.0.4-beta1",
     "ethers": "^6.13.5"
   },
   "devDependencies": {

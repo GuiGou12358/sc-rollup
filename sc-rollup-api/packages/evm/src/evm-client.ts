@@ -1,7 +1,5 @@
-import { HexString, None, Option } from "../../core/src/types"
-import { Client } from "../../core/src/client"
-import { ActionEncoder, Codec } from "../../core/src/codec"
-import { BytesLike, ethers, JsonRpcProvider, Wallet, Contract } from "ethers"
+import {Client, Codec, HexString, MessageCoder, None, Option, RawTypeEncoder} from "@guigou/sc-rollup-core"
+import {BytesLike, Contract, ethers, JsonRpcProvider, Wallet} from "ethers"
 
 const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
@@ -94,18 +92,25 @@ const VERSION_NUMBER_KEY = hexAddPrefix(
   ethers.hexlify(ethers.toUtf8Bytes("v/_number")),
 )
 
-type KV = [BytesLike, BytesLike]
-type Action = BytesLike
+type KvRawType = [BytesLike, BytesLike]
+type ActionRawType = BytesLike
 
-export class EvmClient extends Client<KV, Action> {
+export class EvmClient<Message> extends Client<KvRawType, ActionRawType, Message> {
   readonly contract: Contract
   readonly provider: JsonRpcProvider
   readonly signerAddress: Wallet
 
-  public constructor(rpc: string, address: string, pk: string) {
+  public constructor(
+    rpc: string,
+    address:
+    string,
+    pk: string,
+    messageCoder : MessageCoder<Message>
+  ) {
     super(
       new EvmCodec(),
-      new EvmActionDecoder(),
+      new EvmEncoder(),
+      messageCoder,
       VERSION_NUMBER_KEY,
       QUEUE_TAIL_KEY,
       QUEUE_HEAD_KEY,
@@ -131,9 +136,9 @@ export class EvmClient extends Client<KV, Action> {
   }
 
   async sendTransaction(
-    conditions: KV[],
-    updates: KV[],
-    actions: Action[],
+    conditions: KvRawType[],
+    updates: KvRawType[],
+    actions: ActionRawType[],
   ): Promise<HexString> {
     const conditionKeys = conditions.map((v) => v[0])
     const conditionValues = conditions.map((v) => v[1])
@@ -185,16 +190,16 @@ export class EvmCodec implements Codec {
   }
 }
 
-class EvmActionDecoder implements ActionEncoder<KV, Action> {
-  encodeKeyValue(key: HexString, value: Option<HexString>): KV {
+class EvmEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
+  encodeKeyValue(key: HexString, value: Option<HexString>): KvRawType {
     return [key, value.orElse("0x")]
   }
 
-  encodeReply(action: HexString): Action {
+  encodeReply(action: HexString): ActionRawType {
     return hexAddPrefix(ethers.concat(["0x00", action]))
   }
 
-  encodeSetQueueHead(index: number): Action {
+  encodeSetQueueHead(index: number): ActionRawType {
     return hexAddPrefix(ethers.concat(["0x01", abiEncodeIndex(index)]))
   }
 }
