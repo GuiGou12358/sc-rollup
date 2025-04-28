@@ -10,12 +10,22 @@
   "license": "ISC",
   "exports": {
     ".": {
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
       "module": "./dist/esm/index.mjs",
       "import": "./dist/esm/index.mjs",
       "require": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "evm-client": {
+    "./evm-client": {
+      "node": {
+        "import": "./dist/esm/evm-client.mjs",
+        "require": "./dist/evm-client.js",
+        "default": "./dist/evm-client.js"
+      },
       "module": "./dist/esm/evm-client.mjs",
       "import": "./dist/esm/evm-client.mjs",
       "require": "./dist/evm-client.js",
