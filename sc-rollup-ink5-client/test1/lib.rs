@@ -4,11 +4,10 @@
 mod test1 {
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
-    use ink::storage::Mapping;
-    use ink_client_lib::traits::access_control::{AccessControl, AccessControlError, BaseAccessControl, RoleType, ADMIN_ROLE};
-    use ink_client_lib::traits::kv_store::{Key, KvStore, Value};
+    use ink_client_lib::traits::access_control::{AccessControl, AccessControlData, AccessControlError, AccessControlStorage, BaseAccessControl, RoleType, ADMIN_ROLE};
+    use ink_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
     use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
-    use ink_client_lib::traits::ownable::{BaseOwnable, Ownable, OwnableError};
+    use ink_client_lib::traits::ownable::{BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage};
     use ink_client_lib::traits::rollup_client::{BaseRollupAnchor, HandleActionInput, RollupClient, ATTESTOR_ROLE};
     use ink_client_lib::traits::RollupClientError;
     use ink::codegen::Env;
@@ -17,12 +16,12 @@ mod test1 {
     #[derive(Default, Debug)]
     #[ink(storage)]
     pub struct InkClient {
-        pub kv_store: Mapping<Key, Value>,
-        pub owner: Option<AccountId>,
-        pub roles: Mapping<(AccountId, RoleType), ()>,
-        pub flip: bool,
-        pub nb_updates: u128,
-        pub last_update: u64,
+        owner : OwnableData,
+        access_control : AccessControlData,
+        kv_store : KvStoreData,
+        flip: bool,
+        nb_updates: u128,
+        last_update: u64,
     }
 
     impl InkClient {
@@ -65,15 +64,17 @@ mod test1 {
         }
     }
 
-    impl BaseOwnable for InkClient {
-        fn inner_get_owner(&self) -> Option<AccountId> {
-            self.owner
+    impl OwnableStorage for InkClient {
+        fn get_storage(&self) -> &OwnableData {
+            &self.owner
         }
 
-        fn inner_set_owner(&mut self, owner: Option<AccountId>) {
-            self.owner = owner;
+        fn get_mut_storage(&mut self) -> &mut OwnableData {
+            &mut self.owner
         }
     }
+
+    impl BaseOwnable for InkClient {}
 
     impl Ownable for InkClient {
 
@@ -93,20 +94,17 @@ mod test1 {
         }
     }
 
-    impl BaseAccessControl for InkClient {
-        fn inner_has_role(&self, role: RoleType, account: AccountId) -> bool {
-            self.roles.contains((account, role))
+    impl AccessControlStorage for InkClient {
+        fn get_storage(&self) -> &AccessControlData {
+            &self.access_control
         }
 
-        fn inner_add_role(&mut self, role: RoleType, account: AccountId) {
-            self.roles.insert((account, role), &());
-        }
-
-        fn inner_remove_role(&mut self, role: RoleType, account: AccountId) {
-            self.roles.remove((account, role));
+        fn get_mut_storage(&mut self) -> &mut AccessControlData {
+            &mut self.access_control
         }
     }
 
+    impl BaseAccessControl for InkClient {}
 
     impl AccessControl for InkClient {
 
@@ -132,20 +130,17 @@ mod test1 {
 
     }
 
-    impl KvStore for InkClient {
-        fn inner_get_value(&self, key: &Key) -> Option<Value> {
-            self.kv_store.get(key)
+    impl KvStoreStorage for InkClient {
+        fn get_storage(&self) -> &KvStoreData {
+            &self.kv_store
         }
 
-        fn inner_set_value(&mut self, key: &Key, value: Option<&Value>) {
-            match value {
-                None => self.kv_store.remove(key),
-                Some(v) => {
-                    self.kv_store.insert(key, v);
-                }
-            }
+        fn get_mut_storage(&mut self) -> &mut KvStoreData {
+            &mut self.kv_store
         }
     }
+
+    impl KvStore for InkClient {}
 
     impl MessageQueue for InkClient {}
 
