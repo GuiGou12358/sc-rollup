@@ -4,19 +4,26 @@
 mod ink_client {
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
-    use ink_client_lib::traits::access_control::{AccessControl, AccessControlData, AccessControlError, AccessControlStorage, BaseAccessControl, RoleType, ADMIN_ROLE};
+    use ink_client_lib::traits::access_control::{
+        AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
+        BaseAccessControl, RoleType, ADMIN_ROLE,
+    };
     use ink_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
     use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
-    use ink_client_lib::traits::ownable::{BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage};
-    use ink_client_lib::traits::rollup_client::{BaseRollupAnchor, HandleActionInput, RollupClient, ATTESTOR_ROLE};
+    use ink_client_lib::traits::ownable::{
+        BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage,
+    };
+    use ink_client_lib::traits::rollup_client::{
+        BaseRollupAnchor, HandleActionInput, RollupClient, ATTESTOR_ROLE,
+    };
     use ink_client_lib::traits::RollupClientError;
 
     #[derive(Default, Debug)]
     #[ink(storage)]
     pub struct InkClient {
-        owner : OwnableData,
-        access_control : AccessControlData,
-        kv_store : KvStoreData,
+        owner: OwnableData,
+        access_control: AccessControlData,
+        kv_store: KvStoreData,
     }
 
     impl InkClient {
@@ -29,17 +36,17 @@ mod ink_client {
         }
 
         #[ink(message)]
-        pub fn push_message(&mut self, message: String) -> Result<QueueIndex, RollupClientError>  {
+        pub fn push_message(&mut self, message: String) -> Result<QueueIndex, RollupClientError> {
             MessageQueue::push_message(self, &message)
         }
 
         #[ink(message)]
-        pub fn get_admin_role(&self) -> RoleType{
+        pub fn get_admin_role(&self) -> RoleType {
             ADMIN_ROLE
         }
 
         #[ink(message)]
-        pub fn get_attestor_role(&self) -> RoleType{
+        pub fn get_attestor_role(&self) -> RoleType {
             ATTESTOR_ROLE
         }
     }
@@ -57,7 +64,6 @@ mod ink_client {
     impl BaseOwnable for InkClient {}
 
     impl Ownable for InkClient {
-
         #[ink(message)]
         fn get_owner(&self) -> Option<AccountId> {
             self.inner_get_owner()
@@ -87,19 +93,26 @@ mod ink_client {
     impl BaseAccessControl for InkClient {}
 
     impl AccessControl for InkClient {
-
         #[ink(message)]
         fn has_role(&self, role: RoleType, account: AccountId) -> bool {
             self.inner_has_role(role, account)
         }
 
         #[ink(message)]
-        fn grant_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+        fn grant_role(
+            &mut self,
+            role: RoleType,
+            account: AccountId,
+        ) -> Result<(), AccessControlError> {
             self.inner_grant_role(role, account)
         }
 
         #[ink(message)]
-        fn revoke_role(&mut self, role: RoleType, account: AccountId) -> Result<(), AccessControlError> {
+        fn revoke_role(
+            &mut self,
+            role: RoleType,
+            account: AccountId,
+        ) -> Result<(), AccessControlError> {
             self.inner_revoke_role(role, account)
         }
 
@@ -107,7 +120,6 @@ mod ink_client {
         fn renounce_role(&mut self, role: RoleType) -> Result<(), AccessControlError> {
             self.inner_renounce_role(role)
         }
-
     }
 
     impl KvStoreStorage for InkClient {
@@ -131,7 +143,6 @@ mod ink_client {
     }
 
     impl RollupClient for InkClient {
-
         #[ink(message)]
         fn get_value(&self, key: Key) -> Option<Value> {
             self.inner_get_value(&key)
@@ -152,5 +163,4 @@ mod ink_client {
             self.inner_rollup_cond_eq(conditions, updates, actions)
         }
     }
-
 }
