@@ -53,9 +53,11 @@ pub struct MessageProcessed {
     id: QueueIndex,
 }
 
-//#[ink::trait_definition]
 pub trait MessageQueue: KvStore {
-    fn push_message<M: ink::scale::Encode>(&mut self, data: &M) -> Result<QueueIndex, RollupClientError> {
+    fn push_message<M: ink::scale::Encode>(
+        &mut self,
+        data: &M,
+    ) -> Result<QueueIndex, RollupClientError> {
         let id = self.get_queue_tail()?;
         let key = get_key!(id);
         let encoded_value = data.encode();
@@ -66,14 +68,18 @@ pub trait MessageQueue: KvStore {
                 .ok_or(RollupClientError::QueueIndexOverflow)?,
         );
 
-        ::ink::env::emit_event::<DefaultEnvironment, MessageQueued>(MessageQueued{
-            id, data: encoded_value
+        ::ink::env::emit_event::<DefaultEnvironment, MessageQueued>(MessageQueued {
+            id,
+            data: encoded_value,
         });
 
         Ok(id)
     }
 
-    fn get_message<M: ink::scale::Decode>(&self, id: QueueIndex) -> Result<Option<M>, RollupClientError> {
+    fn get_message<M: ink::scale::Decode>(
+        &self,
+        id: QueueIndex,
+    ) -> Result<Option<M>, RollupClientError> {
         let key = get_key!(id);
         match self.inner_get_value(&key) {
             Some(v) => {
@@ -126,10 +132,9 @@ pub trait MessageQueue: KvStore {
 
         self.set_queue_head(target_id);
 
-        ::ink::env::emit_event::<DefaultEnvironment, MessageProcessed>(MessageProcessed{
-            id: target_id
+        ::ink::env::emit_event::<DefaultEnvironment, MessageProcessed>(MessageProcessed {
+            id: target_id,
         });
-
 
         Ok(())
     }

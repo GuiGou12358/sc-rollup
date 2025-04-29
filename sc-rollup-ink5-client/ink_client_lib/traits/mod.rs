@@ -1,10 +1,10 @@
 use crate::traits::access_control::AccessControlError;
 
+pub mod access_control;
 pub mod kv_store;
 pub mod message_queue;
-pub mod rollup_client;
 pub mod ownable;
-pub mod access_control;
+pub mod rollup_client;
 
 #[derive(Debug, Eq, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]

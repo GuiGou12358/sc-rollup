@@ -26,7 +26,6 @@ pub type RollupCondEqMethodParams = (
 
 #[ink::trait_definition]
 pub trait RollupClient {
-
     #[ink(message)]
     fn get_value(&self, key: Key) -> Option<Value>;
 
@@ -42,16 +41,13 @@ pub trait RollupClient {
     ) -> Result<(), RollupClientError>;
 }
 
-
 pub trait BaseRollupAnchor: MessageQueue + BaseAccessControl {
-
     fn inner_rollup_cond_eq(
         &mut self,
         conditions: Vec<(Key, Option<Value>)>,
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
-
         self.inner_check_role(ATTESTOR_ROLE, ::ink::env::caller::<DefaultEnvironment>())?;
 
         // check the conditions
@@ -99,5 +95,4 @@ pub trait BaseRollupAnchor: MessageQueue + BaseAccessControl {
     }
 
     fn on_message_received(&mut self, action: Vec<u8>) -> Result<(), RollupClientError>;
-
 }
