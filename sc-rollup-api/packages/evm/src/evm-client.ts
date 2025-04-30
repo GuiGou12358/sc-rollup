@@ -112,8 +112,8 @@ export class EvmClient<Message> extends Client<KvRawType, ActionRawType, Message
       new EvmEncoder(),
       messageCoder,
       VERSION_NUMBER_KEY,
-      QUEUE_TAIL_KEY,
       QUEUE_HEAD_KEY,
+      QUEUE_TAIL_KEY,
     )
     this.provider = new ethers.JsonRpcProvider(rpc)
     this.signerAddress = new ethers.Wallet(pk).connect(this.provider)
