@@ -1,4 +1,7 @@
-import {Client, Codec, HexString, Option, MessageCoder, RawTypeEncoder} from "@guigou/sc-rollup-core"
+//import {Client, Codec, HexString, Option, MessageCoder, RawTypeEncoder} from "@guigou/sc-rollup-core"
+import {Client} from "../../core/src/client"
+import {Codec, MessageCoder, RawTypeEncoder} from "../../core/src/codec"
+import {HexString, Option} from "../../core/src/types"
 import {contracts, shibuya} from "@guigou/sc-rollup-ink5-descriptors"
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
 import {encodeAddress} from "@polkadot/util-crypto"
@@ -14,6 +17,7 @@ import {Keyring} from "@polkadot/keyring";
 const QUEUE_TAIL_KEY = stringToHex("q/_tail")
 // q/_head : 0x712f5f68656164
 const QUEUE_HEAD_KEY = stringToHex("q/_head")
+// v/_number : 0x762f5f6e756d626572
 const VERSION_NUMBER_KEY = stringToHex("v/_number")
 
 export type KvRawType = [Binary, Binary | undefined]
@@ -35,8 +39,8 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
       new InkEncoder(),
       messageCoder,
       VERSION_NUMBER_KEY,
-      QUEUE_TAIL_KEY,
       QUEUE_HEAD_KEY,
+      QUEUE_TAIL_KEY,
     )
 
     const client = createClient(withPolkadotSdkCompat(getWsProvider(rpc)))
