@@ -2,9 +2,10 @@ import {assert, expect, test} from "vitest";
 import {InkClient, InkCodec} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
-import {stringToHex} from "@polkadot/util";
-import {HexString} from "@polkadot/util/types";
-import {MessageCoder} from "@guigou/sc-rollup-core";
+import {mergeUint8} from "polkadot-api/utils";
+import {Binary, u32} from "@polkadot-api/substrate-bindings";
+import {hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
+import {HexString, MessageCoder} from "@guigou/sc-rollup-core";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
@@ -12,6 +13,31 @@ const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
 configDotenv();
 const pk = process.env.pk;
 
+
+test('encode keys', async () => {
+  expect(Binary.fromText("q/_tail").asHex()).toBe('0x712f5f7461696c');
+  expect(stringToHex("q/_tail")).toBe('0x712f5f7461696c');
+
+  expect(Binary.fromText("q/_head").asHex()).toBe('0x712f5f68656164');
+  expect(stringToHex("q/_head")).toBe('0x712f5f68656164');
+
+  expect(Binary.fromText("v/_number").asHex()).toBe('0x762f5f6e756d626572');
+  expect(stringToHex("v/_number")).toBe('0x762f5f6e756d626572');
+
+
+  const codec = new InkCodec();
+  const index = 7
+  const encodedIndex = hexToU8a(codec.encodeNumeric(index))
+  const v1 = u8aToHex(u8aConcat(stringToU8a("q/"), encodedIndex))
+
+  expect(v1).toBe('0x712f07000000');
+
+  const p = Binary.fromText("q/").asBytes()
+  const i = u32.enc(index)
+  const v2 = Binary.fromBytes(mergeUint8(p, i)).asHex()
+  expect(v2).toBe('0x712f07000000');
+
+});
 
 test('encoding / decoding', async () => {
 
@@ -23,11 +49,35 @@ test('encoding / decoding', async () => {
   expect(encodedNumber).toBe('0x14000000');
   expect(codec.decodeNumeric(encodedNumber)).toBe(n);
 
-  n = 5;
-  encodedNumber = codec.encodeNumeric(n);
+  n = 8;
+  encodedNumber = codec.encodeU8(n);
   console.log('encoded %s : %s', n, encodedNumber);
-  expect(encodedNumber).toBe('0x05000000');
+  expect(encodedNumber).toBe('0x08');
   expect(codec.decodeNumeric(encodedNumber)).toBe(n);
+
+  n = 16;
+  encodedNumber = codec.encodeU16(n);
+  console.log('encoded %s : %s', n, encodedNumber);
+  expect(encodedNumber).toBe('0x1000');
+  expect(codec.decodeU16(encodedNumber)).toBe(n);
+
+  n = 32;
+  encodedNumber = codec.encodeU32(n);
+  console.log('encoded %s : %s', n, encodedNumber);
+  expect(encodedNumber).toBe('0x20000000');
+  expect(codec.decodeU32(encodedNumber)).toBe(n);
+
+  let bn  = BigInt(64);
+  encodedNumber = codec.encodeU64(bn);
+  console.log('encoded %s : %s', n, encodedNumber);
+  expect(encodedNumber).toBe('0x4000000000000000');
+  expect(codec.decodeU64(encodedNumber)).toBe(bn);
+
+  bn  = BigInt(128);
+  encodedNumber = codec.encodeU128(bn);
+  console.log('encoded %s : %s', n, encodedNumber);
+  expect(encodedNumber).toBe('0x80000000000000000000000000000000');
+  expect(codec.decodeU128(encodedNumber)).toBe(bn);
 
   const encodedBooleanFalse = codec.encodeBoolean(false);
   console.log('encoded %s : %s', false, encodedBooleanFalse);
@@ -54,7 +104,7 @@ test('Check compatibility', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk);
+  const client = new InkClient(rpc, address, pk, myMessageCoder);
   await client.checkCompatibility();
 
 });
@@ -69,13 +119,15 @@ class MyMessageCoder implements MessageCoder<HexString> {
   }
 }
 
+const myMessageCoder = new MyMessageCoder();
+
 test('Read / Write values', async () => {
 
   if (pk == undefined){
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, new MyMessageCoder());
+  const client = new InkClient(rpc, address, pk, myMessageCoder);
 
   await client.startSession();
 
@@ -86,7 +138,7 @@ test('Read / Write values', async () => {
   const newValue1 = v1 ? v1 + 1 : 1;
   client.setNumericValue(key1, newValue1);
 
-  const key2 = stringToHex('key2')
+  const key2 = stringToHex('key20')
   const value2 = await client.getStringValue(key2);
   console.log('key2 %s - value : %s', key2, value2);
   const v2 = value2.valueOf();
@@ -115,7 +167,7 @@ test('Poll message', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, new MyMessageCoder());
+  const client = new InkClient(rpc, address, pk, myMessageCoder);
 
   await client.startSession();
 
@@ -142,7 +194,7 @@ test('Feed data', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, new MyMessageCoder());
+  const client = new InkClient(rpc, address, pk, myMessageCoder);
 
   await client.startSession();
 
@@ -151,4 +203,6 @@ test('Feed data', async () => {
   await client.commit();
 
 });
+
+
 

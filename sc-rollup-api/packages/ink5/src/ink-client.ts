@@ -1,23 +1,25 @@
-//import {Client, Codec, HexString, Option, MessageCoder, RawTypeEncoder} from "@guigou/sc-rollup-core"
-import {Client} from "../../core/src/client"
-import {Codec, MessageCoder, RawTypeEncoder} from "../../core/src/codec"
-import {HexString, Option} from "../../core/src/types"
+import {Client, Codec, HexString, Option, MessageCoder, RawTypeEncoder} from "@guigou/sc-rollup-core"
 import {contracts, shibuya} from "@guigou/sc-rollup-ink5-descriptors"
-import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
-import {encodeAddress} from "@polkadot/util-crypto"
-import {createInkSdk} from "@polkadot-api/sdk-ink"
-import {Binary, createClient, PolkadotSigner, SS58String} from "polkadot-api"
+import {createClient} from "polkadot-api"
 import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
+import {PolkadotSigner, getPolkadotSigner} from "polkadot-api/signer"
+import {fromHex, toHex} from "polkadot-api/utils"
 import {getWsProvider} from "polkadot-api/ws-provider/web"
-import {getPolkadotSigner} from "polkadot-api/signer"
-import {sr25519} from "@polkadot-labs/hdkd-helpers";
+//import {encodeAddress} from "@polkadot/util-crypto"
+import {createInkSdk} from "@polkadot-api/sdk-ink"
+import {bool, u8, u16, u32, u64, u128, u256, str, Binary, SS58String} from "@polkadot-api/substrate-bindings"
+//import {ed25519} from "@polkadot-labs/hdkd-helpers";
 import {Keyring} from "@polkadot/keyring";
+import {stringToHex, hexAddPrefix, stringToU8a, u8aConcat, hexToU8a, u8aToHex} from "@polkadot/util"
 
 // q/_tail : 0x712f5f7461696c
+//const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
 const QUEUE_TAIL_KEY = stringToHex("q/_tail")
 // q/_head : 0x712f5f68656164
+//const QUEUE_HEAD_KEY = Binary.fromText("q/_head").asHex()
 const QUEUE_HEAD_KEY = stringToHex("q/_head")
 // v/_number : 0x762f5f6e756d626572
+//const VERSION_NUMBER_KEY = Binary.fromText("v/_number").asHex()
 const VERSION_NUMBER_KEY = stringToHex("v/_number")
 
 export type KvRawType = [Binary, Binary | undefined]
@@ -47,6 +49,23 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
     const typedApi = client.getTypedApi(shibuya)
     const sdk = createInkSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
+
+/*
+    const privateKey = fromHex(pk)
+    const publicKey = ed25519.getPublicKey(privateKey)
+    console.log('publicKey %s', publicKey)
+
+    this.signer = getPolkadotSigner(
+      publicKey,
+      //"Sr25519",
+      "Ed25519",
+      (input) => ed25519.sign(input, privateKey)
+    );
+
+    this.signerAddress = encodeAddress(publicKey)
+    console.log('signerAddress %s', this.signerAddress)
+*/
+
 /*
     const publicKey = sr25519.getPublicKey(hexToU8a(pk))
     this.signer = getPolkadotSigner(
@@ -59,7 +78,7 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
  */
 
     const keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
-      hexToU8a(pk),
+      fromHex(pk),
     )
     this.signerAddress = keyringPair.address
     this.signer = getPolkadotSigner(
@@ -76,10 +95,15 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
     }
   }
 
+
+
   getMessageKey(index: number): HexString {
-    //const encodedIndex = this.encodeNumericValue(index).replace('0x', '');
     const encodedIndex = hexToU8a(this.codec.encodeNumeric(index))
     return u8aToHex(u8aConcat(stringToU8a("q/"), encodedIndex))
+
+    //const bytes = mergeUint8(Binary.fromText("q/").asBytes(), u32.enc(index))
+    //return hexAddPrefix(Binary.fromBytes(bytes).asHex())
+
   }
 
   async hasMessage(): Promise<Boolean> {
@@ -155,11 +179,17 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
 
 export class InkCodec implements Codec {
   encodeString(value: string): HexString {
+    return hexAddPrefix(toHex(str.enc(value)))
+    //return hexAddPrefix(Binary.fromText(value).asHex())
+  }
+
+  encodeBytes(value: HexString): HexString {
     return hexAddPrefix(Binary.fromText(value).asHex())
   }
 
   encodeBoolean(value: boolean): HexString {
-    return value ? "0x01" : "0x00"
+    return hexAddPrefix(toHex(bool.enc(value)))
+    //return value ? "0x01" : "0x00"
   }
 
   encodeNumeric(value: number): HexString {
@@ -178,21 +208,76 @@ export class InkCodec implements Codec {
   }
 
   decodeString(value: HexString): string {
+    return str.dec(value);
+    /*
     return value
       .replace(/^0x/i, "")
       .match(/.{1,2}/g)!
       .map((byte) => String.fromCharCode(parseInt(byte, 16)))
       .join("")
+
+     */
   }
 
   decodeBoolean(value: HexString): boolean {
-    return value === "0x01"
+    return bool.dec(value)
+    //return value === "0x01"
   }
 
   decodeNumeric(value: HexString): number {
     //return u8aToNumber(hexToU8a(value, 8));
     return parseInt(value.replace(/(00)+$/, ""), 16)
+    //return u128.dec(value);
   }
+
+  encodeU8(value: number): HexString {
+    return hexAddPrefix(toHex(u8.enc(value)))
+  }
+
+  encodeU16(value: number): HexString {
+    return hexAddPrefix(toHex(u16.enc(value)))
+  }
+
+  encodeU32(value: number): HexString {
+    return hexAddPrefix(toHex(u32.enc(value)))
+  }
+
+  encodeU64(value: bigint): HexString {
+    return hexAddPrefix(toHex(u64.enc(value)))
+  }
+
+  encodeU128(value: bigint): HexString {
+    return hexAddPrefix(toHex(u128.enc(value)))
+  }
+
+  encodeU256(value: bigint): HexString {
+    return hexAddPrefix(toHex(u256.enc(value)))
+  }
+
+  decodeU8(value: HexString): number {
+    return u8.dec(value)
+  }
+
+  decodeU16(value: HexString): number {
+    return u16.dec(value)
+  }
+
+  decodeU32(value: HexString): number {
+    return u32.dec(value)
+  }
+
+  decodeU64(value: HexString): bigint {
+    return u64.dec(value)
+  }
+
+  decodeU128(value: HexString): bigint {
+    return u128.dec(value)
+  }
+
+  decodeU256(value: HexString): bigint {
+    return u256.dec(value)
+  }
+
 }
 
 const converter = (input: HexString): Binary => {
