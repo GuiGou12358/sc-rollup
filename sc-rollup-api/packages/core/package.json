@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-core",
-  "version": "0.0.4-beta2",
+  "version": "0.0.4-beta7",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -66,12 +66,12 @@
   "scripts": {
     "clean": "rm -rf dist && rm -rf src/*.js",
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
-    "build": "pnpm build-core",
+    "build": "pnpm clean && pnpm build-core",
     "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.4-beta2 --no-git-checks"
+    "release": "pnpm publish --access public --tag tag0.0.4-beta7 --no-git-checks"
   },
   "devDependencies": {
     "typescript": "^5.8.2"

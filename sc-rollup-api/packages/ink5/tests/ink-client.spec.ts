@@ -27,7 +27,7 @@ test('encode keys', async () => {
 
   const codec = new InkCodec();
   const index = 7
-  const encodedIndex = hexToU8a(codec.encodeNumeric(index))
+  const encodedIndex = hexToU8a(codec.encodeNumber(index, "u32"))
   const v1 = u8aToHex(u8aConcat(stringToU8a("q/"), encodedIndex))
 
   expect(v1).toBe('0x712f07000000');
@@ -43,41 +43,35 @@ test('encoding / decoding', async () => {
 
   const codec = new InkCodec();
 
-  let n : number = 20;
-  let encodedNumber = codec.encodeNumeric(n);
-  console.log('encoded %s : %s', n, encodedNumber);
-  expect(encodedNumber).toBe('0x14000000');
-  expect(codec.decodeNumeric(encodedNumber)).toBe(n);
-
-  n = 8;
-  encodedNumber = codec.encodeU8(n);
+  let n = 8;
+  let encodedNumber = codec.encodeNumber(n, "u8");
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x08');
-  expect(codec.decodeNumeric(encodedNumber)).toBe(n);
+  expect(codec.decodeNumber(encodedNumber, "u8")).toBe(n);
 
   n = 16;
-  encodedNumber = codec.encodeU16(n);
+  encodedNumber = codec.encodeNumber(n, "u16");
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x1000');
-  expect(codec.decodeU16(encodedNumber)).toBe(n);
+  expect(codec.decodeNumber(encodedNumber, "u16")).toBe(n);
 
   n = 32;
-  encodedNumber = codec.encodeU32(n);
+  encodedNumber = codec.encodeNumber(n, "u32");
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x20000000');
-  expect(codec.decodeU32(encodedNumber)).toBe(n);
+  expect(codec.decodeNumber(encodedNumber, "u32")).toBe(n);
 
   let bn  = BigInt(64);
-  encodedNumber = codec.encodeU64(bn);
+  encodedNumber = codec.encodeBigInt(bn, "u64");
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x4000000000000000');
-  expect(codec.decodeU64(encodedNumber)).toBe(bn);
+  expect(codec.decodeBigInt(encodedNumber, "u64")).toBe(bn);
 
   bn  = BigInt(128);
-  encodedNumber = codec.encodeU128(bn);
+  encodedNumber = codec.encodeBigInt(bn, "u128");
   console.log('encoded %s : %s', n, encodedNumber);
   expect(encodedNumber).toBe('0x80000000000000000000000000000000');
-  expect(codec.decodeU128(encodedNumber)).toBe(bn);
+  expect(codec.decodeBigInt(encodedNumber, "u128")).toBe(bn);
 
   const encodedBooleanFalse = codec.encodeBoolean(false);
   console.log('encoded %s : %s', false, encodedBooleanFalse);
@@ -132,32 +126,33 @@ test('Read / Write values', async () => {
   await client.startSession();
 
   const key1 = stringToHex('key1')
-  const value1 = await client.getNumericValue(key1);
+  const value1 = await client.getNumber(key1, "u32");
   console.log('key1 %s - value : %s', key1, value1);
   const v1 = value1.valueOf();
   const newValue1 = v1 ? v1 + 1 : 1;
-  client.setNumericValue(key1, newValue1);
+  client.setNumber(key1, newValue1,"u32");
 
   const key2 = stringToHex('key20')
-  const value2 = await client.getStringValue(key2);
+  const value2 = await client.getString(key2);
   console.log('key2 %s - value : %s', key2, value2);
   const v2 = value2.valueOf();
   const newValue2 = v2 ? Number(v2) + 1 : 1;
-  client.setStringValue(key2, newValue2.toString());
+  client.setString(key2, newValue2.toString());
 
   const key3 = stringToHex('key3')
-  const value3 = await client.getBooleanValue(key3);
+  const value3 = await client.getBoolean(key3);
   console.log('key3 %s - value : %s', key3, value3);
   const v3 = value3.valueOf();
   const newValue3 = v3 == undefined ? false : !v3;
   console.log('new boolean value ' + newValue3);
-  client.setBooleanValue(key3, newValue3);
+  client.setBoolean(key3, newValue3);
 
   client.removeValue(stringToHex('key4'));
 
   const tx = await client.commit();
   assert(tx)
 });
+
 
 
 
@@ -203,6 +198,4 @@ test('Feed data', async () => {
   await client.commit();
 
 });
-
-
 

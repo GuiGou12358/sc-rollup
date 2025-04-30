@@ -1,12 +1,16 @@
-import {HexString, Option} from "./types"
+import {BigIntType, HexString, NumberType, Option} from "./types"
 
 export interface Codec {
-  encodeString(value: string): HexString
+  encodeNumber(value: number, type: NumberType): HexString
+  encodeBigInt(value: bigint, type: BigIntType): HexString
   encodeBoolean(value: boolean): HexString
-  encodeNumeric(value: number): HexString
-  decodeString(value: HexString): string
+  encodeString(value: string): HexString
+  encodeBytes(value: Uint8Array): HexString
+  decodeNumber(value: HexString, type: NumberType): number
+  decodeBigInt(value: HexString, type: BigIntType): bigint
   decodeBoolean(value: HexString): boolean
-  decodeNumeric(value: HexString): number
+  decodeString(value: HexString): string
+  decodeBytes(value: HexString): Uint8Array
 }
 
 export interface RawTypeEncoder<KvRawType, ActionRawType> {

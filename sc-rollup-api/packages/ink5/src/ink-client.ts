@@ -1,16 +1,25 @@
-import {Client, Codec, HexString, Option, MessageCoder, RawTypeEncoder} from "@guigou/sc-rollup-core"
+import {
+  BigIntType,
+  Client,
+  Codec,
+  HexString,
+  MessageCoder,
+  NumberType,
+  Option,
+  RawTypeEncoder
+} from "@guigou/sc-rollup-core"
 import {contracts, shibuya} from "@guigou/sc-rollup-ink5-descriptors"
 import {createClient} from "polkadot-api"
 import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
-import {PolkadotSigner, getPolkadotSigner} from "polkadot-api/signer"
+import {getPolkadotSigner, PolkadotSigner} from "polkadot-api/signer"
 import {fromHex, toHex} from "polkadot-api/utils"
 import {getWsProvider} from "polkadot-api/ws-provider/web"
 //import {encodeAddress} from "@polkadot/util-crypto"
 import {createInkSdk} from "@polkadot-api/sdk-ink"
-import {bool, u8, u16, u32, u64, u128, u256, str, Binary, SS58String} from "@polkadot-api/substrate-bindings"
+import {Binary, bool, SS58String, str, u128, u16, u256, u32, u64, u8} from "@polkadot-api/substrate-bindings"
 //import {ed25519} from "@polkadot-labs/hdkd-helpers";
 import {Keyring} from "@polkadot/keyring";
-import {stringToHex, hexAddPrefix, stringToU8a, u8aConcat, hexToU8a, u8aToHex} from "@polkadot/util"
+import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util"
 
 // q/_tail : 0x712f5f7461696c
 //const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
@@ -96,9 +105,8 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
   }
 
 
-
   getMessageKey(index: number): HexString {
-    const encodedIndex = hexToU8a(this.codec.encodeNumeric(index))
+    const encodedIndex = hexToU8a(this.encodeIndex(index))
     return u8aToHex(u8aConcat(stringToU8a("q/"), encodedIndex))
 
     //const bytes = mergeUint8(Binary.fromText("q/").asBytes(), u32.enc(index))
@@ -178,104 +186,74 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
 }
 
 export class InkCodec implements Codec {
+
+  encodeBoolean(value: boolean): HexString {
+    return hexAddPrefix(toHex(bool.enc(value)))
+  }
+
+  encodeNumber(value: number, type: NumberType): HexString {
+    switch (type) {
+      case "u8":
+        return hexAddPrefix(toHex(u8.enc(value)))
+      case "u16":
+        return hexAddPrefix(toHex(u16.enc(value)))
+      case "u32":
+        return hexAddPrefix(toHex(u32.enc(value)))
+    }
+  }
+
+  encodeBigInt(value: bigint, type: BigIntType): HexString {
+    switch (type) {
+      case "u64":
+        return hexAddPrefix(toHex(u64.enc(value)))
+      case "u128":
+        return hexAddPrefix(toHex(u128.enc(value)))
+      case "u256":
+        return hexAddPrefix(toHex(u256.enc(value)))
+    }
+  }
+
   encodeString(value: string): HexString {
     return hexAddPrefix(toHex(str.enc(value)))
     //return hexAddPrefix(Binary.fromText(value).asHex())
   }
 
-  encodeBytes(value: HexString): HexString {
-    return hexAddPrefix(Binary.fromText(value).asHex())
-  }
-
-  encodeBoolean(value: boolean): HexString {
-    return hexAddPrefix(toHex(bool.enc(value)))
-    //return value ? "0x01" : "0x00"
-  }
-
-  encodeNumeric(value: number): HexString {
-    //return u8aToHex(numberToU8a(value, 8));
-    //return numberToHex(value, 8);
-
-    let v = value.toString(16)
-    if (v.length % 2 != 0) {
-      v = "0" + v
-    }
-    if (v.length > 8) {
-      throw new Error("Too big number for u32")
-    }
-    // u32
-    return hexAddPrefix(v.padEnd(8, "0"))
-  }
-
-  decodeString(value: HexString): string {
-    return str.dec(value);
-    /*
-    return value
-      .replace(/^0x/i, "")
-      .match(/.{1,2}/g)!
-      .map((byte) => String.fromCharCode(parseInt(byte, 16)))
-      .join("")
-
-     */
+  encodeBytes(value: Uint8Array): HexString {
+    return hexAddPrefix(Binary.fromBytes(value).asHex())
   }
 
   decodeBoolean(value: HexString): boolean {
     return bool.dec(value)
-    //return value === "0x01"
   }
 
-  decodeNumeric(value: HexString): number {
-    //return u8aToNumber(hexToU8a(value, 8));
-    return parseInt(value.replace(/(00)+$/, ""), 16)
-    //return u128.dec(value);
+  decodeNumber(value: HexString, type: NumberType): number {
+    switch (type) {
+      case "u8":
+        return u8.dec(value)
+      case "u16":
+        return u16.dec(value)
+      case "u32":
+        return u32.dec(value)
+    }
   }
 
-  encodeU8(value: number): HexString {
-    return hexAddPrefix(toHex(u8.enc(value)))
+  decodeBigInt(value: HexString, type: BigIntType): bigint {
+    switch (type) {
+      case "u64":
+        return u64.dec(value)
+      case "u128":
+        return u128.dec(value)
+      case "u256":
+        return u256.dec(value)
+    }
   }
 
-  encodeU16(value: number): HexString {
-    return hexAddPrefix(toHex(u16.enc(value)))
+  decodeString(value: HexString): string {
+    return str.dec(value);
   }
 
-  encodeU32(value: number): HexString {
-    return hexAddPrefix(toHex(u32.enc(value)))
-  }
-
-  encodeU64(value: bigint): HexString {
-    return hexAddPrefix(toHex(u64.enc(value)))
-  }
-
-  encodeU128(value: bigint): HexString {
-    return hexAddPrefix(toHex(u128.enc(value)))
-  }
-
-  encodeU256(value: bigint): HexString {
-    return hexAddPrefix(toHex(u256.enc(value)))
-  }
-
-  decodeU8(value: HexString): number {
-    return u8.dec(value)
-  }
-
-  decodeU16(value: HexString): number {
-    return u16.dec(value)
-  }
-
-  decodeU32(value: HexString): number {
-    return u32.dec(value)
-  }
-
-  decodeU64(value: HexString): bigint {
-    return u64.dec(value)
-  }
-
-  decodeU128(value: HexString): bigint {
-    return u128.dec(value)
-  }
-
-  decodeU256(value: HexString): bigint {
-    return u256.dec(value)
+  decodeBytes(value: HexString): Uint8Array {
+    return Binary.fromHex(value).asBytes()
   }
 
 }

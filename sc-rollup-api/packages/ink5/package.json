@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink5",
-  "version": "0.0.4-beta3",
+  "version": "0.0.4-beta7",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -46,7 +46,7 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.4-beta3 --no-git-checks",
+    "release": "pnpm publish --access public --tag tag0.0.4-beta7 --no-git-checks",
     "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
     "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
   },
@@ -56,7 +56,7 @@
     "dotenv": "^16.4.7"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.4-beta3",
+    "@guigou/sc-rollup-core": "^0.0.4-beta7",
     "@guigou/sc-rollup-ink5-descriptors": "^0.1.0-beta1",
     "polkadot-api": "^1.9.7",
     "@polkadot-api/sdk-ink": "0.0.1-1",

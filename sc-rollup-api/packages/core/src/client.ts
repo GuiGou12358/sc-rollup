@@ -1,6 +1,9 @@
-import {HexString, None, Option, Some} from "./types"
+import {BigIntType, HexString, None, NumberType, Option, Some} from "./types"
 import {Codec, MessageCoder, RawTypeEncoder} from "./codec"
 import {Session} from "./session"
+
+const INDEX_TYPE = "u32";
+const VERSION_TYPE = "u32";
 
 export abstract class Client<KvRawType, ActionRawType, Message> {
   protected readonly codec: Codec
@@ -40,14 +43,25 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
 
   public async startSession() {
     this.currentSession = new Session()
-    this.currentSession.version = await this.getNumericValue(
+    this.currentSession.version = await this.getNumber(
       this.versionNumberKey,
+      VERSION_TYPE
     )
+  }
+
+  encodeIndex(index: number): HexString {
+    return this.codec.encodeNumber(index, INDEX_TYPE);
+  }
+
+  decodeIndex(index: HexString): number {
+    return this.codec.decodeNumber(index, INDEX_TYPE);
   }
 
   private async getIndex(key: HexString): Promise<number> {
     const encodedIndex = await this.getRemoteValue(key)
-    return encodedIndex.map(this.codec.decodeNumeric).orElse(0)
+    return encodedIndex
+      .map((v)=> this.codec.decodeNumber(v, INDEX_TYPE))
+      .orElse(0)
   }
 
   async getQueueTailIndex(): Promise<number> {
@@ -58,7 +72,7 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     return await this.getIndex(this.queueHeadKey)
   }
 
-  public async getMessage(index: number): Promise<Message> {
+    public async getMessage(index: number): Promise<Message> {
     const key = this.getMessageKey(index)
     const optionalMessage = await this.getRemoteValue(key)
     const message = optionalMessage.valueOf()
@@ -107,33 +121,53 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     this.currentSession.updates.set(key, value)
   }
 
-  public async getNumericValue(key: HexString): Promise<Option<number>> {
+  public async getNumber(key: HexString, type: NumberType): Promise<Option<number>> {
     const value = await this.getValue(key)
-    return value.map(this.codec.decodeNumeric)
+    return value.map((v)=> this.codec.decodeNumber(v, type))
   }
 
-  public async getStringValue(key: HexString): Promise<Option<string>> {
+  public async getBigInt(key: HexString, type: BigIntType): Promise<Option<bigint>> {
     const value = await this.getValue(key)
-    return value.map(this.codec.decodeString)
+    return value.map((v)=> this.codec.decodeBigInt(v, type))
   }
 
-  public async getBooleanValue(key: HexString): Promise<Option<boolean>> {
+  public async getBoolean(key: HexString): Promise<Option<boolean>> {
     const value = await this.getValue(key)
     return value.map(this.codec.decodeBoolean)
   }
 
-  public setStringValue(key: HexString, value: string) {
-    const v = this.codec.encodeString(value)
+  public async getString(key: HexString): Promise<Option<string>> {
+    const value = await this.getValue(key)
+    return value.map(this.codec.decodeString)
+  }
+
+  public async getBytes(key: HexString): Promise<Option<Uint8Array>> {
+    const value = await this.getValue(key)
+    return value.map(this.codec.decodeBytes)
+  }
+
+  public setNumber(key: HexString, value: number, type: NumberType) {
+    const v = this.codec.encodeNumber(value, type)
     this.setValue(key, Option.of(v))
   }
 
-  public setBooleanValue(key: HexString, value: boolean) {
+  public setBigInt(key: HexString, value: bigint, type: BigIntType) {
+    const v = this.codec.encodeBigInt(value, type)
+    this.setValue(key, Option.of(v))
+  }
+
+  public setBoolean(key: HexString, value: boolean) {
     const v = this.codec.encodeBoolean(value)
     this.setValue(key, Option.of(v))
   }
 
-  public setNumericValue(key: HexString, value: number) {
-    const v = this.codec.encodeNumeric(value)
+  public setString(key: HexString, value: string) {
+    const v = this.codec.encodeString(value)
+    this.setValue(key, Option.of(v))
+  }
+
+  public setBytes(key: HexString, value: Uint8Array) {
+    const v = this.codec.encodeBytes(value)
     this.setValue(key, Option.of(v))
   }
 
@@ -191,7 +225,7 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     updates.push(
       this.encoder.encodeKeyValue(
         this.versionNumberKey,
-        newVersion.map(this.codec.encodeNumeric),
+        newVersion.map((v)=> this.codec.encodeNumber(v, VERSION_TYPE)),
       ),
     )
 
