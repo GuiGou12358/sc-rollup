@@ -1,14 +1,5 @@
 export type HexString = `0x${string}`
 
-export interface Action {
-  encode(): HexString
-  decode(): HexString
-}
-
-export type Condition = string
-export type Signature = string
-export type Target = string
-
 export class Option<T> {
   private readonly value: T | undefined
 

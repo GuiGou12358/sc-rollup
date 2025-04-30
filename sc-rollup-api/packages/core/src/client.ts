@@ -3,29 +3,29 @@ import {Codec, MessageCoder, RawTypeEncoder} from "./codec"
 import {Session} from "./session"
 
 export abstract class Client<KvRawType, ActionRawType, Message> {
-  protected currentSession: Session
   protected readonly codec: Codec
   protected readonly encoder: RawTypeEncoder<KvRawType, ActionRawType>
   protected readonly messageCoder: MessageCoder<Message>
   protected readonly versionNumberKey: HexString
-  protected readonly queueTailKey: HexString
   protected readonly queueHeadKey: HexString
+  protected readonly queueTailKey: HexString
+  protected currentSession: Session
 
   protected constructor(
     codec: Codec,
     encoder: RawTypeEncoder<KvRawType, ActionRawType>,
     messageCoder: MessageCoder<Message>,
     versionNumberKey: HexString,
-    queueTailKey: HexString,
     queueHeadKey: HexString,
+    queueTailKey: HexString,
   ) {
-    this.currentSession = new Session()
     this.codec = codec
     this.encoder = encoder
     this.messageCoder = messageCoder
     this.versionNumberKey = versionNumberKey
-    this.queueTailKey = queueTailKey
     this.queueHeadKey = queueHeadKey
+    this.queueTailKey = queueTailKey
+    this.currentSession = new Session()
   }
 
   protected abstract getMessageKey(index: number): HexString
@@ -47,8 +47,7 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
 
   private async getIndex(key: HexString): Promise<number> {
     const encodedIndex = await this.getRemoteValue(key)
-    const index = encodedIndex.map(this.codec.decodeNumeric).valueOf()
-    return index == undefined ? 0 : index
+    return encodedIndex.map(this.codec.decodeNumeric).orElse(0)
   }
 
   async getQueueTailIndex(): Promise<number> {

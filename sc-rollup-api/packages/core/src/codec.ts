@@ -15,7 +15,6 @@ export interface RawTypeEncoder<KvRawType, ActionRawType> {
   encodeSetQueueHead(index: number): ActionRawType
 }
 
-
 export interface MessageCoder<Message> {
   decode(raw: HexString): Message
   encode(message: Message): HexString
