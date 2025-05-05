@@ -3,12 +3,12 @@ import {InkClient, InkCodec} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {mergeUint8} from "polkadot-api/utils";
-import {Binary, u32} from "@polkadot-api/substrate-bindings";
+import {Binary} from "@polkadot-api/substrate-bindings";
 import {hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
-import {HexString, MessageCoder} from "@guigou/sc-rollup-core";
+import {Struct, u8, u32, Option, u128} from "scale-ts";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
-const address = 'YGFfcLpZf7TAN2kn2J6trsj93jKyv9uBG8xSeXyLSFySM8x';
+const address = 'Z3CvWXXo9Hhgw7rjs5m8aekZszdniAFBER64yhD3Lobae3G';
 
 configDotenv();
 const pk = process.env.pk;
@@ -39,7 +39,7 @@ test('encode keys', async () => {
 
 });
 
-test('encoding / decoding', async () => {
+test('encoding / decoding Type', async () => {
 
   const codec = new InkCodec();
 
@@ -91,6 +91,37 @@ test('encoding / decoding', async () => {
 
 });
 
+
+const myMessageCodec = Struct({
+  respType: u8,
+  tradingPairId: u32,
+  price: Option(u128),
+  errNo: Option(u128),
+});
+
+
+test('encoding / decoding Message', async () => {
+
+  const encoded = myMessageCodec.enc({
+    respType : 11,
+    tradingPairId : 1,
+    price : 94024n * 1_000_000_000_000_000_000n,
+    errNo: undefined,
+  });
+
+  expect(u8aToHex(encoded)).toBe('0x0b0100000001000020707fef1e0de91300000000000000');
+
+  const decoded = myMessageCodec.dec('0x0b0300000001000020707fef1e0de91300000000000000');
+
+  expect(decoded).toStrictEqual({
+    respType : 11,
+    tradingPairId : 3,
+    price : 94024n * 1_000_000_000_000_000_000n,
+    errNo: undefined,
+  });
+
+});
+
 /*
 test('Check compatibility', async () => {
 
@@ -104,16 +135,6 @@ test('Check compatibility', async () => {
 });
 */
 
-class MyMessageCoder implements MessageCoder<HexString> {
-  decode(raw: HexString): HexString {
-    return raw
-  }
-  encode(message: HexString): HexString {
-    return message
-  }
-}
-
-const myMessageCoder = new MyMessageCoder();
 
 test('Read / Write values', async () => {
 
@@ -121,7 +142,7 @@ test('Read / Write values', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCoder);
+  const client = new InkClient(rpc, address, pk, myMessageCodec);
 
   await client.startSession();
 
@@ -154,15 +175,13 @@ test('Read / Write values', async () => {
 });
 
 
-
-
 test('Poll message', async () => {
 
   if (pk == undefined){
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCoder);
+  const client = new InkClient(rpc, address, pk, myMessageCodec);
 
   await client.startSession();
 
@@ -189,11 +208,16 @@ test('Feed data', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCoder);
+  const client = new InkClient(rpc, address, pk, myMessageCodec);
 
   await client.startSession();
 
-  client.addAction('0x00');
+  client.addAction({
+    respType : 11,
+    tradingPairId : 2,
+    price : 1800n * 1_000_000_000_000_000_000n,
+    errNo: undefined,
+  });
 
   await client.commit();
 

@@ -1,10 +1,10 @@
 import {
-  BigIntType,
+  type BigIntType,
   Client,
   Codec,
-  HexString,
+  type HexString,
   MessageCoder,
-  NumberType,
+  type NumberType,
   Option,
   RawTypeEncoder
 } from "@guigou/sc-rollup-core"
@@ -14,12 +14,13 @@ import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
 import {getPolkadotSigner, PolkadotSigner} from "polkadot-api/signer"
 import {fromHex, toHex} from "polkadot-api/utils"
 import {getWsProvider} from "polkadot-api/ws-provider/web"
-//import {encodeAddress} from "@polkadot/util-crypto"
 import {createInkSdk} from "@polkadot-api/sdk-ink"
 import {Binary, bool, SS58String, str, u128, u16, u256, u32, u64, u8} from "@polkadot-api/substrate-bindings"
 //import {ed25519} from "@polkadot-labs/hdkd-helpers";
 import {Keyring} from "@polkadot/keyring";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util"
+//import {encodeAddress} from "@polkadot/util-crypto"
+import {Codec as ScaleCodec} from "scale-ts"
 
 // q/_tail : 0x712f5f7461696c
 //const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
@@ -34,6 +35,24 @@ const VERSION_NUMBER_KEY = stringToHex("v/_number")
 export type KvRawType = [Binary, Binary | undefined]
 export type ActionRawType = {}
 
+
+class ScaleMessageCoder<Message> implements MessageCoder<Message> {
+
+  scaleCodec: ScaleCodec<Message>
+
+  public constructor(scaleCodec: ScaleCodec<Message>){
+    this.scaleCodec = scaleCodec
+  }
+
+  decode(raw: HexString): Message {
+    return this.scaleCodec.dec(raw);
+  }
+
+  encode(message: Message): HexString {
+    return u8aToHex(this.scaleCodec.enc(message));
+  }
+}
+
 export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message> {
   contract: any
   signer: PolkadotSigner
@@ -43,12 +62,12 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
     rpc: string,
     address: string,
     pk: string,
-    messageCoder: MessageCoder<Message>
+    scaleCodec: ScaleCodec<Message>,
     ) {
     super(
       new InkCodec(),
       new InkEncoder(),
-      messageCoder,
+      new ScaleMessageCoder(scaleCodec),
       VERSION_NUMBER_KEY,
       QUEUE_HEAD_KEY,
       QUEUE_TAIL_KEY,
