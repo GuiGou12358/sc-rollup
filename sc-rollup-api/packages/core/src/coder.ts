@@ -1,6 +1,6 @@
 import {BigIntType, HexString, NumberType, Option} from "./types"
 
-export interface Codec {
+export interface TypeCoder {
   encodeNumber(value: number, type: NumberType): HexString
   encodeBigInt(value: bigint, type: BigIntType): HexString
   encodeBoolean(value: boolean): HexString
@@ -19,7 +19,7 @@ export interface RawTypeEncoder<KvRawType, ActionRawType> {
   encodeSetQueueHead(index: number): ActionRawType
 }
 
-export interface MessageCoder<Message> {
-  decode(raw: HexString): Message
-  encode(message: Message): HexString
+export interface Coder<M> {
+  decode(raw: HexString): M
+  encode(message: M): HexString
 }

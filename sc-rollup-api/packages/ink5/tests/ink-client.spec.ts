@@ -1,11 +1,11 @@
 import {assert, expect, test} from "vitest";
-import {InkClient, InkCodec} from "../src/ink-client";
+import {InkClient, InkTypeCoder} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {mergeUint8} from "polkadot-api/utils";
 import {Binary} from "@polkadot-api/substrate-bindings";
 import {hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
-import {Struct, u8, u32, Option, u128} from "scale-ts";
+import {Struct, u8, u32, Option, u128, str} from "scale-ts";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'Z3CvWXXo9Hhgw7rjs5m8aekZszdniAFBER64yhD3Lobae3G';
@@ -25,7 +25,7 @@ test('encode keys', async () => {
   expect(stringToHex("v/_number")).toBe('0x762f5f6e756d626572');
 
 
-  const codec = new InkCodec();
+  const codec = new InkTypeCoder();
   const index = 7
   const encodedIndex = hexToU8a(codec.encodeNumber(index, "u32"))
   const v1 = u8aToHex(u8aConcat(stringToU8a("q/"), encodedIndex))
@@ -41,7 +41,7 @@ test('encode keys', async () => {
 
 test('encoding / decoding Type', async () => {
 
-  const codec = new InkCodec();
+  const codec = new InkTypeCoder();
 
   let n = 8;
   let encodedNumber = codec.encodeNumber(n, "u8");
@@ -91,8 +91,14 @@ test('encoding / decoding Type', async () => {
 
 });
 
-
 const myMessageCodec = Struct({
+  opType: u8,
+  tradingPairId: u32,
+  tokenA: str,
+  tokenB: str,
+});
+
+const myActionCodec = Struct({
   respType: u8,
   tradingPairId: u32,
   price: Option(u128),
@@ -100,9 +106,9 @@ const myMessageCodec = Struct({
 });
 
 
-test('encoding / decoding Message', async () => {
+test('encoding / decoding Action', async () => {
 
-  const encoded = myMessageCodec.enc({
+  const encoded = myActionCodec.enc({
     respType : 11,
     tradingPairId : 1,
     price : 94024n * 1_000_000_000_000_000_000n,
@@ -111,7 +117,7 @@ test('encoding / decoding Message', async () => {
 
   expect(u8aToHex(encoded)).toBe('0x0b0100000001000020707fef1e0de91300000000000000');
 
-  const decoded = myMessageCodec.dec('0x0b0300000001000020707fef1e0de91300000000000000');
+  const decoded = myActionCodec.dec('0x0b0300000001000020707fef1e0de91300000000000000');
 
   expect(decoded).toStrictEqual({
     respType : 11,
@@ -142,7 +148,7 @@ test('Read / Write values', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCodec);
+  const client = new InkClient(rpc, address, pk, myMessageCodec, myActionCodec);
 
   await client.startSession();
 
@@ -181,7 +187,7 @@ test('Poll message', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCodec);
+  const client = new InkClient(rpc, address, pk, myMessageCodec, myActionCodec);
 
   await client.startSession();
 
@@ -208,14 +214,14 @@ test('Feed data', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCodec);
+  const client = new InkClient(rpc, address, pk, myMessageCodec, myActionCodec);
 
   await client.startSession();
 
   client.addAction({
     respType : 11,
     tradingPairId : 2,
-    price : 1800n * 1_000_000_000_000_000_000n,
+    price : 1850n * 1_000_000_000_000_000_000n,
     errNo: undefined,
   });
 

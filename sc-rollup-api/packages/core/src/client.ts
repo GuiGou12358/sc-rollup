@@ -1,30 +1,33 @@
 import {BigIntType, HexString, None, NumberType, Option, Some} from "./types"
-import {Codec, MessageCoder, RawTypeEncoder} from "./codec"
+import {Coder, RawTypeEncoder, TypeCoder} from "./coder"
 import {Session} from "./session"
 
 const INDEX_TYPE = "u32";
 const VERSION_TYPE = "u32";
 
-export abstract class Client<KvRawType, ActionRawType, Message> {
-  protected readonly codec: Codec
-  protected readonly encoder: RawTypeEncoder<KvRawType, ActionRawType>
-  protected readonly messageCoder: MessageCoder<Message>
+export abstract class Client<KvRawType, ActionRawType, Message, Action> {
+  protected readonly typeCoder: TypeCoder
+  protected readonly rawTypeEncoder: RawTypeEncoder<KvRawType, ActionRawType>
+  protected readonly messageCoder: Coder<Message>
+  protected readonly actionCoder: Coder<Action>
   protected readonly versionNumberKey: HexString
   protected readonly queueHeadKey: HexString
   protected readonly queueTailKey: HexString
   protected currentSession: Session
 
   protected constructor(
-    codec: Codec,
-    encoder: RawTypeEncoder<KvRawType, ActionRawType>,
-    messageCoder: MessageCoder<Message>,
+    typeCoder: TypeCoder,
+    rawTypeEncoder: RawTypeEncoder<KvRawType, ActionRawType>,
+    messageCoder: Coder<Message>,
+    actionCoder: Coder<Action>,
     versionNumberKey: HexString,
     queueHeadKey: HexString,
     queueTailKey: HexString,
   ) {
-    this.codec = codec
-    this.encoder = encoder
+    this.typeCoder = typeCoder
+    this.rawTypeEncoder = rawTypeEncoder
     this.messageCoder = messageCoder
+    this.actionCoder = actionCoder
     this.versionNumberKey = versionNumberKey
     this.queueHeadKey = queueHeadKey
     this.queueTailKey = queueTailKey
@@ -50,17 +53,17 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
   }
 
   encodeIndex(index: number): HexString {
-    return this.codec.encodeNumber(index, INDEX_TYPE);
+    return this.typeCoder.encodeNumber(index, INDEX_TYPE);
   }
 
   decodeIndex(index: HexString): number {
-    return this.codec.decodeNumber(index, INDEX_TYPE);
+    return this.typeCoder.decodeNumber(index, INDEX_TYPE);
   }
 
   private async getIndex(key: HexString): Promise<number> {
     const encodedIndex = await this.getRemoteValue(key)
     return encodedIndex
-      .map((v)=> this.codec.decodeNumber(v, INDEX_TYPE))
+      .map((v)=> this.typeCoder.decodeNumber(v, INDEX_TYPE))
       .orElse(0)
   }
 
@@ -72,7 +75,7 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     return await this.getIndex(this.queueHeadKey)
   }
 
-    public async getMessage(index: number): Promise<Message> {
+  public async getMessage(index: number): Promise<Message> {
     const key = this.getMessageKey(index)
     const optionalMessage = await this.getRemoteValue(key)
     const message = optionalMessage.valueOf()
@@ -123,51 +126,51 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
 
   public async getNumber(key: HexString, type: NumberType): Promise<Option<number>> {
     const value = await this.getValue(key)
-    return value.map((v)=> this.codec.decodeNumber(v, type))
+    return value.map((v)=> this.typeCoder.decodeNumber(v, type))
   }
 
   public async getBigInt(key: HexString, type: BigIntType): Promise<Option<bigint>> {
     const value = await this.getValue(key)
-    return value.map((v)=> this.codec.decodeBigInt(v, type))
+    return value.map((v)=> this.typeCoder.decodeBigInt(v, type))
   }
 
   public async getBoolean(key: HexString): Promise<Option<boolean>> {
     const value = await this.getValue(key)
-    return value.map(this.codec.decodeBoolean)
+    return value.map(this.typeCoder.decodeBoolean)
   }
 
   public async getString(key: HexString): Promise<Option<string>> {
     const value = await this.getValue(key)
-    return value.map(this.codec.decodeString)
+    return value.map(this.typeCoder.decodeString)
   }
 
   public async getBytes(key: HexString): Promise<Option<Uint8Array>> {
     const value = await this.getValue(key)
-    return value.map(this.codec.decodeBytes)
+    return value.map(this.typeCoder.decodeBytes)
   }
 
   public setNumber(key: HexString, value: number, type: NumberType) {
-    const v = this.codec.encodeNumber(value, type)
+    const v = this.typeCoder.encodeNumber(value, type)
     this.setValue(key, Option.of(v))
   }
 
   public setBigInt(key: HexString, value: bigint, type: BigIntType) {
-    const v = this.codec.encodeBigInt(value, type)
+    const v = this.typeCoder.encodeBigInt(value, type)
     this.setValue(key, Option.of(v))
   }
 
   public setBoolean(key: HexString, value: boolean) {
-    const v = this.codec.encodeBoolean(value)
+    const v = this.typeCoder.encodeBoolean(value)
     this.setValue(key, Option.of(v))
   }
 
   public setString(key: HexString, value: string) {
-    const v = this.codec.encodeString(value)
+    const v = this.typeCoder.encodeString(value)
     this.setValue(key, Option.of(v))
   }
 
   public setBytes(key: HexString, value: Uint8Array) {
-    const v = this.codec.encodeBytes(value)
+    const v = this.typeCoder.encodeBytes(value)
     this.setValue(key, Option.of(v))
   }
 
@@ -186,8 +189,8 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     return new Some(version + 1)
   }
 
-  public addAction(action: Message) {
-    this.currentSession.actions.push(this.messageCoder.encode(action))
+  public addAction(action: Action) {
+    this.currentSession.actions.push(this.actionCoder.encode(action))
   }
 
   public async commit(): Promise<Option<HexString>> {
@@ -211,7 +214,7 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     // check if there is no change in the read values
     this.currentSession.values.forEach((value, key) => {
       console.log("condition: key %s equals to with value %s", key, value)
-      conditions.push(this.encoder.encodeKeyValue(key, value))
+      conditions.push(this.rawTypeEncoder.encodeKeyValue(key, value))
     })
 
     let updates: KvRawType[] = []
@@ -223,15 +226,15 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
       newVersion,
     )
     updates.push(
-      this.encoder.encodeKeyValue(
+      this.rawTypeEncoder.encodeKeyValue(
         this.versionNumberKey,
-        newVersion.map((v)=> this.codec.encodeNumber(v, VERSION_TYPE)),
+        newVersion.map((v)=> this.typeCoder.encodeNumber(v, VERSION_TYPE)),
       ),
     )
 
     this.currentSession.updates.forEach((value, key) => {
       console.log("update key %s with value %s", key, value)
-      updates.push(this.encoder.encodeKeyValue(key, value))
+      updates.push(this.rawTypeEncoder.encodeKeyValue(key, value))
     })
 
     let actions: ActionRawType[] = []
@@ -241,13 +244,13 @@ export abstract class Client<KvRawType, ActionRawType, Message> {
     ) {
       console.log("SetQueueHead %s", this.currentSession.currentIndex)
       actions.push(
-        this.encoder.encodeSetQueueHead(this.currentSession.currentIndex),
+        this.rawTypeEncoder.encodeSetQueueHead(this.currentSession.currentIndex),
       )
     }
 
     this.currentSession.actions.forEach((action) => {
       console.log("Action : %s " + action)
-      actions.push(this.encoder.encodeReply(action))
+      actions.push(this.rawTypeEncoder.encodeReply(action))
     })
 
     const txHash = await this.sendTransaction(conditions, updates, actions)

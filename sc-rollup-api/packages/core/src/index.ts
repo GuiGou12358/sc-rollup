@@ -1,4 +1,4 @@
 export * from "./client"
-export * from "./codec"
+export * from "./coder"
 export * from "./session"
 export * from "./types"

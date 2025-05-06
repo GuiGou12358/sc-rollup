@@ -1,12 +1,12 @@
 import {
   type BigIntType,
   Client,
-  Codec,
+  Coder,
   type HexString,
-  MessageCoder,
   type NumberType,
   Option,
-  RawTypeEncoder
+  RawTypeEncoder,
+  TypeCoder
 } from "@guigou/sc-rollup-core"
 import {contracts, shibuya} from "@guigou/sc-rollup-ink5-descriptors"
 import {createClient} from "polkadot-api"
@@ -20,7 +20,7 @@ import {Binary, bool, SS58String, str, u128, u16, u256, u32, u64, u8} from "@pol
 import {Keyring} from "@polkadot/keyring";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util"
 //import {encodeAddress} from "@polkadot/util-crypto"
-import {Codec as ScaleCodec} from "scale-ts"
+import {Codec} from "scale-ts"
 
 // q/_tail : 0x712f5f7461696c
 //const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
@@ -35,25 +35,7 @@ const VERSION_NUMBER_KEY = stringToHex("v/_number")
 export type KvRawType = [Binary, Binary | undefined]
 export type ActionRawType = {}
 
-
-class ScaleMessageCoder<Message> implements MessageCoder<Message> {
-
-  scaleCodec: ScaleCodec<Message>
-
-  public constructor(scaleCodec: ScaleCodec<Message>){
-    this.scaleCodec = scaleCodec
-  }
-
-  decode(raw: HexString): Message {
-    return this.scaleCodec.dec(raw);
-  }
-
-  encode(message: Message): HexString {
-    return u8aToHex(this.scaleCodec.enc(message));
-  }
-}
-
-export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message> {
+export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType, Message, Action> {
   contract: any
   signer: PolkadotSigner
   signerAddress: SS58String
@@ -62,12 +44,14 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
     rpc: string,
     address: string,
     pk: string,
-    scaleCodec: ScaleCodec<Message>,
+    messageCodec: Codec<Message>,
+    actionCodec: Codec<Action>,
     ) {
     super(
-      new InkCodec(),
+      new InkTypeCoder(),
       new InkEncoder(),
-      new ScaleMessageCoder(scaleCodec),
+      new ScaleCoder(messageCodec),
+      new ScaleCoder(actionCodec),
       VERSION_NUMBER_KEY,
       QUEUE_HEAD_KEY,
       QUEUE_TAIL_KEY,
@@ -204,37 +188,59 @@ export class InkClient<Message> extends Client<KvRawType, ActionRawType, Message
   }
 }
 
-export class InkCodec implements Codec {
+
+class ScaleCoder<T> implements Coder<T> {
+
+  codec: Codec<T>
+
+  public constructor(codec: Codec<T>){
+    this.codec = codec
+  }
+
+  decode(raw: HexString): T {
+    return this.codec.dec(raw);
+  }
+
+  encode(object: T): HexString {
+    return u8aToHex(this.codec.enc(object));
+  }
+}
+
+
+const fromBytesToHex = (bytes: Uint8Array): HexString => {
+  return hexAddPrefix(toHex(bytes))
+}
+
+export class InkTypeCoder implements TypeCoder {
 
   encodeBoolean(value: boolean): HexString {
-    return hexAddPrefix(toHex(bool.enc(value)))
+    return fromBytesToHex(bool.enc(value))
   }
 
   encodeNumber(value: number, type: NumberType): HexString {
     switch (type) {
       case "u8":
-        return hexAddPrefix(toHex(u8.enc(value)))
+        return fromBytesToHex(u8.enc(value))
       case "u16":
-        return hexAddPrefix(toHex(u16.enc(value)))
+        return fromBytesToHex(u16.enc(value))
       case "u32":
-        return hexAddPrefix(toHex(u32.enc(value)))
+        return fromBytesToHex(u32.enc(value))
     }
   }
 
   encodeBigInt(value: bigint, type: BigIntType): HexString {
     switch (type) {
       case "u64":
-        return hexAddPrefix(toHex(u64.enc(value)))
+        return fromBytesToHex(u64.enc(value))
       case "u128":
-        return hexAddPrefix(toHex(u128.enc(value)))
+        return fromBytesToHex(u128.enc(value))
       case "u256":
-        return hexAddPrefix(toHex(u256.enc(value)))
+        return fromBytesToHex(u256.enc(value))
     }
   }
 
   encodeString(value: string): HexString {
-    return hexAddPrefix(toHex(str.enc(value)))
-    //return hexAddPrefix(Binary.fromText(value).asHex())
+    return fromBytesToHex(str.enc(value))
   }
 
   encodeBytes(value: Uint8Array): HexString {
