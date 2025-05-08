@@ -18,6 +18,7 @@ import {createInkSdk} from "@polkadot-api/sdk-ink"
 import {Binary, bool, SS58String, str, u128, u16, u256, u32, u64, u8} from "@polkadot-api/substrate-bindings"
 //import {ed25519} from "@polkadot-labs/hdkd-helpers";
 import {Keyring} from "@polkadot/keyring";
+import type {KeyringPair} from "@polkadot/keyring/types";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util"
 //import {encodeAddress} from "@polkadot/util-crypto"
 import {Codec} from "scale-ts"
@@ -35,15 +36,25 @@ const VERSION_NUMBER_KEY = stringToHex("v/_number")
 export type KvRawType = [Binary, Binary | undefined]
 export type ActionRawType = {}
 
+function isKeyringPair(obj: any): obj is KeyringPair {
+  return (
+    obj &&
+      typeof obj === 'object' &&
+      typeof obj.address === 'string' &&
+      typeof obj.sign === 'function' &&
+      typeof obj.publicKey !== 'undefined'
+  );
+}
+
 export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType, Message, Action> {
   contract: any
   signer: PolkadotSigner
   signerAddress: SS58String
 
-  public constructor(
+  constructor(
     rpc: string,
     address: string,
-    pk: string,
+    pk: string | KeyringPair,
     messageCodec: Codec<Message>,
     actionCodec: Codec<Action>,
     ) {
@@ -62,36 +73,41 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
     const sdk = createInkSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
 
-/*
-    const privateKey = fromHex(pk)
-    const publicKey = ed25519.getPublicKey(privateKey)
-    console.log('publicKey %s', publicKey)
+    let keyringPair;
+    if (isKeyringPair(pk)){
+      keyringPair = pk as KeyringPair;
+    } else {
+      /*
+        const privateKey = fromHex(pk)
+        const publicKey = ed25519.getPublicKey(privateKey)
+        console.log('publicKey %s', publicKey)
 
-    this.signer = getPolkadotSigner(
-      publicKey,
-      //"Sr25519",
-      "Ed25519",
-      (input) => ed25519.sign(input, privateKey)
-    );
+        this.signer = getPolkadotSigner(
+          publicKey,
+          //"Sr25519",
+          "Ed25519",
+          (input) => ed25519.sign(input, privateKey)
+        );
 
-    this.signerAddress = encodeAddress(publicKey)
-    console.log('signerAddress %s', this.signerAddress)
-*/
+        this.signerAddress = encodeAddress(publicKey)
+        console.log('signerAddress %s', this.signerAddress)
+    */
 
-/*
-    const publicKey = sr25519.getPublicKey(hexToU8a(pk))
-    this.signer = getPolkadotSigner(
-      publicKey,
-      "Sr25519",
-      (input) => sr25519.sign(input, hexToU8a(pk))
-    );
-    this.signerAddress = encodeAddress(publicKey)
+      /*
+          const publicKey = sr25519.getPublicKey(hexToU8a(pk))
+          this.signer = getPolkadotSigner(
+            publicKey,
+            "Sr25519",
+            (input) => sr25519.sign(input, hexToU8a(pk))
+          );
+          this.signerAddress = encodeAddress(publicKey)
 
- */
+       */
+      keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
+        fromHex(pk),
+      );
+    }
 
-    const keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
-      fromHex(pk),
-    )
     this.signerAddress = keyringPair.address
     this.signer = getPolkadotSigner(
       keyringPair.publicKey,
