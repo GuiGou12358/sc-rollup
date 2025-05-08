@@ -10,11 +10,15 @@ mod ink_client {
     };
     use ink_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
     use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
+    use ink_client_lib::traits::meta_transaction::{
+        BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
+        MetaTransactionStorage,
+    };
     use ink_client_lib::traits::ownable::{
         BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage,
     };
     use ink_client_lib::traits::rollup_client::{
-        BaseRollupAnchor, HandleActionInput, RollupClient, ATTESTOR_ROLE,
+        BaseRollupClient, HandleActionInput, RollupClient, ATTESTOR_ROLE,
     };
     use ink_client_lib::traits::RollupClientError;
 
@@ -24,6 +28,7 @@ mod ink_client {
         owner: OwnableData,
         access_control: AccessControlData,
         kv_store: KvStoreData,
+        meta_transaction: MetaTransactionData,
     }
 
     impl InkClient {
@@ -136,7 +141,7 @@ mod ink_client {
 
     impl MessageQueue for InkClient {}
 
-    impl BaseRollupAnchor for InkClient {
+    impl BaseRollupClient for InkClient {
         fn on_message_received(&mut self, _action: Vec<u8>) -> Result<(), RollupClientError> {
             Ok(())
         }
@@ -161,6 +166,38 @@ mod ink_client {
             actions: Vec<HandleActionInput>,
         ) -> Result<(), RollupClientError> {
             self.inner_rollup_cond_eq(conditions, updates, actions)
+        }
+    }
+
+    impl MetaTransactionStorage for InkClient {
+        fn get_storage(&self) -> &MetaTransactionData {
+            &self.meta_transaction
+        }
+
+        fn get_mut_storage(&mut self) -> &mut MetaTransactionData {
+            &mut self.meta_transaction
+        }
+    }
+
+    impl BaseMetaTransaction for InkClient {}
+
+    impl MetaTransaction for InkClient {
+        #[ink(message)]
+        fn prepare(
+            &self,
+            from: AccountId,
+            data: Vec<u8>,
+        ) -> Result<(ForwardRequest, Hash), RollupClientError> {
+            self.inner_prepare(from, data)
+        }
+
+        #[ink(message)]
+        fn meta_tx_rollup_cond_eq(
+            &mut self,
+            request: ForwardRequest,
+            signature: [u8; 65],
+        ) -> Result<(), RollupClientError> {  
+            self.inner_meta_tx_rollup_cond_eq(request, signature)
         }
     }
 }

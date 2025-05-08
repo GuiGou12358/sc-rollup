@@ -5,6 +5,7 @@ pub mod kv_store;
 pub mod message_queue;
 pub mod ownable;
 pub mod rollup_client;
+pub mod meta_transaction;
 
 #[derive(Debug, Eq, PartialEq)]
 #[ink::scale_derive(Encode, Decode, TypeInfo)]
@@ -17,6 +18,12 @@ pub enum RollupClientError {
     QueueIndexOverflow,
     NotGranted(AccessControlError),
     AccessControlError(AccessControlError),
+    InvalidDestination,
+    NonceTooLow,
+    IncorrectSignature,
+    PublicKeyNotMatch,
+    PublicKeyIncorrect,
+    NonceOverflow,
     RuntimeError(u128),
     BusinessError(u128),
 }
