@@ -2,14 +2,13 @@
 
 #[ink::contract]
 mod ink_client {
-    use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
     use ink_client_lib::traits::access_control::{
         AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
-        BaseAccessControl, RoleType, ADMIN_ROLE,
+        BaseAccessControl, RoleType,
     };
     use ink_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
-    use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
+    use ink_client_lib::traits::message_queue::{MessageQueue};
     use ink_client_lib::traits::meta_transaction::{
         BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
         MetaTransactionStorage,
@@ -18,7 +17,7 @@ mod ink_client {
         BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage,
     };
     use ink_client_lib::traits::rollup_client::{
-        BaseRollupClient, HandleActionInput, RollupClient, ATTESTOR_ROLE,
+        BaseRollupClient, HandleActionInput, RollupClient,
     };
     use ink_client_lib::traits::RollupClientError;
 
@@ -39,7 +38,7 @@ mod ink_client {
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
             instance
         }
-
+        /*
         #[ink(message)]
         pub fn push_message(&mut self, message: String) -> Result<QueueIndex, RollupClientError> {
             MessageQueue::push_message(self, &message)
@@ -54,8 +53,18 @@ mod ink_client {
         pub fn get_attestor_role(&self) -> RoleType {
             ATTESTOR_ROLE
         }
+         */
     }
 
+    /// Implement the business logic for the Rollup Client in the 'on_message_received' method
+    impl BaseRollupClient for InkClient {
+        fn on_message_received(&mut self, _action: Vec<u8>) -> Result<(), RollupClientError> {
+            // implement the business code here
+            Ok(())
+        }
+    }
+
+    /// Boilerplate code to manage the ownership
     impl OwnableStorage for InkClient {
         fn get_storage(&self) -> &OwnableData {
             &self.owner
@@ -85,6 +94,7 @@ mod ink_client {
         }
     }
 
+    /// Boilerplate code to implement the access control
     impl AccessControlStorage for InkClient {
         fn get_storage(&self) -> &AccessControlData {
             &self.access_control
@@ -127,6 +137,7 @@ mod ink_client {
         }
     }
 
+    /// Boilerplate code to implement the Key Value Store
     impl KvStoreStorage for InkClient {
         fn get_storage(&self) -> &KvStoreData {
             &self.kv_store
@@ -139,14 +150,10 @@ mod ink_client {
 
     impl KvStore for InkClient {}
 
+    /// Boilerplate code to implement the Message Queue
     impl MessageQueue for InkClient {}
 
-    impl BaseRollupClient for InkClient {
-        fn on_message_received(&mut self, _action: Vec<u8>) -> Result<(), RollupClientError> {
-            Ok(())
-        }
-    }
-
+    /// Boilerplate code to implement the Rollup Client
     impl RollupClient for InkClient {
         #[ink(message)]
         fn get_value(&self, key: Key) -> Option<Value> {
@@ -169,6 +176,7 @@ mod ink_client {
         }
     }
 
+    /// Boilerplate code to implement the Meta Transaction
     impl MetaTransactionStorage for InkClient {
         fn get_storage(&self) -> &MetaTransactionData {
             &self.meta_transaction
@@ -196,7 +204,7 @@ mod ink_client {
             &mut self,
             request: ForwardRequest,
             signature: [u8; 65],
-        ) -> Result<(), RollupClientError> {  
+        ) -> Result<(), RollupClientError> {
             self.inner_meta_tx_rollup_cond_eq(request, signature)
         }
     }
