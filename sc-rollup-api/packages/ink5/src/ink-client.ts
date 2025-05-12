@@ -15,13 +15,12 @@ import {getPolkadotSigner, PolkadotSigner} from "polkadot-api/signer"
 import {fromHex, toHex} from "polkadot-api/utils"
 import {getWsProvider} from "polkadot-api/ws-provider/web"
 import {createInkSdk} from "@polkadot-api/sdk-ink"
-import {Binary, bool, SS58String, str, u128, u16, u256, u32, u64, u8} from "@polkadot-api/substrate-bindings"
+import {AccountId, Binary, bool, SS58String, str, u128, u16, u256, u32, u64, u8, Codec, Struct, Option as ScaleOption, Vector, Bytes, Tuple, EnumVariant} from "@polkadot-api/substrate-bindings"
 //import {ed25519} from "@polkadot-labs/hdkd-helpers";
 import {Keyring} from "@polkadot/keyring";
 import type {KeyringPair} from "@polkadot/keyring/types";
 import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util"
-//import {encodeAddress} from "@polkadot/util-crypto"
-import {Codec} from "scale-ts"
+import {Enum} from "scale-ts"
 
 // q/_tail : 0x712f5f7461696c
 //const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
@@ -34,7 +33,34 @@ const QUEUE_HEAD_KEY = stringToHex("q/_head")
 const VERSION_NUMBER_KEY = stringToHex("v/_number")
 
 export type KvRawType = [Binary, Binary | undefined]
-export type ActionRawType = {}
+export type ActionRawType = {
+  type: "Reply",
+  value: Binary,
+} | {
+  type: "SetQueueHead",
+  value: number,
+} | {
+  type: "GrantAttestor",
+  value: SS58String,
+} | {
+  type: "RevokeAttestor",
+  value: SS58String,
+};
+
+type ActionRawType2 = {
+  tag: "Reply",
+  value: Uint8Array,
+} | {
+  tag: "SetQueueHead",
+  value: number,
+} | {
+  tag: "GrantAttestor",
+  value: SS58String,
+} | {
+  tag: "RevokeAttestor",
+  value: SS58String,
+};
+
 
 function isKeyringPair(obj: any): obj is KeyringPair {
   return (
@@ -50,11 +76,16 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
   contract: any
   signer: PolkadotSigner
   signerAddress: SS58String
+  //signerEcdsa: PolkadotSigner | undefined
+  signerEcdsaKP: KeyringPair | undefined
+  signerEcdsaAddress: SS58String | undefined
+  sender: PolkadotSigner
+  senderAddress: SS58String
 
   constructor(
     rpc: string,
     address: string,
-    pk: string | KeyringPair,
+    attestorPk: string | KeyringPair,
     messageCodec: Codec<Message>,
     actionCodec: Codec<Action>,
     ) {
@@ -74,8 +105,8 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
     this.contract = sdk.getContract(address)
 
     let keyringPair;
-    if (isKeyringPair(pk)){
-      keyringPair = pk as KeyringPair;
+    if (isKeyringPair(attestorPk)) {
+      keyringPair = attestorPk as KeyringPair;
     } else {
       /*
         const privateKey = fromHex(pk)
@@ -103,9 +134,21 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
           this.signerAddress = encodeAddress(publicKey)
 
        */
-      keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
-        fromHex(pk),
+      keyringPair = new Keyring({type: "sr25519"}).addFromSeed(
+        fromHex(attestorPk),
       );
+
+      this.signerEcdsaKP = new Keyring({type: "ecdsa"}).addFromSeed(
+        fromHex(attestorPk),
+      );
+      this.signerEcdsaAddress = this.signerEcdsaKP.address;
+      /*
+      this.signerEcdsa = getPolkadotSigner(
+        this.signerEcdsaKP.publicKey,
+        "Ecdsa",
+        this.signerEcdsaKP.sign,
+      )
+       */
     }
 
     this.signerAddress = keyringPair.address
@@ -115,6 +158,31 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
       keyringPair.sign,
     )
 
+    this.senderAddress = keyringPair.address
+    this.sender = getPolkadotSigner(
+      keyringPair.publicKey,
+      "Sr25519",
+      keyringPair.sign,
+    )
+  }
+
+  public useSender(senderPk: string | KeyringPair){
+
+    let keyringPair;
+    if (isKeyringPair(senderPk)){
+      keyringPair = senderPk as KeyringPair;
+    } else {
+      keyringPair = new Keyring({ type: "sr25519" }).addFromSeed(
+        fromHex(senderPk),
+      );
+    }
+
+    this.senderAddress = keyringPair.address
+    this.sender = getPolkadotSigner(
+      keyringPair.publicKey,
+      "Sr25519",
+      keyringPair.sign,
+    )
   }
 
   public async checkCompatibility() {
@@ -164,11 +232,48 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
     return Option.of(value.response?.asHex())
   }
 
+  fromBinaryToU8a(data: KvRawType) : [Uint8Array, Uint8Array | undefined] {
+    const key = data.at(0);
+    const value = data.at(1);
+    if (key) {
+      return [key.asBytes(), value?.asBytes()]
+    } else {
+      throw new Error('Key is missing');
+    }
+  }
+
+  convertAction(action: ActionRawType) : ActionRawType2 {
+
+    switch (action.type) {
+      case "Reply":
+        return {
+          tag: "Reply",
+          value: action.value.asBytes(),
+        };
+      case "SetQueueHead":
+        return {
+          tag: "SetQueueHead",
+          value: action.value,
+        };
+      case "RevokeAttestor":
+        return {
+          tag: "RevokeAttestor",
+          value: action.value,
+        };
+      case "GrantAttestor":
+        return {
+          tag: "GrantAttestor",
+          value: action.value,
+        };
+    }
+  }
+
   async sendTransaction(
     conditions: KvRawType[],
     updates: KvRawType[],
     actions: ActionRawType[],
   ): Promise<HexString> {
+
     console.log("Dry Run ...")
     const { value, success } = await this.contract.query(
       "RollupClient::rollup_cond_eq",
@@ -182,7 +287,7 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
       },
     )
     if (!success) {
-      return Promise.reject("Error when dry run tx " + value)
+      return Promise.reject("Error when dry run tx " + value.toString())
     }
 
     console.log("Submitting tx ... ")
@@ -202,6 +307,124 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
     }
     return result.txHash
   }
+
+
+  async sendMetaTransaction(
+    conditions: KvRawType[],
+    updates: KvRawType[],
+    actions: ActionRawType[],
+  ): Promise<HexString> {
+
+    if (!this.signerEcdsaKP){
+      return Promise.reject("Signer ECDSA not set")
+    }
+
+    // encode the data to provide to the prepare method
+    const dataCodec = Struct({
+      conditions: Vector(Tuple(Bytes(), ScaleOption(Bytes()))),
+      updates: Vector(Tuple(Bytes(), ScaleOption(Bytes()))),
+
+      actions: Vector(Enum({
+        Reply : Bytes(),
+        SetQueueHead: u32,
+        GrantAttestor: AccountId(),
+        RevokeAttestor: AccountId(),
+      })),
+    });
+
+    const data = {
+      conditions: conditions.map(this.fromBinaryToU8a),
+      updates: updates.map(this.fromBinaryToU8a),
+      actions: actions.map(this.convertAction) ,
+    };
+
+    const encodedData = dataCodec.enc(data);
+    console.log('Encoded data : %s ', u8aToHex(encodedData));
+
+    // query the prepare method to get the nonce
+    console.log("Query the MetaTransaction::prepare method ...")
+    const { value : valueP, success : successP } = await this.contract.query(
+      "MetaTransaction::prepare",
+      {
+        origin: this.senderAddress,
+        data: {
+          from: this.signerEcdsaAddress,
+          data : Binary.fromBytes(encodedData),
+        },
+      },
+    )
+    if (!successP) {
+      return Promise.reject("Error Query the MetaTransaction::prepare method" + valueP)
+    }
+    const [forwardRequest, hash] = valueP.response;
+
+    console.log("forwardRequest.from %s", forwardRequest.from);
+    console.log("forwardRequest.to %s", forwardRequest.to);
+    console.log("forwardRequest.nonce %s", forwardRequest.nonce);
+    console.log("forwardRequest.data %s", forwardRequest.data.asHex());
+    console.log("hash %s", hash.asHex());
+
+    // Sign the message by the attestor
+    // If there was an existing ecdsa_sign_prehashed method, we can directly sign the hash.
+    // Otherwise, we have to sign the forwardRequest message
+    const forwardRequestCodec = Struct({
+      from: AccountId(),
+      to: AccountId(),
+      nonce: u128,
+      data: Bytes(),
+    });
+    const encodedMessage = forwardRequestCodec.enc({
+      from: forwardRequest.from,
+      to: forwardRequest.to,
+      nonce: forwardRequest.nonce,
+      data: forwardRequest.data.asBytes(),
+    });
+    console.log("Encoded message %s", u8aToHex(encodedMessage));
+    const signature = this.signerEcdsaKP.sign(encodedMessage);
+    console.log("Signature : %s", u8aToHex(signature));
+
+    /*
+        if (!this.signerEcdsa){
+          return Promise.reject("Signer ECDSA not set")
+        }
+        const signature2 = await this.signerEcdsa.signBytes(encodedMessage);
+        console.log("Signature 2: %s", u8aToHex(signature2));
+
+     */
+
+    console.log("Dry Run MetaTransaction::meta_tx_rollup_cond_eq ...")
+    const { value, success } = await this.contract.query(
+      "MetaTransaction::meta_tx_rollup_cond_eq",
+      {
+        origin: this.senderAddress,
+        data: {
+          request : forwardRequest,
+          signature : Binary.fromBytes(signature),
+        },
+      },
+    )
+    if (!success) {
+      console.log("Error when dry run tx : %s ", value)
+      return Promise.reject("Error when dry run tx " + value.toString())
+    }
+
+    console.log("Submitting tx ... ")
+    const result = await this.contract
+      .send("MetaTransaction::meta_tx_rollup_cond_eq", {
+        origin: this.senderAddress,
+        data: {
+          request : forwardRequest,
+          signature : Binary.fromBytes(signature),
+        },
+      })
+      .signAndSubmit(this.sender)
+
+    if (!result.ok) {
+      return Promise.reject("Error when submitting tx " + result)
+    }
+    return result.txHash
+  }
+
 }
 
 
@@ -303,8 +526,9 @@ const converter = (input: HexString): Binary => {
   return Binary.fromHex(input)
 }
 
-class InkEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
+export class InkEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
   encodeKeyValue(key: HexString, value: Option<HexString>): KvRawType {
+    //return [Binary.fromHex(key), value.map(converter).valueOf()]
     return [Binary.fromHex(key), value.map(converter).valueOf()]
   }
 
