@@ -19,8 +19,7 @@
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "test": "pnpm -r test run",
-    "test:ci": "pnpm -r test:ci",
-    "prepare": "husky"
+    "test:ci": "pnpm -r test:ci"
   },
   "prettier": {
     "printWidth": 80,
