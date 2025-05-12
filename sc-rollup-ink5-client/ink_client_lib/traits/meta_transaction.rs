@@ -113,10 +113,20 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         let mut public_key = [0u8; 33];
         ink::env::ecdsa_recover(signature, &hash, &mut public_key)
             .map_err(|_| RollupClientError::IncorrectSignature)?;
-
+        
+        ink::env::debug_println!("request.from : {:02x?}", request.from);
+        ink::env::debug_println!("public_key : {:02x?}", public_key);
+        ink::env::debug_println!("get_ecdsa_account_id(&public_key) : {:02x?}", get_ecdsa_account_id(&public_key));
+        
         if request.from != get_ecdsa_account_id(&public_key) {
             return Err(RollupClientError::PublicKeyNotMatch);
         }
+        /*
+        ink::env::sr25519_verify(signature, &hash, request.from.as_ref())
+            .map_err(|_| RollupClientError::PublicKeyNotMatch)?;
+            
+         */
+        
         Ok(())
     }
 
