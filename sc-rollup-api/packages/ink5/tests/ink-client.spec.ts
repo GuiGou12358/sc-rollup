@@ -1,14 +1,14 @@
 import {assert, expect, test} from "vitest";
-import {InkClient, InkTypeCoder} from "../src/ink-client";
+import {ActionRawType, InkClient, InkEncoder, InkTypeCoder, KvRawType} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {mergeUint8} from "polkadot-api/utils";
 import {Binary} from "@polkadot-api/substrate-bindings";
 import {hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
-import {Struct, u8, u32, Option, u128, str} from "scale-ts";
+import {Struct, u8, u32, Option, u128, str, Enum} from "scale-ts";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
-const address = 'Z3CvWXXo9Hhgw7rjs5m8aekZszdniAFBER64yhD3Lobae3G';
+const address = 'XRJE9yb5PN8j4PWucy3ReQ2NwTuNDmcZaE62rnTjEXqaw4E';
 
 configDotenv();
 const pk = process.env.pk;
@@ -91,41 +91,81 @@ test('encoding / decoding Type', async () => {
 
 });
 
-const myMessageCodec = Struct({
-  opType: u8,
-  tradingPairId: u32,
-  tokenA: str,
-  tokenB: str,
+/*
+    enum RequestMessage {
+        NewTradingPair {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// trading pair like 'polkadot/usd' => token0: 'polkadot' , 'token1' : 'usd'
+            token0: String,
+            token1: String,
+        },
+        RemoveTradingPair {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+        },
+    }
+ */
+const requestMessageCodec = Enum({
+  NewTradingPair : Struct({
+    tradingPairId: u32,
+    tokenA: str,
+    tokenB: str,
+  }),
+  RemoveTradingPair : Struct({
+    tradingPairId: u32,
+  }),
 });
 
-const myActionCodec = Struct({
-  respType: u8,
-  tradingPairId: u32,
-  price: Option(u128),
-  errNo: Option(u128),
+/*
+    enum ResponseMessage {
+        PriceFeed {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// price of the trading pair
+            price: u128,
+        },
+        Error {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// error when the price is read
+            err_no: u128,
+        },
+    }
+ */
+const responseMessageCodec = Enum({
+  PriceFeed : Struct({
+    tradingPairId: u32,
+    price: u128,
+  }),
+  Error : Struct({
+    tradingPairId: u32,
+    errNo: u128,
+  }),
 });
 
 
 test('encoding / decoding Action', async () => {
 
-  const encoded = myActionCodec.enc({
-    respType : 11,
-    tradingPairId : 1,
-    price : 94024n * 1_000_000_000_000_000_000n,
-    errNo: undefined,
+  const encoded = responseMessageCodec.enc({
+    tag: "PriceFeed",
+    value: {
+      tradingPairId: 1,
+      price: 94024n * 1_000_000_000_000_000_000n,
+    }
   });
 
-  expect(u8aToHex(encoded)).toBe('0x0b0100000001000020707fef1e0de91300000000000000');
+  expect(u8aToHex(encoded)).toBe('0x0001000000000020707fef1e0de913000000000000');
 
-  const decoded = myActionCodec.dec('0x0b0300000001000020707fef1e0de91300000000000000');
+  const decoded = responseMessageCodec.dec('0x0002000000000020707fef1e0de913000000000000');
 
   expect(decoded).toStrictEqual({
-    respType : 11,
-    tradingPairId : 3,
-    price : 94024n * 1_000_000_000_000_000_000n,
-    errNo: undefined,
+    tag: "PriceFeed",
+    value: {
+      tradingPairId: 2,
+      price: 94024n * 1_000_000_000_000_000_000n,
+    }
   });
-
 });
 
 /*
@@ -141,14 +181,13 @@ test('Check compatibility', async () => {
 });
 */
 
-
 test('Read / Write values', async () => {
 
   if (pk == undefined){
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCodec, myActionCodec);
+  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
@@ -187,7 +226,7 @@ test('Poll message', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCodec, myActionCodec);
+  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
@@ -214,18 +253,44 @@ test('Feed data', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, myMessageCodec, myActionCodec);
+  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
   client.addAction({
-    respType : 11,
-    tradingPairId : 2,
-    price : 1850n * 1_000_000_000_000_000_000n,
-    errNo: undefined,
+    tag: "PriceFeed",
+    value: {
+      tradingPairId: 1,
+      price: 94024n * 1_000_000_000_000_000_000n,
+    }
   });
 
   await client.commit();
+
+});
+
+
+test('Meta Transactions', async () => {
+
+  if (pk == undefined){
+    return;
+  }
+
+  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
+  client.useSender(pk);
+
+  await client.startSession();
+
+  const conditions: KvRawType[] = [];
+  const updates : KvRawType[] = [];
+  const action : ActionRawType = {
+    type: "Reply",
+    value: Binary.fromHex('0x0002000000000020707fef1e0de913000000000000'),
+  };
+
+  const actions : ActionRawType[] = [action];
+
+  await client.sendMetaTransaction(conditions, updates, actions);
 
 });
 
