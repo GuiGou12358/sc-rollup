@@ -46,9 +46,7 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.4-beta9 --no-git-checks",
-    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
-    "gen-contract-metadata": "pnpm exec papi ink add ./metadata/ink_client.json"
+    "release": "pnpm publish --access public --tag tag0.0.4-beta9 --no-git-checks"
   },
   "devDependencies": {
     "typescript": "^5.8.2",
@@ -57,7 +55,7 @@
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.0.4-beta8",
-    "@guigou/sc-rollup-ink5-descriptors": "^0.1.0-beta1",
+    "@guigou/sc-rollup-ink5-descriptors": "^0.1.0-beta7",
     "polkadot-api": "^1.9.7",
     "@polkadot-api/sdk-ink": "0.0.1-1",
     "@polkadot-api/substrate-bindings" : "^0.12.0",
