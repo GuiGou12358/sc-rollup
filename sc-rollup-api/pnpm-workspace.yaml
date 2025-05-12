@@ -1,4 +1,5 @@
 packages:
   - packages/core
   - packages/ink5
+  - packages/ink5-papi-descriptors
   - packages/evm
