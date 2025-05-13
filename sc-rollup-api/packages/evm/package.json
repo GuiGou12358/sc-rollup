@@ -31,6 +31,17 @@
       "require": "./dist/evm-client.js",
       "default": "./dist/evm-client.js"
     },
+    "./evm-client-abi": {
+      "node": {
+        "import": "./dist/esm/evm-client-abi.mjs",
+        "require": "./dist/evm-client-abi.js",
+        "default": "./dist/evm-client-abi.js"
+      },
+      "module": "./dist/esm/evm-client-abi.mjs",
+      "import": "./dist/esm/evm-client-abi.mjs",
+      "require": "./dist/evm-client-abi.js",
+      "default": "./dist/evm-client-abi.js"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -49,8 +60,8 @@
     "release": "pnpm publish --access public --tag tag0.0.4-beta3 --no-git-checks"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.4-beta3",
-    "ethers": "^6.13.5"
+    "@guigou/sc-rollup-core": "^0.0.4-beta9",
+    "ethers": "^6.14.0"
   },
   "devDependencies": {
     "dotenv": "^16.5.0",
