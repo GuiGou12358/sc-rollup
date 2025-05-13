@@ -237,7 +237,7 @@ test("Feed data", async () => {
 })
 
 test("Meta Transaction", async () => {
-  // reset the storage in a know state
+  // reset the storage in a known state
   resetRemoteStorage()
   expect(remoteActions.length).toBe(0)
 
