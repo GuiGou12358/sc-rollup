@@ -122,7 +122,7 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
     let senderKeyringPair
 
     if (senderPk) {
-      // we use meta transactions : attestor and sender aer different
+      // we use meta transactions : attestor and sender are different
       // attestor signs the transactions and the sender sends them (ie pay the fee)
 
       // the attestor uses ECDSA to sign
@@ -198,7 +198,6 @@ export class InkClient<Message, Action> extends Client<KvRawType, ActionRawType,
       return Promise.reject("Contract has changed")
     }
   }
-
 
   protected useMetaTransaction(): boolean {
     return (this.signerEcdsaAddress != undefined);
