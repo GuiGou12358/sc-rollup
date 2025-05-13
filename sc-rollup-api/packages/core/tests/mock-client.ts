@@ -88,7 +88,7 @@ class SimpleTypeCoder implements TypeCoder  {
 
 class StringEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
   encodeKeyValue(key: HexString, value: Option<HexString>): KvRawType {
-    return [key, value.orElse("0x")]
+    return [key, value.orElse(undefined)]
   }
 
   encodeReply(action: HexString): ActionRawType {
@@ -225,7 +225,10 @@ function checkConditions(
     const key = c[0] as HexString;
     const value = c[1];
     const remoteValue = remoteValues.get(key);
-    if (value !== remoteValue) {
+    if (value != remoteValue) {
+      console.log("Condition Not Met");
+      console.log("expectedValue : %s", value);
+      console.log("remoteValue : %s", remoteValue);
       throw new Error("Condition Not Met")
     }
   })

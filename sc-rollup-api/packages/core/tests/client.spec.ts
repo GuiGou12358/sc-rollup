@@ -85,6 +85,11 @@ test('Read / Write values', async () => {
   expect(value3.valueOf()).toBe(true);
   client.setBoolean(KEY_3, false);
 
+  const otherKey = "0xffff";
+  const otherValue = await client.getBigInt(otherKey, "u128");
+  expect(otherValue.valueOf()).toBeUndefined
+  client.setBigInt(otherKey, BigInt(52), "u128");
+
   client.removeValue(KEY_4);
 
   // remote values are not saved yet
@@ -92,6 +97,7 @@ test('Read / Write values', async () => {
   expect(remoteValues.get(KEY_2)).toBe(simpleTypeCoder.encodeString("Hello"));
   expect(remoteValues.get(KEY_3)).toBe(simpleTypeCoder.encodeBoolean(true));
   expect(remoteValues.get(KEY_4)).toBe(simpleTypeCoder.encodeString("Empty"));
+  expect(remoteValues.get(otherKey)).toBeUndefined
   expect(remoteValues.get(VERSION_NUMBER_KEY)).toBe(simpleTypeCoder.encodeNumber(33, "u32"));
 
   // read again the value (from local storage)
@@ -107,6 +113,9 @@ test('Read / Write values', async () => {
   const value4Again = await client.getString(KEY_4);
   expect(value4Again.valueOf()).toBeUndefined
 
+  const otherValueAgain = await client.getBigInt(otherKey, "u128");
+  expect(otherValueAgain.valueOf()).toBe(BigInt(52));
+
   // save the tx
   const tx = await client.commit();
   assert(tx)
@@ -116,6 +125,7 @@ test('Read / Write values', async () => {
   expect(remoteValues.get(KEY_2)).toBe(simpleTypeCoder.encodeString("Hello Dot"));
   expect(remoteValues.get(KEY_3)).toBe(simpleTypeCoder.encodeBoolean(false));
   expect(remoteValues.get(KEY_4)).toBeUndefined
+  expect(remoteValues.get(otherKey)).toBe(simpleTypeCoder.encodeBigInt(BigInt(52), "u128"));
   // version number must be updated
   expect(remoteValues.get(VERSION_NUMBER_KEY)).toBe(simpleTypeCoder.encodeNumber(34, "u32"));
 

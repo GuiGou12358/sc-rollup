@@ -71,7 +71,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
   private async getIndex(key: HexString): Promise<number> {
     const encodedIndex = await this.getRemoteValue(key)
     return encodedIndex
-      .map((v)=> this.typeCoder.decodeNumber(v, INDEX_TYPE))
+      .map((v)=> this.decodeIndex(v))
       .orElse(0)
   }
 
