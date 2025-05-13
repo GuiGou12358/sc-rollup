@@ -1,4 +1,4 @@
-import {BigIntType, HexString, NumberType, Option} from "./types"
+import { BigIntType, HexString, NumberType, Option } from "./types"
 
 export interface TypeCoder {
   encodeNumber(value: number, type: NumberType): HexString

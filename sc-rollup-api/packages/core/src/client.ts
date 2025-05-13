@@ -1,9 +1,9 @@
-import {BigIntType, HexString, None, NumberType, Option, Some} from "./types"
-import {Coder, RawTypeEncoder, TypeCoder} from "./coder"
-import {Session} from "./session"
+import { BigIntType, HexString, None, NumberType, Option, Some } from "./types"
+import { Coder, RawTypeEncoder, TypeCoder } from "./coder"
+import { Session } from "./session"
 
-const INDEX_TYPE = "u32";
-const VERSION_TYPE = "u32";
+const INDEX_TYPE = "u32"
+const VERSION_TYPE = "u32"
 
 export abstract class Client<KvRawType, ActionRawType, Message, Action> {
   protected readonly typeCoder: TypeCoder
@@ -56,23 +56,21 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     this.currentSession = new Session()
     this.currentSession.version = await this.getNumber(
       this.versionNumberKey,
-      VERSION_TYPE
+      VERSION_TYPE,
     )
   }
 
   encodeIndex(index: number): HexString {
-    return this.typeCoder.encodeNumber(index, INDEX_TYPE);
+    return this.typeCoder.encodeNumber(index, INDEX_TYPE)
   }
 
   decodeIndex(index: HexString): number {
-    return this.typeCoder.decodeNumber(index, INDEX_TYPE);
+    return this.typeCoder.decodeNumber(index, INDEX_TYPE)
   }
 
   private async getIndex(key: HexString): Promise<number> {
     const encodedIndex = await this.getRemoteValue(key)
-    return encodedIndex
-      .map((v)=> this.decodeIndex(v))
-      .orElse(0)
+    return encodedIndex.map((v) => this.decodeIndex(v)).orElse(0)
   }
 
   async getQueueTailIndex(): Promise<number> {
@@ -132,14 +130,20 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     this.currentSession.updates.set(key, value)
   }
 
-  public async getNumber(key: HexString, type: NumberType): Promise<Option<number>> {
+  public async getNumber(
+    key: HexString,
+    type: NumberType,
+  ): Promise<Option<number>> {
     const value = await this.getValue(key)
-    return value.map((v)=> this.typeCoder.decodeNumber(v, type))
+    return value.map((v) => this.typeCoder.decodeNumber(v, type))
   }
 
-  public async getBigInt(key: HexString, type: BigIntType): Promise<Option<bigint>> {
+  public async getBigInt(
+    key: HexString,
+    type: BigIntType,
+  ): Promise<Option<bigint>> {
     const value = await this.getValue(key)
-    return value.map((v)=> this.typeCoder.decodeBigInt(v, type))
+    return value.map((v) => this.typeCoder.decodeBigInt(v, type))
   }
 
   public async getBoolean(key: HexString): Promise<Option<boolean>> {
@@ -236,7 +240,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     updates.push(
       this.rawTypeEncoder.encodeKeyValue(
         this.versionNumberKey,
-        newVersion.map((v)=> this.typeCoder.encodeNumber(v, VERSION_TYPE)),
+        newVersion.map((v) => this.typeCoder.encodeNumber(v, VERSION_TYPE)),
       ),
     )
 
@@ -252,7 +256,9 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     ) {
       console.log("SetQueueHead %s", this.currentSession.currentIndex)
       actions.push(
-        this.rawTypeEncoder.encodeSetQueueHead(this.currentSession.currentIndex),
+        this.rawTypeEncoder.encodeSetQueueHead(
+          this.currentSession.currentIndex,
+        ),
       )
     }
 
@@ -261,8 +267,8 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
       actions.push(this.rawTypeEncoder.encodeReply(action))
     })
 
-    let txHash;
-    if (this.useMetaTransaction()){
+    let txHash
+    if (this.useMetaTransaction()) {
       txHash = await this.sendMetaTransaction(conditions, updates, actions)
     } else {
       txHash = await this.sendTransaction(conditions, updates, actions)

@@ -53,6 +53,5 @@ export class Some<T> extends Option<T> {
   }
 }
 
-
-export type NumberType = 'u8' | 'u16' | 'u32';
-export type BigIntType =  'u64' | 'u128' | 'u256';
+export type NumberType = "u8" | "u16" | "u32"
+export type BigIntType = "u64" | "u128" | "u256"
