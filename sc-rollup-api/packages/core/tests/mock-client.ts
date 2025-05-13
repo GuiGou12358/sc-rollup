@@ -6,7 +6,7 @@ import {
   type NumberType,
   Option,
 } from "../src/types"
-import { Coder, RawTypeEncoder, TypeCoder } from "@/coder"
+import { Coder, RawTypeEncoder, TypeCoder } from "../src/coder"
 
 // q/_tail : 0x712f5f7461696c
 export const QUEUE_TAIL_KEY = "0x712f5f7461696c"
