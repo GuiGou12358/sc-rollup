@@ -1,17 +1,17 @@
 import {assert, expect, test} from "vitest";
-import {ActionRawType, InkClient, InkEncoder, InkTypeCoder, KvRawType} from "../src/ink-client";
+import {InkClient, InkTypeCoder} from "../src/ink-client";
 import * as process from "node:process";
 import {configDotenv} from "dotenv";
 import {mergeUint8} from "polkadot-api/utils";
 import {Binary} from "@polkadot-api/substrate-bindings";
-import {hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
-import {Struct, u8, u32, Option, u128, str, Enum} from "scale-ts";
+import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex} from "@polkadot/util";
+import {Enum, str, Struct, u128, u32} from "scale-ts";
 
 const rpc = 'wss://rpc.shibuya.astar.network';
 const address = 'XRJE9yb5PN8j4PWucy3ReQ2NwTuNDmcZaE62rnTjEXqaw4E';
 
 configDotenv();
-const pk = process.env.pk;
+const pk = hexAddPrefix(process.env.pk);
 
 
 test('encode keys', async () => {
@@ -187,7 +187,7 @@ test('Read / Write values', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
+  const client = new InkClient(rpc, address, pk, undefined, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
@@ -226,7 +226,7 @@ test('Poll message', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
+  const client = new InkClient(rpc, address, pk, undefined, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
@@ -253,7 +253,7 @@ test('Feed data', async () => {
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
+  const client = new InkClient(rpc, address, pk, undefined, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
@@ -270,27 +270,36 @@ test('Feed data', async () => {
 });
 
 
-test('Meta Transactions', async () => {
+test('Meta Transaction', async () => {
 
   if (pk == undefined){
     return;
   }
 
-  const client = new InkClient(rpc, address, pk, requestMessageCodec, responseMessageCodec);
-  client.useSender(pk);
+  const client = new InkClient(rpc, address, pk, pk, requestMessageCodec, responseMessageCodec);
 
   await client.startSession();
 
+  client.addAction({
+    tag: "PriceFeed",
+    value: {
+      tradingPairId: 1,
+      price: 94024n * 1_000_000_000_000_000_000n,
+    }
+  });
+
+  /*
   const conditions: KvRawType[] = [];
   const updates : KvRawType[] = [];
   const action : ActionRawType = {
     type: "Reply",
     value: Binary.fromHex('0x0002000000000020707fef1e0de913000000000000'),
   };
-
   const actions : ActionRawType[] = [action];
-
   await client.sendMetaTransaction(conditions, updates, actions);
+   */
+
+  await client.commit();
 
 });
 

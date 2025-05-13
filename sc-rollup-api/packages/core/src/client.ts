@@ -44,6 +44,14 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     actions: ActionRawType[],
   ): Promise<HexString>
 
+  protected abstract sendMetaTransaction(
+    conditions: KvRawType[],
+    updates: KvRawType[],
+    actions: ActionRawType[],
+  ): Promise<HexString>
+
+  protected abstract useMetaTransaction(): boolean
+
   public async startSession() {
     this.currentSession = new Session()
     this.currentSession.version = await this.getNumber(
@@ -253,7 +261,13 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
       actions.push(this.rawTypeEncoder.encodeReply(action))
     })
 
-    const txHash = await this.sendTransaction(conditions, updates, actions)
+    let txHash;
+    if (this.useMetaTransaction()){
+      txHash = await this.sendMetaTransaction(conditions, updates, actions)
+    } else {
+      txHash = await this.sendTransaction(conditions, updates, actions)
+    }
+
     console.log("Tx hash ", txHash)
     await this.startSession()
     return Some.of(txHash)

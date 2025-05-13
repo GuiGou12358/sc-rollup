@@ -54,13 +54,14 @@
     "dotenv": "^16.4.7"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.4-beta8",
+    "@guigou/sc-rollup-core": "^0.0.4-beta9",
     "@guigou/sc-rollup-ink5-descriptors": "^0.1.0-beta7",
     "polkadot-api": "^1.9.7",
     "@polkadot-api/sdk-ink": "0.0.1-1",
     "@polkadot-api/substrate-bindings" : "^0.12.0",
     "@polkadot/util": "^13.4.4",
     "@polkadot/keyring": "^13.4.4",
+    "@polkadot-labs/hdkd-helpers": "^0.0.15",
     "scale-ts": "^1.6.1"
   }
 }
