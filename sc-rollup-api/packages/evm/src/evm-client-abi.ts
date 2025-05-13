@@ -56,18 +56,19 @@ export const ABI = [
     ],
     stateMutability: "nonpayable",
     type: "function",
-  },{
+  },
+  {
     inputs: [
       {
         internalType: "address",
         name: "from",
-        type: "address"
+        type: "address",
       },
       {
         internalType: "bytes",
         name: "data",
-        type: "bytes"
-      }
+        type: "bytes",
+      },
     ],
     name: "metaTxPrepare",
     outputs: [
@@ -76,70 +77,71 @@ export const ABI = [
           {
             internalType: "address",
             name: "from",
-            type: "address"
+            type: "address",
           },
           {
             internalType: "uint256",
             name: "nonce",
-            type: "uint256"
+            type: "uint256",
           },
           {
             internalType: "bytes",
             name: "data",
-            type: "bytes"
-          }
+            type: "bytes",
+          },
         ],
         internalType: "struct MetaTxReceiver.ForwardRequest",
         name: "",
-        type: "tuple"
+        type: "tuple",
       },
       {
         internalType: "bytes32",
         name: "",
-        type: "bytes32"
-      }
+        type: "bytes32",
+      },
     ],
     stateMutability: "view",
-    type: "function"
-  }, {
+    type: "function",
+  },
+  {
     inputs: [
       {
         components: [
           {
             internalType: "address",
             name: "from",
-            type: "address"
+            type: "address",
           },
           {
             internalType: "uint256",
             name: "nonce",
-            type: "uint256"
+            type: "uint256",
           },
           {
             internalType: "bytes",
             name: "data",
-            type: "bytes"
-          }
+            type: "bytes",
+          },
         ],
         internalType: "struct MetaTxReceiver.ForwardRequest",
         name: "req",
-        type: "tuple"
+        type: "tuple",
       },
       {
         internalType: "bytes",
         name: "signature",
-        type: "bytes"
-      }
+        type: "bytes",
+      },
     ],
     name: "metaTxRollupU256CondEq",
     outputs: [
       {
         internalType: "bool",
         name: "",
-        type: "bool"
-      }
+        type: "bool",
+      },
     ],
     stateMutability: "nonpayable",
-    type: "function"
-  }
+    type: "function",
+  },
 ]

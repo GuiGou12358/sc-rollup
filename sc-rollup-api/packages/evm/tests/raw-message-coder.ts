@@ -1,7 +1,6 @@
-import {HexString, Coder} from "@guigou/sc-rollup-core"
-import {BytesLike} from "ethers"
-import {hexAddPrefix} from "../src/evm-client";
-
+import { HexString, Coder } from "@guigou/sc-rollup-core"
+import { BytesLike } from "ethers"
+import { hexAddPrefix } from "../src/evm-client"
 
 export class RawMessageCoder implements Coder<BytesLike> {
   decode(raw: HexString): BytesLike {

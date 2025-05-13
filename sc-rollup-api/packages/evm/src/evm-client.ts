@@ -7,10 +7,10 @@ import {
   type NumberType,
   Option,
   RawTypeEncoder,
-  TypeCoder
+  TypeCoder,
 } from "@guigou/sc-rollup-core"
-import {BytesLike, Contract, ethers, JsonRpcProvider, Wallet} from "ethers"
-import {ABI} from "./evm-client-abi";
+import { BytesLike, Contract, ethers, JsonRpcProvider, Wallet } from "ethers"
+import { ABI } from "./evm-client-abi"
 
 const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
@@ -45,7 +45,12 @@ const VERSION_NUMBER_KEY = hexAddPrefix(
 type KvRawType = [BytesLike, BytesLike]
 type ActionRawType = BytesLike
 
-export class EvmClient<Message, Action> extends Client<KvRawType, ActionRawType, Message, Action> {
+export class EvmClient<Message, Action> extends Client<
+  KvRawType,
+  ActionRawType,
+  Message,
+  Action
+> {
   readonly contract: Contract
   readonly provider: JsonRpcProvider
   readonly senderAddress: Wallet
@@ -53,8 +58,7 @@ export class EvmClient<Message, Action> extends Client<KvRawType, ActionRawType,
 
   public constructor(
     rpc: string,
-    address:
-    string,
+    address: string,
     attestorPk: string,
     senderPk: string | undefined,
     messageCodec: Coder<Message>,
@@ -79,7 +83,6 @@ export class EvmClient<Message, Action> extends Client<KvRawType, ActionRawType,
       this.signerAddress = new ethers.Wallet(attestorPk).connect(this.provider)
       console.log("Signer address: " + this.signerAddress.address)
       this.senderAddress = new ethers.Wallet(senderPk).connect(this.provider)
-
     } else {
       // we don't use meta transactions : attestor sends the transactions
       this.senderAddress = new ethers.Wallet(attestorPk).connect(this.provider)
@@ -90,7 +93,7 @@ export class EvmClient<Message, Action> extends Client<KvRawType, ActionRawType,
   }
 
   protected useMetaTransaction(): boolean {
-    return (this.signerAddress != undefined);
+    return this.signerAddress != undefined
   }
 
   getMessageKey(index: number): HexString {
@@ -112,9 +115,9 @@ export class EvmClient<Message, Action> extends Client<KvRawType, ActionRawType,
     updates: KvRawType[],
     actions: ActionRawType[],
   ): Promise<HexString> {
-
     logParams(conditions, updates, actions)
-    const {conditionKeys, conditionValues, updateKeys, updatesValues} = prepareParams(conditions, updates);
+    const { conditionKeys, conditionValues, updateKeys, updatesValues } =
+      prepareParams(conditions, updates)
     const tx = await this.contract.rollupU256CondEq(
       conditionKeys,
       conditionValues,
@@ -125,75 +128,71 @@ export class EvmClient<Message, Action> extends Client<KvRawType, ActionRawType,
     return tx.hash
   }
 
-
   async sendMetaTransaction(
     conditions: KvRawType[],
     updates: KvRawType[],
     actions: ActionRawType[],
   ): Promise<HexString> {
-
     if (!this.signerAddress) {
       return Promise.reject("Meta tx signer is not set")
     }
 
     logParams(conditions, updates, actions)
-    const {conditionKeys, conditionValues, updateKeys, updatesValues} = prepareParams(conditions, updates);
+    const { conditionKeys, conditionValues, updateKeys, updatesValues } =
+      prepareParams(conditions, updates)
 
-    const from = this.signerAddress.address;
+    const from = this.signerAddress.address
     const data = abiCoder.encode(
-      ['bytes[]', 'bytes[]', 'bytes[]', 'bytes[]', 'bytes[]'],
-      [
-        conditionKeys,
-        conditionValues,
-        updateKeys,
-        updatesValues,
-        actions,
-      ],
-    );
-    const [forwardRequest, hash] = await this.contract.metaTxPrepare(from, data);
+      ["bytes[]", "bytes[]", "bytes[]", "bytes[]", "bytes[]"],
+      [conditionKeys, conditionValues, updateKeys, updatesValues, actions],
+    )
+    const [forwardRequest, hash] = await this.contract.metaTxPrepare(from, data)
 
-    console.log("forwardRequest.from %s", forwardRequest.from);
-    console.log("forwardRequest.nonce %s", forwardRequest.nonce);
-    console.log("forwardRequest.data %s", forwardRequest.data);
-    console.log("hash %s", hash);
+    console.log("forwardRequest.from %s", forwardRequest.from)
+    console.log("forwardRequest.nonce %s", forwardRequest.nonce)
+    console.log("forwardRequest.data %s", forwardRequest.data)
+    console.log("hash %s", hash)
 
     // Sign the message by the attestor
     const metaTxData = {
       from: forwardRequest.from,
       nonce: forwardRequest.nonce,
       data: forwardRequest.data,
-    };
+    }
 
     // All properties on a domain are optional
     const domain = {
-      name: 'PhatRollupMetaTxReceiver',
-      version: '0.0.1',
+      name: "PhatRollupMetaTxReceiver",
+      version: "0.0.1",
       chainId: (await this.provider.getNetwork()).chainId,
-      verifyingContract: await this.contract.getAddress()
-    };
+      verifyingContract: await this.contract.getAddress(),
+    }
     const types = {
       ForwardRequest: [
-        { name: 'from', type: 'address' },
-        { name: 'nonce', type: 'uint256' },
-        { name: 'data', type: 'bytes' }
-      ]
-    };
+        { name: "from", type: "address" },
+        { name: "nonce", type: "uint256" },
+        { name: "data", type: "bytes" },
+      ],
+    }
 
-    const signature = await this.signerAddress.signTypedData(domain, types, metaTxData);
-    console.log("signature %s", signature);
+    const signature = await this.signerAddress.signTypedData(
+      domain,
+      types,
+      metaTxData,
+    )
+    console.log("signature %s", signature)
 
     // Send meta-tx
-    const tx = await this.contract.metaTxRollupU256CondEq(metaTxData, signature);
+    const tx = await this.contract.metaTxRollupU256CondEq(metaTxData, signature)
     return tx.hash
   }
 }
-
 
 function logParams(
   conditions: KvRawType[],
   updates: KvRawType[],
   actions: ActionRawType[],
-){
+) {
   conditions.forEach((v) =>
     console.log("condition - key : " + v[0] + " - value : " + v[1]),
   )
@@ -203,20 +202,15 @@ function logParams(
   actions.forEach((v) => console.log("action : " + v))
 }
 
-function prepareParams(
-  conditions: KvRawType[],
-  updates: KvRawType[],
-){
+function prepareParams(conditions: KvRawType[], updates: KvRawType[]) {
   const conditionKeys = conditions.map((v) => v[0])
   const conditionValues = conditions.map((v) => v[1])
   const updateKeys = updates.map((v) => v[0])
   const updatesValues = updates.map((v) => v[1])
-  return {conditionKeys, conditionValues, updateKeys, updatesValues}
+  return { conditionKeys, conditionValues, updateKeys, updatesValues }
 }
 
-
-export class EvmTypeCoder implements TypeCoder  {
-
+export class EvmTypeCoder implements TypeCoder {
   encodeBoolean(value: boolean): HexString {
     return hexAddPrefix(abiEncode("bool", value))
   }
@@ -270,7 +264,6 @@ export class EvmTypeCoder implements TypeCoder  {
   decodeBytes(value: HexString): Uint8Array {
     return ethers.toUtf8Bytes(value)
   }
-
 }
 
 class EvmEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
@@ -286,4 +279,3 @@ class EvmEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
     return hexAddPrefix(ethers.concat(["0x01", abiEncodeIndex(index)]))
   }
 }
-
