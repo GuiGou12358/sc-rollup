@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.0.4-beta9",
+    "@guigou/sc-rollup-ink6-descriptors": "^0.0.1-beta1",
     "polkadot-api": "github:polkadot-api/polkadot-api#ink-v6",
     "@polkadot-api/sdk-ink": "github:polkadot-api/polkadot-api#ink-v6",
     "@polkadot-api/substrate-bindings" : "github:polkadot-api/polkadot-api#ink-v6",
