@@ -38,6 +38,7 @@ pub trait RollupClient {
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError>;
+
 }
 
 pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
@@ -49,9 +50,10 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
         let caller = ::ink::env::caller();
+        self.inner_check_role(ATTESTOR_ROLE, caller)?;
         self.inner_rollup_cond_eq_with_attestor(caller, conditions, updates, actions)        
     }
-    
+
     fn inner_rollup_cond_eq_with_attestor(
         &mut self,
         attestor: Address,
@@ -60,7 +62,7 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
         
-        self.inner_check_role(ATTESTOR_ROLE, attestor)?;
+        //self.inner_check_role(ATTESTOR_ROLE, attestor)?;
 
         // check the conditions
         for cond in conditions {

@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1-beta1",
+  "name": "@guigou/sc-rollup-ink6-descriptors",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "module": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "browser": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rm -rf dist .papi",
+    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
+    "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
+    "generate": "pnpm run gen-shibuya-rpc && pnpm run gen-contract-metadata",
+    "prepack": "rm -rf dist && mkdir dist && cp -rf .papi/descriptors/dist/* dist",
+    "release": "pnpm publish --access public --tag tag0.0.1-beta1 --no-git-checks"
+  },
+  "peerDependencies": {
+    "polkadot-api": "*"
+  },
+  "dependencies": {
+    "@polkadot-api/descriptors": "file:.papi/descriptors"
+  }
+}

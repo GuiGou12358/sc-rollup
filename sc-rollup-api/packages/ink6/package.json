@@ -1,24 +1,72 @@
 {
   "name": "@guigou/sc-rollup-ink6",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build-core": "tsc",
-    "test": "vitest",
-    "generate-metadata-pah" : "pnpm exec papi add ah -n polkadot_asset_hub"
+  "version": "0.0.1-beta1",
+  "author": "GuiGou",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api/packages/ink6"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/index.mjs",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./ink-client": {
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/ink-client.mjs",
+      "import": "./dist/esm/ink-client.mjs",
+      "require": "./dist/ink-client.js",
+      "default": "./dist/ink-client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist .papi",
+    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
+    "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
+    "generate": "pnpm run gen-contract-metadata",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
+    "build": "pnpm clean && pnpm build-core",
+    "test": "vitest --no-isolate",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run clean && pnpm run build",
+    "release": "pnpm publish --access public --tag tag0.0.1-beta1 --no-git-checks"
+  },
+  "peerDependencies": {
+    "polkadot-api": "*"
+  },
   "devDependencies": {
-    "@polkadot/util": "^13.4.3",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.9"
+    "vitest": "^3.0.9",
+    "dotenv": "^16.4.7"
   },
   "dependencies": {
-    "@polkadot/keyring": "^13.4.3",
-    "@polkadot/types": "^15.8.1",
-    "dotenv": "^16.4.7",
-    "polkadot-api": "^1.9.7"
+    "@guigou/sc-rollup-core": "^0.0.4-beta9",
+    "polkadot-api": "github:polkadot-api/polkadot-api#ink-v6",
+    "@polkadot-api/sdk-ink": "github:polkadot-api/polkadot-api#ink-v6",
+    "@polkadot-api/substrate-bindings" : "github:polkadot-api/polkadot-api#ink-v6",
+    "@polkadot/util": "^13.4.4",
+    "@polkadot/keyring": "^13.4.4",
+    "@polkadot-labs/hdkd-helpers": "^0.0.15",
+    "scale-ts": "^1.6.1"
   }
 }

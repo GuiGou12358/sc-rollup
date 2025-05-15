@@ -2,4 +2,6 @@ packages:
   - packages/core
   - packages/ink5
   - packages/ink5-papi-descriptors
+  - packages/ink6
+  - packages/ink6-papi-descriptors
   - packages/evm

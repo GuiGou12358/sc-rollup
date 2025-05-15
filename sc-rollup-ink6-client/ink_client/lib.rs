@@ -3,12 +3,13 @@
 #[ink::contract]
 mod ink_client {
     use ink::prelude::vec::Vec;
+    use ink::prelude::string::String;
     use ink_client_lib::traits::access_control::{
-        AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
+        ADMIN_ROLE, AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
         BaseAccessControl, RoleType,
     };
     use ink_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
-    use ink_client_lib::traits::message_queue::{MessageQueue};
+    use ink_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
     use ink_client_lib::traits::meta_transaction::{
         BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
         MetaTransactionStorage,
@@ -17,7 +18,7 @@ mod ink_client {
         BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage,
     };
     use ink_client_lib::traits::rollup_client::{
-        BaseRollupClient, HandleActionInput, RollupClient,
+        ATTESTOR_ROLE, BaseRollupClient, HandleActionInput, RollupClient,
     };
     use ink_client_lib::traits::RollupClientError;
 
@@ -38,7 +39,7 @@ mod ink_client {
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
             instance
         }
-        /*
+
         #[ink(message)]
         pub fn push_message(&mut self, message: String) -> Result<QueueIndex, RollupClientError> {
             MessageQueue::push_message(self, &message)
@@ -53,7 +54,16 @@ mod ink_client {
         pub fn get_attestor_role(&self) -> RoleType {
             ATTESTOR_ROLE
         }
-         */
+
+        #[ink(message)]
+        pub fn get_caller_address(&self) -> Address {
+            self.env().caller()
+        }
+
+        #[ink(message)]
+        pub fn get_address(&self, account: Address) -> Address {
+            account
+        }
     }
 
     /// Implement the business logic for the Rollup Client in the 'on_message_received' method
