@@ -20,7 +20,7 @@
   "sideEffects": false,
   "scripts": {
     "clean": "rm -rf dist .papi",
-    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
+    "gen-westend-rpc": "pnpm exec papi add -w wss://asset-hub-westend-rpc.dwellir.com wndAh",
     "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
     "generate": "pnpm run gen-shibuya-rpc && pnpm run gen-contract-metadata",
     "prepack": "rm -rf dist && mkdir dist && cp -rf .papi/descriptors/dist/* dist",
