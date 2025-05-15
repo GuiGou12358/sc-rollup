@@ -14,8 +14,9 @@ import {
 } from "@polkadot/util"
 import { Enum, str, Struct, u128, u32 } from "scale-ts"
 
-const rpc = "wss://rpc.shibuya.astar.network"
-const address = "XRJE9yb5PN8j4PWucy3ReQ2NwTuNDmcZaE62rnTjEXqaw4E"
+const rpc = "wss://127.0.0.1:9944"
+//const rpc = "wss://asset-hub-westend-rpc.dwellir.com"
+const address = "e7815dAEFf276cD65835460321F0c07759De565B"
 
 configDotenv()
 const pk = hexAddPrefix(process.env.pk)
