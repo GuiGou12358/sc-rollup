@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 ink = { version = "6.0.0-alpha", default-features = false, features = ["unstable-hostfn"] }
-ink_client_lib = { path = "../ink_client_lib", default-features = false}
+inkv6_client_lib = { path = "../ink_client_lib", default-features = false}
 
 
 [dev-dependencies]
@@ -19,7 +19,7 @@ path = "lib.rs"
 default = ["std"]
 std = [
     "ink/std",
-    "ink_client_lib/std",
+    "inkv6_client_lib/std",
 ]
 ink-as-dependency = []
 e2e-tests = []
