@@ -1,5 +1,5 @@
 [package]
-name = "ink_client"
+name = "ink6_client"
 version = "0.0.1"
 authors = ["GuiGou"]
 edition = "2021"

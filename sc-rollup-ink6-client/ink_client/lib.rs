@@ -37,6 +37,7 @@ mod ink_client {
             let mut instance = Self::default();
             BaseOwnable::init_with_owner(&mut instance, Self::env().caller());
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
+            BaseAccessControl::inner_grant_role(&mut instance, ATTESTOR_ROLE, Self::env().caller());
             instance
         }
 
