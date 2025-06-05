@@ -14,9 +14,6 @@ pub mod ink_client {
         BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
         MetaTransactionStorage,
     };
-    use inkv5_client_lib::traits::ownable::{
-        BaseOwnable, Ownable, OwnableData, OwnableError, OwnableStorage,
-    };
     use inkv5_client_lib::traits::rollup_client::{
         BaseRollupClient, HandleActionInput, RollupClient,
     };
@@ -25,7 +22,6 @@ pub mod ink_client {
     #[derive(Default, Debug)]
     #[ink(storage)]
     pub struct InkClient {
-        owner: OwnableData,
         access_control: AccessControlData,
         kv_store: KvStoreData,
         meta_transaction: MetaTransactionData,
@@ -35,7 +31,6 @@ pub mod ink_client {
         #[ink(constructor)]
         pub fn new() -> Self {
             let mut instance = Self::default();
-            BaseOwnable::init_with_owner(&mut instance, Self::env().caller());
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
             instance
         }
@@ -70,36 +65,6 @@ pub mod ink_client {
         fn on_message_received(&mut self, _action: Vec<u8>) -> Result<(), RollupClientError> {
             // implement the business code here
             Ok(())
-        }
-    }
-
-    /// Boilerplate code to manage the ownership
-    impl OwnableStorage for InkClient {
-        fn get_storage(&self) -> &OwnableData {
-            &self.owner
-        }
-
-        fn get_mut_storage(&mut self) -> &mut OwnableData {
-            &mut self.owner
-        }
-    }
-
-    impl BaseOwnable for InkClient {}
-
-    impl Ownable for InkClient {
-        #[ink(message)]
-        fn get_owner(&self) -> Option<AccountId> {
-            self.inner_get_owner()
-        }
-
-        #[ink(message)]
-        fn renounce_ownership(&mut self) -> Result<(), OwnableError> {
-            self.inner_renounce_ownership()
-        }
-
-        #[ink(message)]
-        fn transfer_ownership(&mut self, new_owner: Option<AccountId>) -> Result<(), OwnableError> {
-            self.inner_transfer_ownership(new_owner)
         }
     }
 
