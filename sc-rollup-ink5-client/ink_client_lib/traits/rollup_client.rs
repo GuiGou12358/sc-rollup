@@ -98,10 +98,10 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
             HandleActionInput::Reply(action) => self.on_message_received(action)?,
             HandleActionInput::SetQueueHead(id) => self.pop_to(id)?,
             HandleActionInput::GrantAttestor(address) => {
-                self.inner_grant_role(ATTESTOR_ROLE, address)?
+                self.inner_grant_role_unchecked(ATTESTOR_ROLE, address)?
             }
             HandleActionInput::RevokeAttestor(address) => {
-                self.inner_revoke_role(ATTESTOR_ROLE, address)?
+                self.inner_revoke_role_unchecked(ATTESTOR_ROLE, address)?
             }
         }
         Ok(())
