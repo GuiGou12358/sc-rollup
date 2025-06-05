@@ -40,6 +40,14 @@ pub struct AccessControlData {
     pub roles: Mapping<(AccountId, RoleType), ()>,
 }
 
+#[macro_export]
+macro_rules! only_role {
+    ($access_control:ident, $role:ident) => {{
+        $access_control.inner_check_role($role, Self::env().caller())?
+    }};
+}
+
+
 impl AccessControlData {
     pub fn new() -> Self {
         Self::default()
