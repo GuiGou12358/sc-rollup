@@ -1,0 +1,28 @@
+[package]
+name = "e2e_tests"
+version = "0.1.1"
+authors = ["guigou"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "5.1.1", default-features = false }
+inkv5_client_lib = { path = "../ink_client_lib", default-features = false }
+ink_client = { path = "../ink_client_example", default-features = false, features = ["ink-as-dependency"] }
+
+[dev-dependencies]
+ink_e2e = { version = "5.1.1" }
+hex-literal = { version = "1.0.0" }
+hex = "0.4.3"
+subxt-signer = { version = "0.42.1" }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "inkv5_client_lib/std",
+    "ink_client/std",
+]
+e2e-tests = []

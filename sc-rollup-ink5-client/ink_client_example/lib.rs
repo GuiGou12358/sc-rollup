@@ -1,14 +1,15 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[ink::contract]
-mod ink_client {
+pub mod ink_client {
     use ink::prelude::vec::Vec;
+    use inkv5_client_lib::only_role;
     use inkv5_client_lib::traits::access_control::{
-        AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
+        AccessControl, AccessControlData, AccessControlError, AccessControlStorage, ADMIN_ROLE,
         BaseAccessControl, RoleType,
     };
     use inkv5_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
-    use inkv5_client_lib::traits::message_queue::{MessageQueue};
+    use inkv5_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
     use inkv5_client_lib::traits::meta_transaction::{
         BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
         MetaTransactionStorage,
@@ -38,10 +39,18 @@ mod ink_client {
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
             instance
         }
-        /*
+
         #[ink(message)]
-        pub fn push_message(&mut self, message: String) -> Result<QueueIndex, RollupClientError> {
+        pub fn push_message(&mut self, message: Vec<u8>) -> Result<QueueIndex, RollupClientError> {
+            only_role!(self, ADMIN_ROLE);
             MessageQueue::push_message(self, &message)
+        }
+
+        #[ink(message)]
+        pub fn has_pending_message(&self) -> bool {
+            let tail = MessageQueue::get_queue_tail(self).unwrap_or_default();
+            let head = MessageQueue::get_queue_head(self).unwrap_or_default();
+            tail > head
         }
 
         #[ink(message)]
@@ -51,9 +60,9 @@ mod ink_client {
 
         #[ink(message)]
         pub fn get_attestor_role(&self) -> RoleType {
-            ATTESTOR_ROLE
+            inkv5_client_lib::traits::rollup_client::ATTESTOR_ROLE
         }
-         */
+
     }
 
     /// Implement the business logic for the Rollup Client in the 'on_message_received' method
