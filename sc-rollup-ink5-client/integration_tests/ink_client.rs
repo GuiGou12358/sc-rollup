@@ -1,10 +1,8 @@
 use ink::env::{DefaultEnvironment};
-use ink_e2e::subxt::tx::Signer;
-use ink_e2e::{ContractsBackend, E2EBackend, PolkadotConfig, InstantiationResult};
-use ink::scale::Decode;
+use ink_e2e::{ContractsBackend, E2EBackend, InstantiationResult};
 use ink::scale::Encode;
 
-use ink_client::{ink_client, *, };
+use ink_client::{ink_client};
 
 use inkv5_client_lib::traits::access_control::{AccessControl};
 use inkv5_client_lib::traits::meta_transaction::{MetaTransaction};
@@ -103,27 +101,6 @@ where
         .return_value()
 }
 
-
-#[ink_e2e::test]
-async fn test_push_message<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
-    // given
-    let contract = alice_instantiates_client(&mut client).await;
-
-    // bob is granted as attestor
-    alice_grants_bob_as_attestor(&mut client, &contract).await;
-
-    // check the message queue
-    assert_eq!(false, has_pending_message(&mut client, &contract).await);
-
-    // start the raffle
-    alice_push_message(&mut client, &contract).await;
-
-    // check the message queue
-    assert_eq!(true, has_pending_message(&mut client, &contract).await);
-
-    Ok(())
-}
-
 #[ink_e2e::test]
 async fn test_reply(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
     // given
@@ -141,6 +118,84 @@ async fn test_reply(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         .submit()
         .await
         .expect("reply failed");
+
+    Ok(())
+}
+
+#[ink_e2e::test]
+async fn test_set_queue_head<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
+    // given
+    let contract = alice_instantiates_client(&mut client).await;
+
+    // bob is granted as attestor
+    alice_grants_bob_as_attestor(&mut client, &contract).await;
+
+    // check the message queue
+    assert_eq!(false, has_pending_message(&mut client, &contract).await);
+
+    // push the raffle
+    alice_push_message(&mut client, &contract).await;
+
+    // check the message queue
+    assert_eq!(true, has_pending_message(&mut client, &contract).await);
+
+    // remove the message from the queue
+    let actions = vec![HandleActionInput::SetQueueHead(1)];
+    let rollup_cond_eq =
+        contract.call_builder::<ink_client::InkClient>()
+            .rollup_cond_eq(vec![], vec![], actions.clone());
+    client.call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await
+        .expect("reply failed");
+
+    // check the message queue
+    assert_eq!(false, has_pending_message(&mut client, &contract).await);
+
+    Ok(())
+}
+
+#[ink_e2e::test]
+async fn test_grant_revoke_attestor<Client: E2EBackend>(mut client: Client) -> E2EResult<()> {
+    // given
+    let contract = alice_instantiates_client(&mut client).await;
+
+    // bob is granted as attestor
+    alice_grants_bob_as_attestor(&mut client, &contract).await;
+
+    // bob grants charlie as attestor
+    let charlie_address = ink::primitives::AccountId::from(ink_e2e::charlie().public_key().to_account_id().0);
+    let actions = vec![HandleActionInput::GrantAttestor(charlie_address)];
+    let rollup_cond_eq =
+        contract.call_builder::<ink_client::InkClient>()
+            .rollup_cond_eq(vec![], vec![], actions.clone());
+    client.call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await
+        .expect("grant attestor failed");
+
+    // charlie revokes bob as attestor
+    let bob_address = ink::primitives::AccountId::from(ink_e2e::bob().public_key().to_account_id().0);
+    let actions = vec![HandleActionInput::RevokeAttestor(bob_address)];
+    let rollup_cond_eq =
+        contract.call_builder::<ink_client::InkClient>()
+            .rollup_cond_eq(vec![], vec![], actions.clone());
+    client.call(&ink_e2e::charlie(), &rollup_cond_eq)
+        .submit()
+        .await
+        .expect("revoke attestor failed");
+
+    // bob is not granted as attestor => it should not be able to send a message
+    let rollup_cond_eq =
+        contract.call_builder::<ink_client::InkClient>()
+            .rollup_cond_eq(vec![], vec![], vec![]);
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await;
+    assert!(
+        result.is_err(),
+        "only attestor should be able to send messages"
+    );
 
     Ok(())
 }
