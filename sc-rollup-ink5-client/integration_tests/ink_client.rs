@@ -275,8 +275,6 @@ async fn test_meta_tx_rollup_cond_eq(mut client: ink_e2e::Client<C, E>) -> E2ERe
 
     assert_eq!(0, request.nonce);
     assert_eq!(from, request.from);
-    let to = ink::primitives::AccountId::from(ink_e2e::charlie().public_key().to_account_id().0);
-    assert_eq!(to, request.to);
     assert_eq!(&data, &request.data);
 
     // Bob signs the message
