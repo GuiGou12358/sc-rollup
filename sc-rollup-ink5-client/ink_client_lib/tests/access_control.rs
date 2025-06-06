@@ -1,5 +1,5 @@
-mod test_utils;
 mod contract;
+mod test_utils;
 
 use inkv5_client_lib::traits::rollup_client::*;
 
@@ -9,7 +9,6 @@ use inkv5_client_lib::traits::access_control::AccessControl;
 use inkv5_client_lib::traits::access_control::AccessControlError;
 use inkv5_client_lib::traits::access_control::ADMIN_ROLE;
 use test_utils::accounts;
-
 
 #[ink::test]
 fn test_grant_role() {
@@ -42,7 +41,6 @@ fn test_grant_role() {
         Err(AccessControlError::RoleRedundant),
         contract.grant_role(ATTESTOR_ROLE, accounts.bob)
     );
-
 }
 
 #[ink::test]
@@ -78,7 +76,6 @@ fn test_revoke_role() {
         Err(AccessControlError::MissingRole),
         contract.revoke_role(ATTESTOR_ROLE, accounts.bob)
     );
-
 }
 
 #[ink::test]
@@ -105,5 +102,4 @@ fn test_renounce_role() {
         Err(AccessControlError::MissingRole),
         contract.renounce_role(ATTESTOR_ROLE)
     );
-
 }

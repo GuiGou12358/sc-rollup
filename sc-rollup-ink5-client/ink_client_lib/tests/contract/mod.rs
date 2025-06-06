@@ -2,11 +2,19 @@
 
 #[ink::contract]
 pub mod test_contract {
-    use inkv5_client_lib::traits::access_control::{AccessControl, AccessControlData, AccessControlError, AccessControlStorage, BaseAccessControl, RoleType};
+    use inkv5_client_lib::traits::access_control::{
+        AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
+        BaseAccessControl, RoleType,
+    };
     use inkv5_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
     use inkv5_client_lib::traits::message_queue::MessageQueue;
-    use inkv5_client_lib::traits::meta_transaction::{BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData, MetaTransactionStorage};
-    use inkv5_client_lib::traits::rollup_client::{BaseRollupClient, HandleActionInput, RollupClient};
+    use inkv5_client_lib::traits::meta_transaction::{
+        BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
+        MetaTransactionStorage,
+    };
+    use inkv5_client_lib::traits::rollup_client::{
+        BaseRollupClient, HandleActionInput, RollupClient,
+    };
     use inkv5_client_lib::traits::RollupClientError;
 
     #[derive(Default)]
@@ -148,5 +156,4 @@ pub mod test_contract {
             self.inner_meta_tx_rollup_cond_eq(request, signature)
         }
     }
-
 }

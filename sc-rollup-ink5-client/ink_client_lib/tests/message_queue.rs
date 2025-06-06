@@ -1,5 +1,5 @@
-mod test_utils;
 mod contract;
+mod test_utils;
 
 use contract::test_contract::InkClient;
 use inkv5_client_lib::traits::message_queue::MessageQueue;

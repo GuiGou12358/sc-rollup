@@ -1,5 +1,5 @@
-mod test_utils;
 mod contract;
+mod test_utils;
 use contract::test_contract::InkClient;
 use ink::prelude::vec::Vec;
 use ink::scale::Encode;
@@ -105,15 +105,13 @@ fn test_grant_revoke_attestor() {
     assert_eq!(false, contract.has_role(ATTESTOR_ROLE, accounts.bob));
     let actions = vec![HandleActionInput::GrantAttestor(accounts.bob)];
     assert_eq!(contract.rollup_cond_eq(vec![], vec![], actions), Ok(()));
-    
+
     assert_eq!(true, contract.has_role(ATTESTOR_ROLE, accounts.bob));
     let actions = vec![HandleActionInput::RevokeAttestor(accounts.bob)];
     assert_eq!(contract.rollup_cond_eq(vec![], vec![], actions), Ok(()));
-    
+
     assert_eq!(false, contract.has_role(ATTESTOR_ROLE, accounts.bob));
-
 }
-
 
 #[ink::test]
 fn test_rollup_cond_eq_role_attestor() {

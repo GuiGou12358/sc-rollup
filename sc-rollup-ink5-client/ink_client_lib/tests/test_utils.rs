@@ -1,9 +1,4 @@
-
-use ink::env::{
-    test::DefaultAccounts,
-    DefaultEnvironment,
-    Environment,
-};
+use ink::env::{test::DefaultAccounts, DefaultEnvironment, Environment};
 
 pub fn accounts() -> DefaultAccounts<DefaultEnvironment> {
     ink::env::test::default_accounts::<DefaultEnvironment>()

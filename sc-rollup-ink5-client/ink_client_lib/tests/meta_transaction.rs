@@ -1,5 +1,5 @@
-mod test_utils;
 mod contract;
+mod test_utils;
 
 use ink::env::test::set_callee;
 use ink::env::{debug_println, DefaultEnvironment};
@@ -31,7 +31,12 @@ fn test_prepare() {
     let contract = InkClient::new(accounts.bob);
 
     // ecdsa public key d'Alice
-    let from = ink::primitives::AccountId::from(subxt_signer::ecdsa::dev::alice().public_key().to_account_id().0);
+    let from = ink::primitives::AccountId::from(
+        subxt_signer::ecdsa::dev::alice()
+            .public_key()
+            .to_account_id()
+            .0,
+    );
 
     let data = u8::encode(&5);
 
@@ -244,7 +249,10 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
     debug_println!("signature: {:02x?}", &signature);
 
     // missing role
-    assert_eq!(Err(RollupClientError::AccessControlError(AccessControlError::MissingRole)),
+    assert_eq!(
+        Err(RollupClientError::AccessControlError(
+            AccessControlError::MissingRole
+        )),
         contract.meta_tx_rollup_cond_eq(request.clone(), signature)
     );
 }

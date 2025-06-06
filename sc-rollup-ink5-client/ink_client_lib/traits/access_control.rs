@@ -47,7 +47,6 @@ macro_rules! only_role {
     }};
 }
 
-
 impl AccessControlData {
     pub fn new() -> Self {
         Self::default()
@@ -88,10 +87,7 @@ pub trait BaseAccessControl: AccessControlStorage {
         self.get_mut_storage().roles.remove((account, role));
     }
 
-    fn inner_check_role_caller(
-        &self,
-        role: RoleType,
-    ) -> Result<(), AccessControlError> {
+    fn inner_check_role_caller(&self, role: RoleType) -> Result<(), AccessControlError> {
         let caller = ::ink::env::caller::<DefaultEnvironment>();
         self.inner_check_role(role, caller)
     }
@@ -144,7 +140,6 @@ pub trait BaseAccessControl: AccessControlStorage {
         only_role!(self, ADMIN_ROLE);
         self.inner_revoke_role_unchecked(role, account)
     }
-
 
     fn inner_revoke_role_unchecked(
         &mut self,

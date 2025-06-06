@@ -1,5 +1,5 @@
-mod test_utils;
 mod contract;
+mod test_utils;
 
 use ink::scale::Encode;
 use inkv5_client_lib::traits::rollup_client::*;

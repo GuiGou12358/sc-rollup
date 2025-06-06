@@ -1,12 +1,12 @@
 use crate::traits::kv_store::{Key, Value};
+use crate::traits::rollup_client::{BaseRollupClient, HandleActionInput};
 use crate::traits::RollupClientError;
-use ink::env::DefaultEnvironment;
 use ink::env::hash::{Blake2x256, HashOutput};
+use ink::env::DefaultEnvironment;
 use ink::prelude::vec::Vec;
 use ink::primitives::{AccountId, Hash};
 use ink::scale;
 use ink::storage::Mapping;
-use crate::traits::rollup_client::{BaseRollupClient, HandleActionInput};
 
 pub type Nonce = u128;
 
@@ -48,7 +48,6 @@ pub trait MetaTransactionStorage {
 
 #[ink::trait_definition]
 pub trait MetaTransaction {
-
     #[ink(message)]
     fn prepare(
         &self,
@@ -64,9 +63,7 @@ pub trait MetaTransaction {
     ) -> Result<(), RollupClientError>;
 }
 
-
 pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
-
     fn inner_prepare(
         &self,
         from: AccountId,
@@ -88,7 +85,10 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
     }
 
     fn get_nonce(&self, from: AccountId) -> Nonce {
-        MetaTransactionStorage::get_storage(self).nonces.get(&from).unwrap_or(0)
+        MetaTransactionStorage::get_storage(self)
+            .nonces
+            .get(&from)
+            .unwrap_or(0)
     }
 
     fn verify(
@@ -113,20 +113,23 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         let mut public_key = [0u8; 33];
         ink::env::ecdsa_recover(signature, &hash, &mut public_key)
             .map_err(|_| RollupClientError::IncorrectSignature)?;
-        
+
         ink::env::debug_println!("request.from : {:02x?}", request.from);
         ink::env::debug_println!("public_key : {:02x?}", public_key);
-        ink::env::debug_println!("get_ecdsa_account_id(&public_key) : {:02x?}", get_ecdsa_account_id(&public_key));
-        
+        ink::env::debug_println!(
+            "get_ecdsa_account_id(&public_key) : {:02x?}",
+            get_ecdsa_account_id(&public_key)
+        );
+
         if request.from != get_ecdsa_account_id(&public_key) {
             return Err(RollupClientError::PublicKeyNotMatch);
         }
         /*
         ink::env::sr25519_verify(signature, &hash, request.from.as_ref())
             .map_err(|_| RollupClientError::PublicKeyNotMatch)?;
-            
+
          */
-        
+
         Ok(())
     }
 
@@ -142,7 +145,9 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
             .nonce
             .checked_add(1)
             .ok_or(RollupClientError::NonceOverflow)?;
-        MetaTransactionStorage::get_mut_storage(self).nonces.insert(&request.from, &nonce);
+        MetaTransactionStorage::get_mut_storage(self)
+            .nonces
+            .insert(&request.from, &nonce);
         Ok(())
     }
 
@@ -159,7 +164,9 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
             .map_err(|_| RollupClientError::FailedToDecode)?;
 
         // emit the event
-        ::ink::env::emit_event::<DefaultEnvironment, MetaTransactionDecoded>(MetaTransactionDecoded {});
+        ::ink::env::emit_event::<DefaultEnvironment, MetaTransactionDecoded>(
+            MetaTransactionDecoded {},
+        );
 
         // call the rollup with the attestor role
         self.inner_rollup_cond_eq_with_attestor(request.from, data.0, data.1, data.2)?;
