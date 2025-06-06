@@ -5,8 +5,8 @@ pub mod ink_client {
     use ink::prelude::vec::Vec;
     use inkv5_client_lib::only_role;
     use inkv5_client_lib::traits::access_control::{
-        AccessControl, AccessControlData, AccessControlError, AccessControlStorage, ADMIN_ROLE,
-        BaseAccessControl, RoleType,
+        AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
+        BaseAccessControl, RoleType, ADMIN_ROLE,
     };
     use inkv5_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
     use inkv5_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
@@ -57,7 +57,6 @@ pub mod ink_client {
         pub fn get_attestor_role(&self) -> RoleType {
             inkv5_client_lib::traits::rollup_client::ATTESTOR_ROLE
         }
-
     }
 
     /// Implement the business logic for the Rollup Client in the 'on_message_received' method
