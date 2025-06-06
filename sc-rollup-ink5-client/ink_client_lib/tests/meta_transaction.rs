@@ -1,7 +1,7 @@
 mod contract;
 mod test_utils;
 
-use ink::env::test::set_callee;
+use ink::env::test::{set_callee, set_caller};
 use ink::env::{debug_println, DefaultEnvironment};
 use ink::primitives::AccountId;
 use ink::scale::Encode;
@@ -190,6 +190,14 @@ fn test_meta_tx_rollup_cond_eq() {
     let keypair = subxt_signer::ecdsa::dev::alice();
     let from = ink::primitives::AccountId::from(keypair.public_key().to_account_id().0);
 
+    // add the role
+    set_caller::<DefaultEnvironment>(accounts.alice);
+    contract
+        .grant_role(ATTESTOR_ROLE, from)
+        .expect("Error when grant the role Attestor");
+
+    set_caller::<DefaultEnvironment>(accounts.bob);
+
     let data = RollupCondEqMethodParams::encode(&(vec![], vec![], vec![]));
 
     let (request, hash) = contract
@@ -205,16 +213,13 @@ fn test_meta_tx_rollup_cond_eq() {
     let signature = keypair.sign(&ink::scale::Encode::encode(&request)).0;
     debug_println!("signature: {:02x?}", &signature);
 
-    // add the role => it should be succeed
-    contract
-        .grant_role(ATTESTOR_ROLE, request.from)
-        .expect("Error when grant the role Attestor");
+    set_caller::<DefaultEnvironment>(accounts.bob);
     assert_eq!(
         Ok(()),
         contract.meta_tx_rollup_cond_eq(request.clone(), signature)
     );
 
-    // do it again => it must failed
+    // do it again => it must fail
     assert_eq!(
         Err(RollupClientError::NonceTooLow),
         contract.meta_tx_rollup_cond_eq(request.clone(), signature)
@@ -235,8 +240,10 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
 
     let data = RollupCondEqMethodParams::encode(&(vec![], vec![], vec![]));
 
+    set_caller::<DefaultEnvironment>(accounts.bob);
+
     let (request, hash) = contract
-        .prepare(from, data)
+        .prepare(from, data.clone())
         .expect("Error when preparing meta tx");
 
     debug_println!("code hash: {:02x?}", hash);
@@ -255,4 +262,27 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
         )),
         contract.meta_tx_rollup_cond_eq(request.clone(), signature)
     );
+
+    // add the role
+    set_caller::<DefaultEnvironment>(accounts.alice);
+    contract
+        .grant_role(ATTESTOR_ROLE, from)
+        .expect("Error when grant the role Attestor");
+
+
+    // do it again
+    set_caller::<DefaultEnvironment>(accounts.bob);
+    let (request, hash) = contract
+        .prepare(from, data)
+        .expect("Error when preparing meta tx");
+
+    // Alice signs the message
+    let signature = keypair.sign(&ink::scale::Encode::encode(&request)).0;
+
+    // bob send the tx
+    assert_eq!(
+        Ok(()),
+        contract.meta_tx_rollup_cond_eq(request.clone(), signature)
+    );
+
 }
