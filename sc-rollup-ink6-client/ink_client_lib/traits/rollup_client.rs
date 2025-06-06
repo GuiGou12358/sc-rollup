@@ -1,9 +1,9 @@
-use ink::Address;
 use crate::traits::access_control::{BaseAccessControl, RoleType};
 use crate::traits::kv_store::{Key, Value};
 use crate::traits::message_queue::{MessageQueue, QueueIndex};
 use crate::traits::RollupClientError;
 use ink::prelude::vec::Vec;
+use ink::Address;
 
 pub const ATTESTOR_ROLE: RoleType = ink::selector_id!("ATTESTOR_ROLE");
 
@@ -38,11 +38,9 @@ pub trait RollupClient {
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError>;
-
 }
 
 pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
-
     fn inner_rollup_cond_eq(
         &mut self,
         conditions: Vec<(Key, Option<Value>)>,
@@ -50,7 +48,7 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
         let caller = ::ink::env::caller();
-        self.inner_rollup_cond_eq_with_attestor(caller, conditions, updates, actions)        
+        self.inner_rollup_cond_eq_with_attestor(caller, conditions, updates, actions)
     }
 
     fn inner_rollup_cond_eq_with_attestor(
@@ -60,7 +58,6 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
         updates: Vec<(Key, Option<Value>)>,
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
-        
         self.inner_check_role(ATTESTOR_ROLE, attestor)?;
 
         // check the conditions

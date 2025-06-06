@@ -1,6 +1,6 @@
-use ink::Address;
 use ink::env::DefaultEnvironment;
 use ink::storage::Mapping;
+use ink::Address;
 
 pub type RoleType = u32;
 
@@ -67,8 +67,7 @@ pub trait AccessControl {
     fn grant_role(&mut self, role: RoleType, account: Address) -> Result<(), AccessControlError>;
 
     #[ink(message)]
-    fn revoke_role(&mut self, role: RoleType, account: Address)
-        -> Result<(), AccessControlError>;
+    fn revoke_role(&mut self, role: RoleType, account: Address) -> Result<(), AccessControlError>;
 
     #[ink(message)]
     fn renounce_role(&mut self, role: RoleType) -> Result<(), AccessControlError>;
@@ -92,11 +91,7 @@ pub trait BaseAccessControl: AccessControlStorage {
         self.inner_check_role(role, caller)
     }
 
-    fn inner_check_role(
-        &self,
-        role: RoleType,
-        account: Address,
-    ) -> Result<(), AccessControlError> {
+    fn inner_check_role(&self, role: RoleType, account: Address) -> Result<(), AccessControlError> {
         if !self.inner_has_role(role, account) {
             return Err(AccessControlError::MissingRole);
         }
