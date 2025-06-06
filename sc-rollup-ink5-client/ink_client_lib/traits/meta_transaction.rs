@@ -8,7 +8,7 @@ use ink::scale;
 use ink::storage::Mapping;
 use crate::traits::rollup_client::{BaseRollupClient, HandleActionInput};
 
-type Nonce = u128;
+pub type Nonce = u128;
 
 type RollupCondEqMethodParams = (
     Vec<(Key, Option<Value>)>,
@@ -73,7 +73,7 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         data: Vec<u8>,
     ) -> Result<(ForwardRequest, Hash), RollupClientError> {
         let nonce = self.get_nonce(from);
-        let to = ::ink::env::caller::<DefaultEnvironment>();
+        let to = ::ink::env::account_id::<DefaultEnvironment>();
 
         let request = ForwardRequest {
             from,
@@ -96,7 +96,7 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         request: &ForwardRequest,
         signature: &[u8; 65],
     ) -> Result<(), RollupClientError> {
-        let to = ::ink::env::caller::<DefaultEnvironment>();
+        let to = ::ink::env::account_id::<DefaultEnvironment>();
         if request.to != to {
             return Err(RollupClientError::InvalidDestination);
         }
