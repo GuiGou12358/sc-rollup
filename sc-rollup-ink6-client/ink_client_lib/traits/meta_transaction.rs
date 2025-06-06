@@ -9,7 +9,7 @@ use ink::scale;
 use ink::storage::Mapping;
 use ink::Address;
 
-type Nonce = u128;
+pub type Nonce = u128;
 
 type RollupCondEqMethodParams = (
     Vec<(Key, Option<Value>)>,
@@ -74,8 +74,8 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         data: Vec<u8>,
     ) -> Result<(ForwardRequest, Hash), RollupClientError> {
         let nonce = self.get_nonce(from);
-        let to = ::ink::env::caller();
-
+        let to = ::ink::env::address();
+        
         let request = ForwardRequest {
             from,
             to,
@@ -97,7 +97,7 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         request: &ForwardRequest,
         signature: &[u8; 65],
     ) -> Result<(), RollupClientError> {
-        let to = ::ink::env::caller();
+        let to = ::ink::env::address();
         if request.to != to {
             return Err(RollupClientError::InvalidDestination);
         }
@@ -114,25 +114,12 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
         let mut public_key = [0u8; 33];
         ink::env::ecdsa_recover(signature, &hash, &mut public_key)
             .map_err(|_| RollupClientError::IncorrectSignature)?;
-
-        /*
-        ink::env::debug_println!("request.from : {:02x?}", request.from);
-        ink::env::debug_println!("public_key : {:02x?}", public_key);
-        ink::env::debug_println!("get_ecdsa_account_id(&public_key) : {:02x?}", get_ecdsa_account_id(&public_key));
-         */
-        // TODO enable this test
-/*
+        
+        
         if request.from != get_ecdsa_account_id(&public_key) {
             return Err(RollupClientError::PublicKeyNotMatch);
         }
-        
- */
-        /*
-        ink::env::sr25519_verify(signature, &hash, request.from.as_ref())
-            .map_err(|_| RollupClientError::PublicKeyNotMatch)?;
-            
-         */
-        
+                
         Ok(())
     }
 
