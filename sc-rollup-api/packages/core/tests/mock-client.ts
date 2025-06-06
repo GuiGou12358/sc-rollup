@@ -79,6 +79,7 @@ class SimpleTypeCoder implements TypeCoder {
 
 class StringEncoder implements RawTypeEncoder<KvRawType, ActionRawType> {
   encodeKeyValue(key: HexString, value: Option<HexString>): KvRawType {
+    // @ts-ignore
     return [key, value.orElse(undefined)]
   }
 
