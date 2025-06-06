@@ -16,17 +16,10 @@ type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 async fn alice_instantiates_client<Client>(
     client: &mut Client,
-//) -> <Contract as ContractCallBuilder>::Type
-//) -> CallBuilder<DefaultEnvironment, Args, RetType, B>
 ) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog>
 where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
-    //Contract: ContractCallBuilder,
-    //Contract::Type: FromAccountId<DefaultEnvironment>,
-    //Args: Encode + Clone,
-    //RetType: Send + Decode,
-    //B: BuilderClient<DefaultEnvironment>,
 {
     let mut client_constructor = ink_client::InkClientRef::new();
     let contract = client
@@ -39,7 +32,6 @@ where
         .await
         .expect("instantiate failed");
     contract
-    //contract.call_builder::<ink_client::Contract>()
 }
 
 async fn alice_grants_bob_as_attestor<Client>(
