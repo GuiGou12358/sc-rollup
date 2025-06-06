@@ -50,7 +50,6 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
         let caller = ::ink::env::caller();
-        self.inner_check_role(ATTESTOR_ROLE, caller)?;
         self.inner_rollup_cond_eq_with_attestor(caller, conditions, updates, actions)        
     }
 
@@ -62,7 +61,7 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
         actions: Vec<HandleActionInput>,
     ) -> Result<(), RollupClientError> {
         
-        //self.inner_check_role(ATTESTOR_ROLE, attestor)?;
+        self.inner_check_role(ATTESTOR_ROLE, attestor)?;
 
         // check the conditions
         for cond in conditions {
@@ -99,10 +98,10 @@ pub trait BaseRollupClient: MessageQueue + BaseAccessControl {
             HandleActionInput::Reply(action) => self.on_message_received(action)?,
             HandleActionInput::SetQueueHead(id) => self.pop_to(id)?,
             HandleActionInput::GrantAttestor(address) => {
-                self.inner_grant_role(ATTESTOR_ROLE, address)?
+                self.inner_grant_role_unchecked(ATTESTOR_ROLE, address)?
             }
             HandleActionInput::RevokeAttestor(address) => {
-                self.inner_revoke_role(ATTESTOR_ROLE, address)?
+                self.inner_revoke_role_unchecked(ATTESTOR_ROLE, address)?
             }
         }
         Ok(())

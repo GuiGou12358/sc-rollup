@@ -40,6 +40,13 @@ pub struct AccessControlData {
     pub roles: Mapping<(Address, RoleType), ()>,
 }
 
+#[macro_export]
+macro_rules! only_role {
+    ($access_control:ident, $role:ident) => {{
+        $access_control.inner_check_role_caller($role)?
+    }};
+}
+
 impl AccessControlData {
     pub fn new() -> Self {
         Self::default()
@@ -80,6 +87,11 @@ pub trait BaseAccessControl: AccessControlStorage {
         self.get_mut_storage().roles.remove((account, role));
     }
 
+    fn inner_check_role_caller(&self, role: RoleType) -> Result<(), AccessControlError> {
+        let caller = ::ink::env::caller();
+        self.inner_check_role(role, caller)
+    }
+
     fn inner_check_role(
         &self,
         role: RoleType,
@@ -96,11 +108,15 @@ pub trait BaseAccessControl: AccessControlStorage {
         role: RoleType,
         account: Address,
     ) -> Result<(), AccessControlError> {
-        let caller = ::ink::env::caller();
-        if !self.inner_has_role(ADMIN_ROLE, caller) {
-            return Err(AccessControlError::InvalidCaller);
-        }
+        only_role!(self, ADMIN_ROLE);
+        self.inner_grant_role_unchecked(role, account)
+    }
 
+    fn inner_grant_role_unchecked(
+        &mut self,
+        role: RoleType,
+        account: Address,
+    ) -> Result<(), AccessControlError> {
         if self.inner_has_role(role, account) {
             return Err(AccessControlError::RoleRedundant);
         }
@@ -110,7 +126,7 @@ pub trait BaseAccessControl: AccessControlStorage {
         ::ink::env::emit_event::<DefaultEnvironment, RoleGranted>(RoleGranted {
             role,
             grantee: account,
-            grantor: caller,
+            grantor: ::ink::env::caller(),
         });
 
         Ok(())
@@ -121,10 +137,15 @@ pub trait BaseAccessControl: AccessControlStorage {
         role: RoleType,
         account: Address,
     ) -> Result<(), AccessControlError> {
-        let caller = ::ink::env::caller();
-        if caller != account && !self.inner_has_role(ADMIN_ROLE, caller) {
-            return Err(AccessControlError::InvalidCaller);
-        }
+        only_role!(self, ADMIN_ROLE);
+        self.inner_revoke_role_unchecked(role, account)
+    }
+
+    fn inner_revoke_role_unchecked(
+        &mut self,
+        role: RoleType,
+        account: Address,
+    ) -> Result<(), AccessControlError> {
         // check the role
         self.inner_check_role(role, account)?;
         // remove the role
@@ -133,14 +154,14 @@ pub trait BaseAccessControl: AccessControlStorage {
         ::ink::env::emit_event::<DefaultEnvironment, RoleRevoked>(RoleRevoked {
             role,
             account,
-            sender: caller,
+            sender: ::ink::env::caller(),
         });
 
         Ok(())
     }
 
     fn inner_renounce_role(&mut self, role: RoleType) -> Result<(), AccessControlError> {
-        self.inner_revoke_role(role, ::ink::env::caller())
+        self.inner_revoke_role_unchecked(role, ::ink::env::caller())
     }
 
     fn init_with_admin(&mut self, admin: Address) {
