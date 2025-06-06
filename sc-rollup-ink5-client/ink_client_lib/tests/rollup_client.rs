@@ -95,24 +95,25 @@ fn test_action_reply() {
 }
 
 #[ink::test]
-fn test_grant_role() {
+fn test_grant_revoke_attestor() {
     let accounts = accounts();
-    let mut contract = InkClient::new(accounts.alice);
-
-    // bob cannot grant the role
-    change_caller(accounts.bob);
-    assert_eq!(
-        Err(AccessControlError::MissingRole),
-        contract.grant_role(ATTESTOR_ROLE, accounts.bob)
-    );
-
-    // alice, the owner, can do it
     change_caller(accounts.alice);
-    assert_eq!(
-        Ok(()),
-        contract.grant_role(ATTESTOR_ROLE, accounts.bob)
-    );
+
+    let mut contract = InkClient::new(accounts.alice);
+    assert_eq!(Ok(()), contract.grant_role(ATTESTOR_ROLE, accounts.alice));
+
+    assert_eq!(false, contract.has_role(ATTESTOR_ROLE, accounts.bob));
+    let actions = vec![HandleActionInput::GrantAttestor(accounts.bob)];
+    assert_eq!(contract.rollup_cond_eq(vec![], vec![], actions), Ok(()));
+    
+    assert_eq!(true, contract.has_role(ATTESTOR_ROLE, accounts.bob));
+    let actions = vec![HandleActionInput::RevokeAttestor(accounts.bob)];
+    assert_eq!(contract.rollup_cond_eq(vec![], vec![], actions), Ok(()));
+    
+    assert_eq!(false, contract.has_role(ATTESTOR_ROLE, accounts.bob));
+
 }
+
 
 #[ink::test]
 fn test_rollup_cond_eq_role_attestor() {

@@ -13,6 +13,7 @@ fn test_push_and_pop_message() {
 
     assert_eq!(0, contract.get_queue_tail().unwrap());
     assert_eq!(0, contract.get_queue_head().unwrap());
+    assert_eq!(false, contract.has_message().unwrap());
 
     // push the first message in the queue
     let message1 = 123456u128;
@@ -20,6 +21,7 @@ fn test_push_and_pop_message() {
     assert_eq!(0, queue_index);
     assert_eq!(0, contract.get_queue_head().unwrap());
     assert_eq!(1, contract.get_queue_tail().unwrap());
+    assert_eq!(true, contract.has_message().unwrap());
 
     // push the second message in the queue
     let message2 = 4589u16;
@@ -27,6 +29,7 @@ fn test_push_and_pop_message() {
     assert_eq!(1, queue_index);
     assert_eq!(0, contract.get_queue_head().unwrap());
     assert_eq!(2, contract.get_queue_tail().unwrap());
+    assert_eq!(true, contract.has_message().unwrap());
 
     // get the first message
     let message_in_queue: Option<u128> = contract.get_message(0).unwrap();
@@ -46,6 +49,7 @@ fn test_push_and_pop_message() {
     contract.pop_to(2).unwrap();
     assert_eq!(2, contract.get_queue_head().unwrap());
     assert_eq!(2, contract.get_queue_tail().unwrap());
+    assert_eq!(false, contract.has_message().unwrap());
 }
 
 #[ink::test]
