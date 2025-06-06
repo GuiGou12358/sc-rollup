@@ -12,10 +12,10 @@ import {
   u8aConcat,
   u8aToHex,
 } from "@polkadot/util"
-import { Enum, str, Struct, u128, u32 } from "scale-ts"
+import { Enum, str, Struct, u128, u32, Bytes } from "scale-ts"
 
 const rpc = "wss://rpc.shibuya.astar.network"
-const address = "XRJE9yb5PN8j4PWucy3ReQ2NwTuNDmcZaE62rnTjEXqaw4E"
+const address = "ZRQWQuaP1mVXENi6CQYbBEpucM4kS423a5rTcEyQC8tTjGv"
 
 configDotenv()
 const pk = hexAddPrefix(process.env.pk)
@@ -108,7 +108,7 @@ test("encoding / decoding Type", async () => {
         },
     }
  */
-const requestMessageCodec = Enum({
+const requestMessageCodec2 = Enum({
   NewTradingPair: Struct({
     tradingPairId: u32,
     tokenA: str,
@@ -118,6 +118,8 @@ const requestMessageCodec = Enum({
     tradingPairId: u32,
   }),
 })
+
+const requestMessageCodec = Bytes()
 
 /*
     enum ResponseMessage {
@@ -135,6 +137,7 @@ const requestMessageCodec = Enum({
         },
     }
  */
+
 const responseMessageCodec = Enum({
   PriceFeed: Struct({
     tradingPairId: u32,
