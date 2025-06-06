@@ -8,13 +8,13 @@ import {
   RawTypeEncoder,
   TypeCoder,
 } from "@guigou/sc-rollup-core"
-import { contracts, wndAh } from "@guigou/sc-rollup-ink6-descriptors"
+import { contracts, wndAh } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner, PolkadotSigner } from "polkadot-api/signer"
 import { fromHex, toHex } from "polkadot-api/utils"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
-import { createInkSdk } from "@polkadot-api/sdk-ink"
+import {createInkSdk, createReviveSdk} from "@polkadot-api/sdk-ink"
 import {
   AccountId,
   Binary,
@@ -135,7 +135,7 @@ export class InkClient<Message, Action> extends Client<
 
     const client = createClient(withPolkadotSdkCompat(getWsProvider(rpc)))
     const typedApi = client.getTypedApi(wndAh)
-    const sdk = createInkSdk(typedApi, contracts.ink_client)
+    const sdk = createReviveSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
 
     let senderKeyringPair

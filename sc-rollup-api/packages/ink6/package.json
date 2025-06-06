@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink6",
-  "version": "0.0.1-beta1",
+  "version": "0.0.1-beta2",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -39,35 +39,32 @@
     "dist"
   ],
   "scripts": {
-    "clean": "rm -rf dist .papi",
-    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
-    "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
-    "generate": "pnpm run gen-contract-metadata",
+    "clean": "rm -rf dist",
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm clean && pnpm build-core",
     "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.1-beta1 --no-git-checks"
-  },
-  "peerDependencies": {
-    "polkadot-api": "*"
+    "release": "pnpm publish --access public --tag tag0.0.1-beta2 --no-git-checks",
+    "gen-pop-rpc": "pnpm exec papi add -w wss://testnet-passet-hub.polkadot.io wndAh",
+    "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
+    "generate": "pnpm run gen-pop-rpc && pnpm run gen-contract-metadata"
   },
   "devDependencies": {
+    "dotenv": "^16.4.7",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.9",
-    "dotenv": "^16.4.7"
+    "vitest": "^3.0.9"
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.0.4-beta9",
-    "@guigou/sc-rollup-ink6-descriptors": "^0.0.1-beta1",
-    "polkadot-api": "git+https://github.com/polkadot-api/polkadot-api.git#ink-v6",
-    "@polkadot-api/sdk-ink": "git+https://github.com/polkadot-api/polkadot-api.git#ink-v6",
-    "@polkadot-api/substrate-bindings" : "git+https://github.com/polkadot-api/polkadot-api.git#ink-v6",
-    "@polkadot/util": "^13.4.4",
-    "@polkadot/keyring": "^13.4.4",
-    "@polkadot-labs/hdkd-helpers": "^0.0.15",
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/sdk-ink": "^0.1.0",
+    "@polkadot-api/substrate-bindings": "^0.14.0",
+    "@polkadot-labs/hdkd-helpers": "^0.0.16",
+    "@polkadot/keyring": "^13.5.1",
+    "@polkadot/util": "^13.5.1",
+    "polkadot-api": "^1.13.1",
     "scale-ts": "^1.6.1"
   }
 }

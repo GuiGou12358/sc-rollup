@@ -12,7 +12,7 @@ import {
   u8aConcat,
   u8aToHex,
 } from "@polkadot/util"
-import { Enum, str, Struct, u128, u32 } from "scale-ts"
+import { Enum, str, Struct, u128, u32, Bytes } from "scale-ts"
 
 const rpc = "wss://127.0.0.1:9944"
 //const rpc = "wss://asset-hub-westend-rpc.dwellir.com"
@@ -109,7 +109,7 @@ test("encoding / decoding Type", async () => {
         },
     }
  */
-const requestMessageCodec = Enum({
+const requestMessageCodec2 = Enum({
   NewTradingPair: Struct({
     tradingPairId: u32,
     tokenA: str,
@@ -119,6 +119,8 @@ const requestMessageCodec = Enum({
     tradingPairId: u32,
   }),
 })
+
+const requestMessageCodec = Bytes()
 
 /*
     enum ResponseMessage {
@@ -136,6 +138,7 @@ const requestMessageCodec = Enum({
         },
     }
  */
+
 const responseMessageCodec = Enum({
   PriceFeed: Struct({
     tradingPairId: u32,
