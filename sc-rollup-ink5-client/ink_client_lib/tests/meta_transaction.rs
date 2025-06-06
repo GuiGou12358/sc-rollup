@@ -269,7 +269,6 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
         .grant_role(ATTESTOR_ROLE, from)
         .expect("Error when grant the role Attestor");
 
-
     // do it again
     set_caller::<DefaultEnvironment>(accounts.bob);
     let (request, hash) = contract
@@ -284,5 +283,4 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
         Ok(()),
         contract.meta_tx_rollup_cond_eq(request.clone(), signature)
     );
-
 }
