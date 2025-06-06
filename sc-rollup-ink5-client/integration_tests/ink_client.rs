@@ -226,6 +226,67 @@ async fn test_bad_attestor(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
 }
 
 ///
+/// Test the optimistic locking
+/// Check and increment the version number inner the transaction
+///
+#[ink_e2e::test]
+async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+    // given
+    let contract = alice_instantiates_client(&mut client).await;
+
+    // bob is granted as attestor
+    alice_grants_bob_as_attestor(&mut client, &contract).await;
+
+    let conditions = vec![("version".encode(), None)];
+    let updates = vec![("version".encode(), Some(1.encode()))];
+    let rollup_cond_eq =
+        contract.call_builder::<ink_client::InkClient>()
+            .rollup_cond_eq(conditions, updates, vec![]);
+
+    // bob does an action (correct version number)
+    let result = client
+        .call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await
+        .expect("rollup cond eq failed");
+    // no event
+    //assert!(!result.contains_event("Contracts", "ContractEmitted"));
+
+    // same action must fail because the version number is not correct
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await;
+    assert!(
+        result.is_err(),
+        "Must fail because the version number is not correct"
+    );
+
+    // do it with the correct version number
+    let conditions = vec![("version".encode(), Some(1.encode()))];
+    let updates = vec![("version".encode(), Some(2.encode()))];
+    let rollup_cond_eq =
+        contract.call_builder::<ink_client::InkClient>()
+            .rollup_cond_eq(conditions, updates, vec![]);
+
+    let result = client
+        .call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await
+        .expect("rollup cond eq failed");
+
+    // again it must fail because the version number is not correct
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
+        .submit()
+        .await;
+    assert!(
+        result.is_err(),
+        "Must fail because the version number is not correct"
+    );
+
+    Ok(())
+}
+
+///
 /// Test the meta transactions
 /// Alice is the owner
 /// Bob is the attestor
