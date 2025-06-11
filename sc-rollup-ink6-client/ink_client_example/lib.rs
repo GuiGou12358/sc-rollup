@@ -1,9 +1,9 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[ink::contract]
-mod ink_client {
-    use ink::prelude::string::String;
+pub mod ink_client {
     use ink::prelude::vec::Vec;
+    use inkv6_client_lib::only_role;
     use inkv6_client_lib::traits::access_control::{
         AccessControl, AccessControlData, AccessControlError, AccessControlStorage, BaseAccessControl,
         RoleType, ADMIN_ROLE,
@@ -32,6 +32,7 @@ mod ink_client {
         pub fn new() -> Self {
             let mut instance = Self::default();
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
+            BaseAccessControl::inner_grant_role(&mut instance, ATTESTOR_ROLE, Self::env().caller()).expect("grant attestor role");
             instance
         }
 
@@ -39,6 +40,13 @@ mod ink_client {
         pub fn push_message(&mut self, message: Vec<u8>) -> Result<QueueIndex, RollupClientError> {
             only_role!(self, ADMIN_ROLE);
             MessageQueue::push_message(self, &message)
+        }
+
+        #[ink(message)]
+        pub fn has_pending_message(&self) -> bool {
+            let tail = MessageQueue::get_queue_tail(self).unwrap_or_default();
+            let head = MessageQueue::get_queue_head(self).unwrap_or_default();
+            tail > head
         }
 
         #[ink(message)]

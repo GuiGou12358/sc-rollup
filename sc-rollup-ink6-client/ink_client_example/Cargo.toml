@@ -1,5 +1,5 @@
 [package]
-name = "ink6_client"
+name = "ink_client"
 version = "0.0.1"
 authors = ["GuiGou"]
 edition = "2021"
@@ -7,10 +7,6 @@ edition = "2021"
 [dependencies]
 ink = { version = "6.0.0-alpha", default-features = false, features = ["unstable-hostfn"] }
 inkv6_client_lib = { path = "../ink_client_lib", default-features = false}
-
-
-[dev-dependencies]
-ink_e2e = { version = "6.0.0-alpha" }
 
 [lib]
 path = "lib.rs"
@@ -22,4 +18,3 @@ std = [
     "inkv6_client_lib/std",
 ]
 ink-as-dependency = []
-e2e-tests = []
