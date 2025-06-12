@@ -46,7 +46,7 @@ std = [
 
 ### Add imports
 
-Import everything from `inkv5_client_lib::traits::access_control`, `inkv5_client_lib::traits::kv_store`, `inkv5_client_lib::traits::message_queue`, `inkv5_client_lib::traits::rollup_client`.
+Import everything from `inkv6_client_lib::traits`, `inkv6_client_lib::traits::access_control`, `inkv6_client_lib::traits::kv_store`, `inkv6_client_lib::traits::message_queue`, `inkv6_client_lib::traits::rollup_client`, `inkv6_client_lib::traits::meta_transaction`.
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
