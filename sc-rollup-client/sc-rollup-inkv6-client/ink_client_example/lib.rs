@@ -4,20 +4,12 @@
 pub mod ink_client {
     use ink::prelude::vec::Vec;
     use inkv6_client_lib::only_role;
-    use inkv6_client_lib::traits::access_control::{
-        AccessControl, AccessControlData, AccessControlError, AccessControlStorage, BaseAccessControl,
-        RoleType, ADMIN_ROLE,
-    };
-    use inkv6_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
-    use inkv6_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
-    use inkv6_client_lib::traits::meta_transaction::{
-        BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
-        MetaTransactionStorage,
-    };
-    use inkv6_client_lib::traits::rollup_client::{
-        BaseRollupClient, HandleActionInput, RollupClient, ATTESTOR_ROLE,
-    };
-    use inkv6_client_lib::traits::RollupClientError;
+    use inkv6_client_lib::traits::*;
+    use inkv6_client_lib::traits::access_control::*;
+    use inkv6_client_lib::traits::kv_store::*;
+    use inkv6_client_lib::traits::message_queue::*;
+    use inkv6_client_lib::traits::rollup_client::*;
+    use inkv6_client_lib::traits::meta_transaction::*;
 
     #[derive(Default, Debug)]
     #[ink(storage)]

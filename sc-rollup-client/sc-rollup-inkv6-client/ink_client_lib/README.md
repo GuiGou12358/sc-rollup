@@ -51,14 +51,15 @@ Import everything from `inkv5_client_lib::traits::access_control`, `inkv5_client
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(Ownable, AccessControl)]
-#[openbrush::contract]
+#[ink::contract]
 pub mod ink_client {
 
-    use inkv5_client_lib::traits::access_control::*;
-    use inkv5_client_lib::traits::kv_store::*;
-    use inkv5_client_lib::traits::message_queue::*;
-    use inkv5_client_lib::traits::rollup_client::*; 
+    use inkv6_client_lib::traits::*;
+    use inkv6_client_lib::traits::access_control::*;
+    use inkv6_client_lib::traits::kv_store::*;
+    use inkv6_client_lib::traits::message_queue::*;
+    use inkv6_client_lib::traits::rollup_client::*;
+    use inkv6_client_lib::traits::meta_transaction::*;
 ...
 ```
 
@@ -79,13 +80,11 @@ pub struct InkClient {
 
 ### Define constructor
 ```rust
-impl InkClient {
-    #[ink(constructor)]
-    pub fn new() -> Self {
-        let mut instance = Self::default();
-        BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
-        instance
-    }
+#[ink(constructor)]
+pub fn new() -> Self {
+    let mut instance = Self::default();
+    BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
+    instance
 }
 ```
 
@@ -123,7 +122,7 @@ impl BaseAccessControl for InkClient {}
 
 impl AccessControl for InkClient {
     #[ink(message)]
-    fn has_role(&self, role: RoleType, account: AccountId) -> bool {
+    fn has_role(&self, role: RoleType, account: Address) -> bool {
         self.inner_has_role(role, account)
     }
 
@@ -131,7 +130,7 @@ impl AccessControl for InkClient {
     fn grant_role(
         &mut self,
         role: RoleType,
-        account: AccountId,
+        account: Address,
     ) -> Result<(), AccessControlError> {
         self.inner_grant_role(role, account)
     }
@@ -140,7 +139,7 @@ impl AccessControl for InkClient {
     fn revoke_role(
         &mut self,
         role: RoleType,
-        account: AccountId,
+        account: Address,
     ) -> Result<(), AccessControlError> {
         self.inner_revoke_role(role, account)
     }
@@ -185,66 +184,65 @@ impl MessageQueue for InkClient {}
 Add this Boilerplate code to implement the Rollup Client
 
 ```rust
-    impl RollupClient for InkClient {
-        #[ink(message)]
-        fn get_value(&self, key: Key) -> Option<Value> {
-            self.inner_get_value(&key)
-        }
-
-        #[ink(message)]
-        fn has_message(&self) -> Result<bool, RollupClientError> {
-            MessageQueue::has_message(self)
-        }
-
-        #[ink(message)]
-        fn rollup_cond_eq(
-            &mut self,
-            conditions: Vec<(Key, Option<Value>)>,
-            updates: Vec<(Key, Option<Value>)>,
-            actions: Vec<HandleActionInput>,
-        ) -> Result<(), RollupClientError> {
-            self.inner_rollup_cond_eq(conditions, updates, actions)
-        }
+impl RollupClient for InkClient {
+    #[ink(message)]
+    fn get_value(&self, key: Key) -> Option<Value> {
+        self.inner_get_value(&key)
     }
-```
 
+    #[ink(message)]
+    fn has_message(&self) -> Result<bool, RollupClientError> {
+        MessageQueue::has_message(self)
+    }
+
+    #[ink(message)]
+    fn rollup_cond_eq(
+        &mut self,
+        conditions: Vec<(Key, Option<Value>)>,
+        updates: Vec<(Key, Option<Value>)>,
+        actions: Vec<HandleActionInput>,
+    ) -> Result<(), RollupClientError> {
+        self.inner_rollup_cond_eq(conditions, updates, actions)
+    }
+}
+```
 
 ### Boilerplate code to implement the Meta Transaction
 
 Add this Boilerplate code to implement the Meta Transaction
 
 ```rust
-    impl MetaTransactionStorage for InkClient {
-        fn get_storage(&self) -> &MetaTransactionData {
-            &self.meta_transaction
-        }
-
-        fn get_mut_storage(&mut self) -> &mut MetaTransactionData {
-            &mut self.meta_transaction
-        }
+impl MetaTransactionStorage for InkClient {
+    fn get_storage(&self) -> &MetaTransactionData {
+        &self.meta_transaction
     }
 
-    impl BaseMetaTransaction for InkClient {}
-
-    impl MetaTransaction for InkClient {
-        #[ink(message)]
-        fn prepare(
-            &self,
-            from: AccountId,
-            data: Vec<u8>,
-        ) -> Result<(ForwardRequest, Hash), RollupClientError> {
-            self.inner_prepare(from, data)
-        }
-
-        #[ink(message)]
-        fn meta_tx_rollup_cond_eq(
-            &mut self,
-            request: ForwardRequest,
-            signature: [u8; 65],
-        ) -> Result<(), RollupClientError> {
-            self.inner_meta_tx_rollup_cond_eq(request, signature)
-        }
+    fn get_mut_storage(&mut self) -> &mut MetaTransactionData {
+        &mut self.meta_transaction
     }
+}
+
+impl BaseMetaTransaction for InkClient {}
+
+impl MetaTransaction for InkClient {
+    #[ink(message)]
+    fn prepare(
+        &self,
+        from: Address,
+        data: Vec<u8>,
+    ) -> Result<(ForwardRequest, Hash), RollupClientError> {
+        self.inner_prepare(from, data)
+    }
+
+    #[ink(message)]
+    fn meta_tx_rollup_cond_eq(
+        &mut self,
+        request: ForwardRequest,
+        signature: [u8; 65],
+    ) -> Result<(), RollupClientError> {
+        self.inner_meta_tx_rollup_cond_eq(request, signature)
+    }
+}
 ```
 
 ### Final code 
@@ -256,11 +254,12 @@ Here the final code of Ink Contract Example
 #[ink::contract]
 pub mod ink_client {
     use ink::prelude::vec::Vec;
-    use inkv5_client_lib::traits::access_control::*;
-    use inkv5_client_lib::traits::kv_store::*;
-    use inkv5_client_lib::traits::message_queue::*;
-    use inkv5_client_lib::traits::meta_transaction::*;
-    use inkv5_client_lib::traits::rollup_client::*;
+    use inkv6_client_lib::traits::*;
+    use inkv6_client_lib::traits::access_control::*;
+    use inkv6_client_lib::traits::kv_store::*;
+    use inkv6_client_lib::traits::message_queue::*;
+    use inkv6_client_lib::traits::rollup_client::*;
+    use inkv6_client_lib::traits::meta_transaction::*;
 
     #[derive(Default, Debug)]
     #[ink(storage)]
@@ -302,7 +301,7 @@ pub mod ink_client {
 
     impl AccessControl for InkClient {
         #[ink(message)]
-        fn has_role(&self, role: RoleType, account: AccountId) -> bool {
+        fn has_role(&self, role: RoleType, account: Address) -> bool {
             self.inner_has_role(role, account)
         }
 
@@ -310,7 +309,7 @@ pub mod ink_client {
         fn grant_role(
             &mut self,
             role: RoleType,
-            account: AccountId,
+            account: Address,
         ) -> Result<(), AccessControlError> {
             self.inner_grant_role(role, account)
         }
@@ -319,7 +318,7 @@ pub mod ink_client {
         fn revoke_role(
             &mut self,
             role: RoleType,
-            account: AccountId,
+            account: Address,
         ) -> Result<(), AccessControlError> {
             self.inner_revoke_role(role, account)
         }
@@ -386,7 +385,7 @@ pub mod ink_client {
         #[ink(message)]
         fn prepare(
             &self,
-            from: AccountId,
+            from: Address,
             data: Vec<u8>,
         ) -> Result<(ForwardRequest, Hash), RollupClientError> {
             self.inner_prepare(from, data)

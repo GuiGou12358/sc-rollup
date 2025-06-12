@@ -4,7 +4,7 @@ Implements a dummy client . It uses the crate `inkv6_client_lib`.
 It supports:
 - manage the roles and grant an address as `ADMIN` or `ATTESTOR`. Only the admin can do it.
 - push raw message in the queue.
-- handle the raw messages sent by the offchain rollup: In this dummy example, nothing is done (TODO: emit an event!)
+- handle the raw messages sent by the off-chain rollup: In this dummy example, nothing is done (TODO: emit an event!)
 - allow meta transactions to separate the attestor and the payer.
 
 By default, the contract owner is granted as `ADMIN` and `ATTESTOR`.
