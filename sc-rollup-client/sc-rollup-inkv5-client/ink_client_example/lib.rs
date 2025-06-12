@@ -4,20 +4,12 @@
 pub mod ink_client {
     use ink::prelude::vec::Vec;
     use inkv5_client_lib::only_role;
-    use inkv5_client_lib::traits::access_control::{
-        AccessControl, AccessControlData, AccessControlError, AccessControlStorage,
-        BaseAccessControl, RoleType, ADMIN_ROLE,
-    };
-    use inkv5_client_lib::traits::kv_store::{Key, KvStore, KvStoreData, KvStoreStorage, Value};
-    use inkv5_client_lib::traits::message_queue::{MessageQueue, QueueIndex};
-    use inkv5_client_lib::traits::meta_transaction::{
-        BaseMetaTransaction, ForwardRequest, MetaTransaction, MetaTransactionData,
-        MetaTransactionStorage,
-    };
-    use inkv5_client_lib::traits::rollup_client::{
-        BaseRollupClient, HandleActionInput, RollupClient,
-    };
-    use inkv5_client_lib::traits::RollupClientError;
+    use inkv5_client_lib::traits::*;
+    use inkv5_client_lib::traits::access_control::*;
+    use inkv5_client_lib::traits::kv_store::*;
+    use inkv5_client_lib::traits::message_queue::*;
+    use inkv5_client_lib::traits::rollup_client::*;
+    use inkv5_client_lib::traits::meta_transaction::*;
 
     #[derive(Default, Debug)]
     #[ink(storage)]
@@ -32,6 +24,7 @@ pub mod ink_client {
         pub fn new() -> Self {
             let mut instance = Self::default();
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
+            BaseAccessControl::inner_grant_role(&mut instance, ATTESTOR_ROLE, Self::env().caller()).expect("grant attestor role");
             instance
         }
 
