@@ -246,7 +246,7 @@ impl MetaTransaction for InkClient {
 ```
 
 ### Final code 
-Here the final code of Ink Contract Example
+Here the final code of ink! Contract Example
 
 ```rust
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
