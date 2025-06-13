@@ -47,7 +47,8 @@ This repo also includes code snippets for the following common use cases:
 - `/tdx_quote_raw`: The `reportdata` is `Hello DStack!` and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Hello DStack!` in [Attestation Explorer](https://proof.t16z.com/).
 - `/derive_key`: Basic example of the `deriveKey` API.
 - `/account`: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.
-- `/feed`: Using the `feed` API to feed data into the ink! smart contract.
+- `/fetch_prices`: Using the `fetch_prices` API to fetch the price from coingecko.
+- `/feed_prices`: Using the `feed_prices` API to feed the process into the ink! smart contract.
 - `/info`: Returns the TCB Info of the hosted CVM.
 
 ## Build

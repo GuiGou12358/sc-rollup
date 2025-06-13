@@ -1,6 +1,6 @@
 services:
   app:
-    image: guigoudev/phala-cloud-ink5-test-1:latest
+    image: guigoudev/phala-cloud-ink-v5-price-feed-oracle:latest
     container_name: app
     ports:
       - "3000:3000"
@@ -10,3 +10,4 @@ services:
       - INK_CLIENT_RPC=${INK_CLIENT_RPC}
       - INK_CLIENT_ADDRESS=${INK_CLIENT_ADDRESS}
       - ATTESTOR_PK=${ATTESTOR_PK}
+      - SENDER_PK=${SENDER_PK}
