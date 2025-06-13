@@ -1,11 +1,11 @@
 {
-  "name": "@guigou/sc-rollup-ink5",
+  "name": "@guigou/sc-rollup-ink-v5",
   "version": "0.0.4-beta9",
   "author": "GuiGou",
   "repository": {
     "type": "git",
     "url": "https://github.com/GuiGou12358/sc-rollup.git",
-    "directory": "sc-rollup-api/packages/ink5"
+    "directory": "sc-rollup-api/packages/ink-v5"
   },
   "license": "ISC",
   "exports": {
@@ -42,7 +42,7 @@
     "clean": "rm -rf dist",
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm clean && pnpm build-core",
-    "test": "vitest --no-isolate",
+    "test": "vitest",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.0.4-beta9",
-    "@guigou/sc-rollup-ink5-descriptors": "^0.1.0-beta7",
+    "@guigou/sc-rollup-ink-v5-descriptors": "^0.1.0-beta7",
     "@polkadot-api/descriptors": "file:.papi/descriptors",
     "@polkadot-api/sdk-ink": "^0.1.0",
     "@polkadot-api/substrate-bindings": "^0.14.0",

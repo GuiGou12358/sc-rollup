@@ -1,24 +1,18 @@
-import { assert, expect, test } from "vitest"
-import { InkClient, InkTypeCoder } from "../src/ink-client"
+import {assert, expect, test} from "vitest"
+import {InkClient, InkTypeCoder} from "../src/ink-client"
 import * as process from "node:process"
-import { configDotenv } from "dotenv"
-import { mergeUint8 } from "polkadot-api/utils"
-import { Binary } from "@polkadot-api/substrate-bindings"
-import {
-  hexAddPrefix,
-  hexToU8a,
-  stringToHex,
-  stringToU8a,
-  u8aConcat,
-  u8aToHex,
-} from "@polkadot/util"
-import { Enum, str, Struct, u128, u32, Bytes } from "scale-ts"
+import {configDotenv} from "dotenv"
+import {mergeUint8} from "polkadot-api/utils"
+import {Binary} from "@polkadot-api/substrate-bindings"
+import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
+import {Bytes, Enum, str, Struct, u128, u32} from "scale-ts"
 
-const rpc = "wss://rpc.shibuya.astar.network"
-const address = "ZRQWQuaP1mVXENi6CQYbBEpucM4kS423a5rTcEyQC8tTjGv"
 
 configDotenv()
-const pk = hexAddPrefix(process.env.pk)
+const rpc = process.env.RPC
+const address = process.env.CONTRACT_ADDRESS
+const attestorPk = hexAddPrefix(process.env.ATTESTOR_PRIVATE_KEY)
+const senderPk = hexAddPrefix(process.env.SENDER_PRIVATE_KEY)
 
 test("encode keys", async () => {
   expect(Binary.fromText("q/_tail").asHex()).toBe("0x712f5f7461696c")
@@ -187,14 +181,14 @@ test('Check compatibility', async () => {
 */
 
 test("Read / Write values", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
+    attestorPk,
     undefined,
     requestMessageCodec,
     responseMessageCodec,
@@ -231,14 +225,14 @@ test("Read / Write values", async () => {
 })
 
 test("Poll message", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
+    attestorPk,
     undefined,
     requestMessageCodec,
     responseMessageCodec,
@@ -263,14 +257,14 @@ test("Poll message", async () => {
 })
 
 test("Feed data", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
+    attestorPk,
     undefined,
     requestMessageCodec,
     responseMessageCodec,
@@ -290,15 +284,16 @@ test("Feed data", async () => {
 })
 
 test("Meta Transaction", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
+  assert(senderPk, "SENDER_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
-    pk,
+    attestorPk,
+    senderPk,
     requestMessageCodec,
     responseMessageCodec,
   )
@@ -312,17 +307,6 @@ test("Meta Transaction", async () => {
       price: 94024n * 1_000_000_000_000_000_000n,
     },
   })
-
-  /*
-  const conditions: KvRawType[] = [];
-  const updates : KvRawType[] = [];
-  const action : ActionRawType = {
-    type: "Reply",
-    value: Binary.fromHex('0x0002000000000020707fef1e0de913000000000000'),
-  };
-  const actions : ActionRawType[] = [action];
-  await client.sendMetaTransaction(conditions, updates, actions);
-   */
 
   await client.commit()
 })
