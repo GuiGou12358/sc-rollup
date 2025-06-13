@@ -34,7 +34,7 @@ The default toml of your project
 
 [dependencies]
 ink = { version = "5.1.1", default-features = false }
-inkv5_client_lib = { path = "../ink_client_lib", default-features = false}
+inkv5_client_lib = { git = "https://github.com/GuiGou12358/sc-rollup", default-features = false}
 
 [features]
 default = ["std"]

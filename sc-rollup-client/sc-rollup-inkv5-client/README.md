@@ -16,7 +16,7 @@ Please read the full documentation to learn more about ink! : https://use.ink/
 - cargo-contract v5.x.x
 
 
-## 'inkv5_client_lib' crate
+## `inkv5_client_lib` crate
 
 This library helps you to build off-chain rollup client for ink! smart contract deployed on the `contract` pallet.
 It provides the following features:
@@ -26,12 +26,12 @@ It provides the following features:
 - `RollupClient`: Use the kv-store and the message queue to allow off-chain rollup transactions.
 - `MetaTransaction`: Allow the off-chain rollup to do transactions without paying the gas fee. The fee will be paid by a third party (the relayer).
 
-[Here is the full documentation about the library](./ink_client_lib/README.md)
+[Here is the full documentation about the library](./ink_client_lib)
 
 ## 'ink_client_example' smart contract
 
-[This smart contract](./ink_client_example/README.md) is an example of using the 'inkv5_client_lib' crate.
+[This smart contract](./ink_client_example) is an example of using the `inkv5_client_lib` crate.
 
 ## 'integration_tests' folder
 
-[This folder](./integration_tests/README.md) contains the integrations tests of the contract and library.
+[This folder](./integration_tests) contains the integrations tests of the contract and library.

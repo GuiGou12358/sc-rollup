@@ -25,15 +25,13 @@ The sdk is here to simplify development by providing a stable, ACID-compliant co
 - Reliable KV-store on blockchains for durable state management
 - Transactional (ACID) on-chain KV-store designed for stateful dApps deployed on Phala Cloud
 - ACID-compliant read, write, and contract call operations for consistent data handling
-  - Request-response programming model that simplifies interactions between workers and on-chain smart contracts
+- Request-response programming model that simplifies interactions between workers and on-chain smart contracts
 
 ## Getting Started
 
-![communication-contracts.png](../assets/verifiable_offchain_computing/communication-contracts.png)
+To successfully use the Verifiable Offchain Rollup, follow these three steps:
 
-To successfully use the Verifiable Offchain Rollup, follow these three steps illustrated in the diagram:
-
-1. Build the evm or wasm contract with the [sc-rollup-client](./sc-rollup-client/README.md) and deploy it on the target blockchain.
-2. Use the [sc-rollup-api](./sc-rollup-api/README.md) to build the off-chain rollup and connect with your smart contract.
-3. Deploy the off-chain rollup in [Phala Cloud](https://cloud.phala.network/) to enable verifiable off-chain computing capabilities through Phala Cloud's Trusted Execution Environment (TEE).
+1. Build the evm or wasm contract with the [sc-rollup-client](./sc-rollup-client) and deploy it on the target blockchain.
+2. Use the [sc-rollup-api](./sc-rollup-api) to build the off-chain rollup and connect with your smart contract.
+3. Deploy the off-chain rollup in [Phala Cloud](https://cloud.phala.network) to enable verifiable off-chain computing capabilities through Phala Cloud's Trusted Execution Environment (TEE).
 
