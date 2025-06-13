@@ -104,7 +104,7 @@ pub mod price_feed_consumer {
         last_update: u64,
     }
 
-    #[derive(Default, Debug)]
+    #[derive(Default)]
     #[ink(storage)]
     pub struct PriceFeedConsumer {
         access_control: AccessControlData,
@@ -362,6 +362,7 @@ pub mod price_feed_consumer {
         use ink::env::{DefaultEnvironment};
         use ink_e2e::{ContractsBackend, E2EBackend, InstantiationResult};
         use ink::scale::Encode;
+        use std::fmt::Debug;
 
         type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
         
@@ -372,7 +373,7 @@ pub mod price_feed_consumer {
             Client: E2EBackend,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
-            let mut client_constructor = TestOracleRef::new();
+            let mut client_constructor = PriceFeedConsumerRef::new();
             let contract = client
                 .instantiate(
                     "price_feed_consumer",
@@ -384,7 +385,7 @@ pub mod price_feed_consumer {
                 .expect("instantiate failed");
             contract
         }
-        async fn alice_creates_trading_pair(
+        async fn alice_creates_trading_pair<Client>(
             client: &mut Client,
             contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
             trading_pair_id: &TradingPairId,
@@ -394,13 +395,12 @@ pub mod price_feed_consumer {
         {
             // create the trading pair
             let create_trading_pair =
-                contract.call_builder::<TestOracleRef>(contract_id.clone()).call(|oracle| {
-                    oracle.create_trading_pair(
+                contract.call_builder::<PriceFeedConsumer>()
+                    .create_trading_pair(
                         trading_pair_id.clone(),
                         String::from("polkadot"),
                         String::from("usd"),
-                    )
-                });
+                    );
             client
                 .call(&ink_e2e::alice(), &create_trading_pair)
                 .submit()
@@ -418,7 +418,7 @@ pub mod price_feed_consumer {
             // bob is granted as attestor
             let bob_address = ink::primitives::AccountId::from(ink_e2e::bob().public_key().0);
             let grant_role =
-                contract.call_builder::<TestOracleRef>()
+                contract.call_builder::<PriceFeedConsumer>()
                     .grant_role(ATTESTOR_ROLE, bob_address);
             client
                 .call(&ink_e2e::alice(), &grant_role)
@@ -428,31 +428,34 @@ pub mod price_feed_consumer {
         }
 
         #[ink_e2e::test]
-        async fn test_create_trading_pair(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+        async fn test_create_trading_pair<Client>(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
             let contract = alice_instantiates_contract(&mut client).await;
 
             let trading_pair_id = 10;
 
             // read the trading pair and check it doesn't exist yet
-            let get_trading_pair = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.get_trading_pair(trading_pair_id));
+            let get_trading_pair = contract.call_builder::<PriceFeedConsumer>()
+                .get_trading_pair(trading_pair_id);
             let get_res = client
-                .call_dry_run(&ink_e2e::bob(), &get_trading_pair, 0, None)
-                .await;
-            assert_eq!(None, get_res.return_value());
+                .call(&ink_e2e::bob(), &get_trading_pair)
+                .dry_run()
+                .await
+                .expect("fail to query get_trading_pair")
+                .return_value();
+            assert_eq!(None, get_res);
 
             // bob is not granted as manager => it should not be able to create the trading pair
             let create_trading_pair =
-                build_message::<TestOracleRef>(contract_id.clone()).call(|oracle| {
-                    oracle.create_trading_pair(
+                contract.call_builder::<PriceFeedConsumer>()
+                    .create_trading_pair(
                         trading_pair_id,
                         String::from("polkadot"),
                         String::from("usd"),
-                    )
-                });
+                    );
             let result = client
-                .call(&ink_e2e::bob(), create_trading_pair, 0, None)
+                .call(&ink_e2e::bob(), &create_trading_pair)
+                .submit()
                 .await;
             assert!(
                 result.is_err(),
@@ -461,32 +464,28 @@ pub mod price_feed_consumer {
 
             // bob is granted as manager
             let bob_address = ink::primitives::AccountId::from(ink_e2e::bob().public_key().0);
-            let grant_role = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.grant_role(MANAGER_ROLE, Some(bob_address)));
+            let grant_role = contract.call_builder::<PriceFeedConsumer>()
+                .grant_role(MANAGER_ROLE, bob_address);
             client
-                .call(&ink_e2e::alice(), grant_role, 0, None)
+                .call(&ink_e2e::alice(), &grant_role)
+                .submit()
                 .await
                 .expect("grant bob as manager failed");
 
-            let create_trading_pair =
-                build_message::<TestOracleRef>(contract_id.clone()).call(|oracle| {
-                    oracle.create_trading_pair(
-                        trading_pair_id,
-                        String::from("polkadot"),
-                        String::from("usd"),
-                    )
-                });
+            //create the trading pair
             client
-                .call(&ink_e2e::bob(), create_trading_pair, 0, None)
+                .call(&ink_e2e::bob(), &create_trading_pair)
+                .submit()
                 .await
                 .expect("create trading pair failed");
 
             // then check if the trading pair exists
-            let get_trading_pair = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.get_trading_pair(trading_pair_id));
             let get_res = client
-                .call_dry_run(&ink_e2e::bob(), &get_trading_pair, 0, None)
-                .await;
+                .call(&ink_e2e::bob(), &get_trading_pair)
+                .dry_run()
+                .await
+                .expect("fail to query get_trading_pair")
+                .return_value();
             let expected_trading_pair = TradingPair {
                 token0: String::from("polkadot"),
                 token1: String::from("usd"),
@@ -494,7 +493,7 @@ pub mod price_feed_consumer {
                 nb_updates: 0,
                 last_update: 0,
             };
-            assert_eq!(Some(expected_trading_pair), get_res.return_value());
+            assert_eq!(Some(expected_trading_pair), get_res);
 
             Ok(())
         }
@@ -502,20 +501,20 @@ pub mod price_feed_consumer {
         #[ink_e2e::test]
         async fn test_feed_price(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             let trading_pair_id = 10;
 
             // create the trading pair
             alice_creates_trading_pair(
                 &mut client,
-                &contract_id,
+                &contract,
                 &trading_pair_id
             )
             .await;
 
             // bob is granted as attestor
-            alice_grants_bob_as_attestor(&mut client, &contract_id).await;
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
 
             // then bob feeds the price
             let value: u128 = 150_000_000_000_000_000_000;
@@ -526,22 +525,26 @@ pub mod price_feed_consumer {
                 err_no: None,
             };
             let actions = vec![HandleActionInput::Reply(payload.encode())];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], actions.clone()));
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], actions.clone());
             let result = client
-                .call(&ink_e2e::bob(), rollup_cond_eq, 0, None)
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
                 .await
                 .expect("rollup cond eq failed");
             // events PriceReceived
             assert!(result.contains_event("Contracts", "ContractEmitted"));
 
             // and check if the price is filled
-            let get_trading_pair = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.get_trading_pair(trading_pair_id));
-            let get_res = client
-                .call_dry_run(&ink_e2e::bob(), &get_trading_pair, 0, None)
-                .await;
-            let trading_pair = get_res.return_value().expect("Trading pair not found");
+            let get_trading_pair = contract.call_builder::<PriceFeedConsumer>()
+                .get_trading_pair(trading_pair_id);
+            let trading_pair = client
+                .call(&ink_e2e::bob(), &get_trading_pair)
+                .dry_run()
+                .await
+                .expect("fail to query get_trading_pair")
+                .return_value()
+                .expect("Trading pair not found");
 
             assert_eq!(value, trading_pair.value);
             assert_eq!(1, trading_pair.nb_updates);
@@ -553,26 +556,27 @@ pub mod price_feed_consumer {
         #[ink_e2e::test]
         async fn test_receive_reply(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             let trading_pair_id = 10;
 
             // create the trading pair
             alice_creates_trading_pair(
                 &mut client,
-                &contract_id,
+                &contract,
                 &trading_pair_id
             )
             .await;
 
             // bob is granted as attestor
-            alice_grants_bob_as_attestor(&mut client, &contract_id).await;
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
 
             // a price request is sent
-            let request_price = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.request_price(trading_pair_id));
+            let request_price = contract.call_builder::<PriceFeedConsumer>()
+                .request_price(trading_pair_id);
             let result = client
-                .call(&ink_e2e::alice(), request_price, 0, None)
+                .call(&ink_e2e::alice(), &request_price)
+                .submit()
                 .await
                 .expect("Request price should be sent");
             // event MessageQueued
@@ -592,22 +596,26 @@ pub mod price_feed_consumer {
                 HandleActionInput::Reply(payload.encode()),
                 HandleActionInput::SetQueueHead(request_id + 1),
             ];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], actions.clone()));
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], actions.clone());
             let result = client
-                .call(&ink_e2e::bob(), rollup_cond_eq, 0, None)
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
                 .await
                 .expect("rollup cond eq should be ok");
             // two events : MessageProcessedTo and PricesRecieved
             assert!(result.contains_event("Contracts", "ContractEmitted"));
 
             // and check if the price is filled
-            let get_trading_pair = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.get_trading_pair(trading_pair_id));
-            let get_res = client
-                .call_dry_run(&ink_e2e::bob(), &get_trading_pair, 0, None)
-                .await;
-            let trading_pair = get_res.return_value().expect("Trading pair not found");
+            let get_trading_pair = contract.call_builder::<PriceFeedConsumer>()
+                .get_trading_pair(trading_pair_id);
+            let trading_pair = client
+                .call(&ink_e2e::bob(), &get_trading_pair)
+                .dry_run()
+                .await
+                .expect("fail to query get_trading_pair")
+                .return_value()
+                .expect("Trading pair not found");
 
             assert_eq!(value, trading_pair.value);
             assert_eq!(1, trading_pair.nb_updates);
@@ -618,9 +626,12 @@ pub mod price_feed_consumer {
                 HandleActionInput::Reply(payload.encode()),
                 HandleActionInput::SetQueueHead(request_id + 2),
             ];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], actions.clone()));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], actions.clone());
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             assert!(
                 result.is_err(),
                 "Rollup should fail because we try to pop in the future"
@@ -631,9 +642,12 @@ pub mod price_feed_consumer {
                 HandleActionInput::Reply(payload.encode()),
                 HandleActionInput::SetQueueHead(request_id),
             ];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], actions.clone()));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], actions.clone());
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             assert!(
                 result.is_err(),
                 "Rollup should fail because we try to pop in the past"
@@ -645,26 +659,27 @@ pub mod price_feed_consumer {
         #[ink_e2e::test]
         async fn test_receive_error(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             let trading_pair_id = 10;
 
             // create the trading pair
             alice_creates_trading_pair(
                 &mut client,
-                &contract_id,
+                &contract,
                 &trading_pair_id
             )
             .await;
 
             // bob is granted as attestor
-            alice_grants_bob_as_attestor(&mut client, &contract_id).await;
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
 
             // a price request is sent
-            let request_price = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.request_price(trading_pair_id));
+            let request_price = contract.call_builder::<PriceFeedConsumer>()
+                .request_price(trading_pair_id);
             let result = client
-                .call(&ink_e2e::alice(), request_price, 0, None)
+                .call(&ink_e2e::alice(), &request_price)
+                .submit()
                 .await
                 .expect("Request price should be sent");
             // event : MessageQueued
@@ -683,10 +698,11 @@ pub mod price_feed_consumer {
                 HandleActionInput::Reply(payload.encode()),
                 HandleActionInput::SetQueueHead(request_id + 1),
             ];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], actions.clone()));
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], actions.clone());
             let result = client
-                .call(&ink_e2e::bob(), rollup_cond_eq, 0, None)
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
                 .await
                 .expect("we should proceed error message");
             // two events : MessageProcessedTo and PricesReceived
@@ -698,25 +714,27 @@ pub mod price_feed_consumer {
         #[ink_e2e::test]
         async fn test_bad_attestor(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             // bob is not granted as attestor => it should not be able to send a message
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], vec![]));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], vec![]);
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             assert!(
                 result.is_err(),
                 "only attestor should be able to send messages"
             );
 
             // bob is granted as attestor
-            alice_grants_bob_as_attestor(&mut client, &contract_id).await;
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
 
             // then bob is able to send a message
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], vec![]));
             let result = client
-                .call(&ink_e2e::bob(), rollup_cond_eq, 0, None)
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
                 .await
                 .expect("rollup cond eq failed");
             // no event
@@ -728,26 +746,29 @@ pub mod price_feed_consumer {
         #[ink_e2e::test]
         async fn test_bad_messages(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             let trading_pair_id = 10;
 
             // create the trading pair
             alice_creates_trading_pair(
                 &mut client,
-                &contract_id,
+                &contract,
                 &trading_pair_id
             )
             .await;
 
             // bob is granted as attestor
-            alice_grants_bob_as_attestor(&mut client, &contract_id).await;
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
 
             // then bob sends a message
             let actions = vec![HandleActionInput::Reply(58u128.encode())];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(vec![], vec![], actions.clone()));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(vec![], vec![], actions.clone());
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             assert!(
                 result.is_err(),
                 "we should not be able to proceed bad messages"
@@ -759,24 +780,28 @@ pub mod price_feed_consumer {
         #[ink_e2e::test]
         async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
             // given
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             // bob is granted as attestor
-            alice_grants_bob_as_attestor(&mut client, &contract_id).await;
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
 
             // then bob sends a message
             // from v0 to v1 => it's ok
             let conditions = vec![(123u8.encode(), None)];
             let updates = vec![(123u8.encode(), Some(1u128.encode()))];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(conditions.clone(), updates.clone(), vec![]));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(conditions.clone(), updates.clone(), vec![]);
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             result.expect("This message should be proceed because the condition is met");
 
             // test idempotency it should fail because the conditions are not met
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(conditions.clone(), updates.clone(), vec![]));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             assert!(
                 result.is_err(),
                 "This message should not be proceed because the condition is not met"
@@ -785,15 +810,19 @@ pub mod price_feed_consumer {
             // from v1 to v2 => it's ok
             let conditions = vec![(123u8.encode(), Some(1u128.encode()))];
             let updates = vec![(123u8.encode(), Some(2u128.encode()))];
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(conditions.clone(), updates.clone(), vec![]));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .rollup_cond_eq(conditions.clone(), updates.clone(), vec![]);
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             result.expect("This message should be proceed because the condition is met");
 
             // test idempotency it should fail because the conditions are not met
-            let rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.rollup_cond_eq(conditions.clone(), updates.clone(), vec![]));
-            let result = client.call(&ink_e2e::bob(), rollup_cond_eq, 0, None).await;
+            let result = client
+                .call(&ink_e2e::bob(), &rollup_cond_eq)
+                .submit()
+                .await;
             assert!(
                 result.is_err(),
                 "This message should not be proceed because the condition is not met"
@@ -810,28 +839,29 @@ pub mod price_feed_consumer {
         ///
         #[ink_e2e::test]
         async fn test_meta_tx_rollup_cond_eq(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
-            let contract_id = alice_instantiates_contract(&mut client).await;
+            let contract = alice_instantiates_contract(&mut client).await;
 
             // Bob is the attestor
             // use the ecsda account because we are not able to verify the sr25519 signature
-            let from = ink::primitives::AccountId::from(
-                Signer::<PolkadotConfig>::account_id(&subxt_signer::ecdsa::dev::bob()).0,
-            );
+            let bob_keypair = subxt_signer::ecdsa::dev::bob();
+            let from = ink::primitives::AccountId::from(bob_keypair.public_key().to_account_id().0);
 
             // add the role => it should be succeed
-            let grant_role = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.grant_role(ATTESTOR_ROLE, Some(from)));
+            let grant_role = contract.call_builder::<PriceFeedConsumer>()
+                .grant_role(ATTESTOR_ROLE, from);
             client
-                .call(&ink_e2e::alice(), grant_role, 0, None)
+                .call(&ink_e2e::alice(), &grant_role)
+                .submit()
                 .await
                 .expect("grant the attestor failed");
 
             // prepare the meta transaction
             let data = RollupCondEqMethodParams::encode(&(vec![], vec![], vec![]));
-            let prepare_meta_tx = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.prepare(from, data.clone()));
+            let prepare_meta_tx = contract.call_builder::<PriceFeedConsumer>()
+                .prepare(from, data.clone());
             let result = client
-                .call(&ink_e2e::bob(), prepare_meta_tx, 0, None)
+                .call(&ink_e2e::bob(), &prepare_meta_tx)
+                .submit()
                 .await
                 .expect("We should be able to prepare the meta tx");
 
@@ -841,26 +871,24 @@ pub mod price_feed_consumer {
 
             assert_eq!(0, request.nonce);
             assert_eq!(from, request.from);
-            assert_eq!(contract_id, request.to);
             assert_eq!(&data, &request.data);
 
             // Bob signs the message
-            let keypair = subxt_signer::ecdsa::dev::bob();
-            let signature = keypair.sign(&scale::Encode::encode(&request)).0;
+            let signature = bob_keypair.sign(&ink::scale::Encode::encode(&request)).0;
 
             // do the meta tx: charlie sends the message
-            let meta_tx_rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.meta_tx_rollup_cond_eq(request.clone(), signature));
+            let meta_tx_rollup_cond_eq = contract.call_builder::<PriceFeedConsumer>()
+                .meta_tx_rollup_cond_eq(request.clone(), signature);
             client
-                .call(&ink_e2e::charlie(), meta_tx_rollup_cond_eq, 0, None)
+                .call(&ink_e2e::charlie(), &meta_tx_rollup_cond_eq)
+                .submit()
                 .await
                 .expect("meta tx rollup cond eq should not failed");
 
-            // do it again => it must failed
-            let meta_tx_rollup_cond_eq = build_message::<TestOracleRef>(contract_id.clone())
-                .call(|oracle| oracle.meta_tx_rollup_cond_eq(request.clone(), signature));
+            // do it again => it must fail
             let result = client
-                .call(&ink_e2e::charlie(), meta_tx_rollup_cond_eq, 0, None)
+                .call(&ink_e2e::charlie(), &meta_tx_rollup_cond_eq)
+                .submit()
                 .await;
             assert!(
                 result.is_err(),
