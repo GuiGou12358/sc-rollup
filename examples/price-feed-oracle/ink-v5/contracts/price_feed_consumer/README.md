@@ -1,7 +1,7 @@
-# Price feed consumer
+# Price feed consumer (ink! v5)
 
-Example of `Ink! smart contract` that consumes the prices sent by the Price Feed Oracle implemented via a `phat contract.`
-It uses the crate `phat_rollup_anchor_ink`.
+Example of `Ink! smart contract` that consumes the prices sent by the Price Feed Oracle implemented via a worker deployed on [Phala Cloud](https://cloud.phala.network/)
+It uses the crate `inkv5_client_lib`.
 
 It supports:
  - create a trading pair with an id and the token names. The name must match with the API id from CoinGecko. By example: `polkadot`, `astar`, `pha`, `usd`. Only an address granted as `MANAGER` can do it.
