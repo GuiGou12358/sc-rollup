@@ -1,11 +1,11 @@
 {
-  "name": "@guigou/sc-rollup-ink6",
+  "name": "@guigou/sc-rollup-ink-v6",
   "version": "0.0.1-beta2",
   "author": "GuiGou",
   "repository": {
     "type": "git",
     "url": "https://github.com/GuiGou12358/sc-rollup.git",
-    "directory": "sc-rollup-api/packages/ink6"
+    "directory": "sc-rollup-api/packages/ink-v6"
   },
   "license": "ISC",
   "exports": {

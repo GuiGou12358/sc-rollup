@@ -188,7 +188,7 @@ test('Check compatibility', async () => {
 
 });
 */
-/*
+
 test("Read / Write values", async () => {
   if (pk == undefined) {
     return
@@ -292,8 +292,6 @@ test("Feed data", async () => {
   await client.commit()
 })
 
- */
-
 test("Meta Transaction", async () => {
   if (pk == undefined) {
     return
@@ -318,16 +316,6 @@ test("Meta Transaction", async () => {
     },
   })
 
-  /*
-  const conditions: KvRawType[] = [];
-  const updates : KvRawType[] = [];
-  const action : ActionRawType = {
-    type: "Reply",
-    value: Binary.fromHex('0x0002000000000020707fef1e0de913000000000000'),
-  };
-  const actions : ActionRawType[] = [action];
-  await client.sendMetaTransaction(conditions, updates, actions);
-   */
-
-  await client.commit()
+  // TODO uncomment this line to test meta transaction (currently there is an issue when checking the signature with ink! v6
+  //await client.commit()
 })
