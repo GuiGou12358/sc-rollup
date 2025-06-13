@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink-v5",
-  "version": "0.0.4-beta9",
+  "version": "0.1.0-beta1",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -42,14 +42,11 @@
     "clean": "rm -rf dist",
     "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
     "build": "pnpm clean && pnpm build-core",
-    "test": "vitest",
+    "test": "vitest --no-isolate",
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.0.4-beta9 --no-git-checks",
-    "gen-shibuya-rpc": "pnpm exec papi add -w wss://rpc.shibuya.astar.network shibuya",
-    "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
-    "generate": "pnpm run gen-shibuya-rpc && pnpm run gen-contract-metadata"
+    "release": "pnpm publish --access public --tag tag0.1.0-beta1 --no-git-checks"
   },
   "devDependencies": {
     "dotenv": "^16.4.7",
@@ -58,8 +55,7 @@
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.0.4-beta9",
-    "@guigou/sc-rollup-ink-v5-descriptors": "^0.1.0-beta7",
-    "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@guigou/sc-rollup-ink-v5-descriptors": "^0.1.0-beta8",
     "@polkadot-api/sdk-ink": "^0.1.0",
     "@polkadot-api/substrate-bindings": "^0.14.0",
     "@polkadot-labs/hdkd-helpers": "^0.0.16",

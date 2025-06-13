@@ -8,8 +8,8 @@ import {
   RawTypeEncoder,
   TypeCoder,
 } from "@guigou/sc-rollup-core"
-//import { contracts, shibuya } from "@guigou/sc-rollup-ink5-descriptors"
-import { contracts, shibuya } from "@polkadot-api/descriptors"
+import { contracts, shibuya } from "@guigou/sc-rollup-ink-v5-descriptors"
+//import { contracts, shibuya } from "@polkadot-api/descriptors"
 import { createClient } from "polkadot-api"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner, PolkadotSigner } from "polkadot-api/signer"
