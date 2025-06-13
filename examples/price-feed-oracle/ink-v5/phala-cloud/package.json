@@ -1,0 +1,27 @@
+{
+  "name": "price-feed-oracle",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@phala/dstack-sdk": "^0.2.2",
+    "bree": "^9.2.4",
+    "node-cron": "^3.0.3",
+    "viem": "^2.23.5",
+    "@guigou/sc-rollup-core": "^0.0.4-beta9",
+    "@guigou/sc-rollup-ink-v5": "^0.1.0-beta1",
+    "polkadot-api": "^1.13.1",
+    "@polkadot/util": "^13.5.1",
+    "@polkadot/keyring": "^13.5.1",
+    "scale-ts": "^1.6.1"
+  }
+}
