@@ -34,16 +34,17 @@ Once the simulator is running, you need to open another terminal to start your B
 bun run dev
 ```
 
-By default, the Bun development server will listen on port 3000. Open http://127.0.0.1:3000/tdx_quote in your browser to get the quote with reportdata `test`.
+By default, the Bun development server will listen on port 3000. Open http://127.0.0.1:3000/fetch_prices in your browser to fetch the price from CoinGecko.
 
 This repo also includes code snippets for the following common use cases:
 
+- `/fetch_prices`: Using the `fetch_prices` API to fetch the price from CoinGecko.
+- `/feed_prices`: Using the `feed_prices` API to feed the prices into the ink! smart contract.
+- `/start_feeding_prices`: Using the `start_feeding_prices` API to start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.
+- `/account`: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.
+- `/derive_key`: Basic example of the `deriveKey` API.
 - `/tdx_quote`: The `reportdata` is `test` and generates the quote for attestation report via `tdxQuote` API.
 - `/tdx_quote_raw`: The `reportdata` is `Hello DStack!` and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Hello DStack!` in [Attestation Explorer](https://proof.t16z.com/).
-- `/derive_key`: Basic example of the `deriveKey` API.
-- `/account`: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.
-- `/fetch_prices`: Using the `fetch_prices` API to fetch the price from CoinGecko.
-- `/feed_prices`: Using the `feed_prices` API to feed the process into the ink! smart contract.
 - `/info`: Returns the TCB Info of the hosted CVM.
 
 ## Build
