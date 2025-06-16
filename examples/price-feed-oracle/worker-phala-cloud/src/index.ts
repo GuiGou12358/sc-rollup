@@ -122,13 +122,13 @@ serve({
 
     "/worker/tdx-quote": async (req) => {
       const client = new TappdClient();
-      const result = await client.tdxQuote('test');
+      const result = await client.tdxQuote('Price Feed Oracle');
       return new Response(JSON.stringify(result));
     },
 
     "/worker/tdx-quote-raw": async (req) => {
       const client = new TappdClient();
-      const result = await client.tdxQuote('Hello DStack!', 'raw');
+      const result = await client.tdxQuote('Price Feed Oracle', 'raw');
       return new Response(JSON.stringify(result));
     },
 
