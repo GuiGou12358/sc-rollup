@@ -1,6 +1,7 @@
-import type {InkClientConfig, PriceRequestMessage} from "./types.ts";
+import {type InkClientConfig, InkVersion, type PriceRequestMessage} from "./types.ts";
 import {fetchCoingeckoPrices} from "./coingecko-api.ts";
-import {InkClient} from "@guigou/sc-rollup-ink-v5";
+import {InkClient as InkV5Client} from "@guigou/sc-rollup-ink-v5";
+import {InkClient as InkV6Client} from "@guigou/sc-rollup-ink-v6";
 import {type HexString, Option} from "@guigou/sc-rollup-core";
 import {Option as ScaleOption, str, Struct, u128, u32, u8} from "scale-ts";
 
@@ -35,7 +36,10 @@ export async function feedPrices(
 ): Promise<Option<HexString>> {
 
 
-  const inkClient = new InkClient(config.rpc, config.address, config.attestorPk, config.senderPk, myMessageCodec, myActionCodec);
+  const inkClient = config.version == InkVersion.V5
+      ? new InkV5Client(config.rpc, config.address, config.attestorPk, config.senderPk, myMessageCodec, myActionCodec)
+      : new InkV6Client(config.rpc, config.address, config.attestorPk, config.senderPk, myMessageCodec, myActionCodec);
+
   await inkClient.startSession();
 
   const prices = await fetchCoingeckoPrices(tradingPairs);

@@ -14,7 +14,7 @@ import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner, PolkadotSigner } from "polkadot-api/signer"
 import { fromHex, toHex } from "polkadot-api/utils"
 import { getWsProvider } from "polkadot-api/ws-provider/web"
-import {createInkSdk, createReviveSdk} from "@polkadot-api/sdk-ink"
+import { createReviveSdk } from "@polkadot-api/sdk-ink"
 import {
   AccountId,
   Binary,

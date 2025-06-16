@@ -1,10 +1,11 @@
-import type {KeyringPair} from "@polkadot/keyring/types";
 import type {HexString} from "@guigou/sc-rollup-core";
 
+export enum InkVersion { V5, V6}
+
 export type InkClientConfig = {
+  version: InkVersion;
   rpc: string;
   address: string;
-  //attestorPk: HexString | KeyringPair;
   attestorPk: HexString;
   senderPk: HexString | undefined;
 }
