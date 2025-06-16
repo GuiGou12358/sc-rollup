@@ -1,0 +1,12 @@
+.idea
+**/target/
+**/Cargo.lock
+**/.env
+/examples/price-feed-oracle/worker-phala-cloud/node_modules
+/examples/price-feed-oracle/worker-phala-cloud/bun.lock
+/sc-rollup-api/node_modules
+/sc-rollup-api/pnpm-lock.yaml
+/sc-rollup-api/packages/**/dist
+/sc-rollup-api/packages/**/node_modules
+/sc-rollup-api/packages/ink-v5-papi-descriptors/.papi
+/sc-rollup-api/packages/ink-v6-papi-descriptors/.papi
