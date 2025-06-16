@@ -23,8 +23,8 @@ pnpm build
 ## Test
 
 1. Copy `ink-v5\.env_shibuya` as `ink-v5\.env` if you haven't done it before. It tells the worker to connect to [the contract](../sc-rollup-client/sc-rollup-inkv5-client) you have created and deployed on Shibuya.
-2. Copy `ink-v6\.env_shibuya` as `ink-v6\.env` if you haven't done it before. It tells the worker to connect to [the contract](../sc-rollup-client/sc-rollup-inkv6-client) you have created and deployed on Pop.
-
+2. Copy `ink-v6\.env_paseo` as `ink-v6\.env` if you haven't done it before. It tells the worker to connect to [the contract](../sc-rollup-client/sc-rollup-inkv6-client) you have created and deployed on Pop.
+3. Run the tests:
 ```
 pnpm test
 ```
@@ -79,24 +79,70 @@ const client = new InkClient(
 ## Read/Write the value 
 
 ```js
+// start the seesion 
+await client.startSession()
 
+// read and write a number value
+const key1 = stringToHex("key1")
+const value1 = await client.getNumber(key1, "u32")
+const v1 = value1.valueOf()
+const newValue1 = v1 ? v1 + 1 : 1
+client.setNumber(key1, newValue1, "u32")
+
+// read and write a string value
+const key2 = stringToHex("key2")
+const value2 = await client.getString(key2)
+const v2 = value2.valueOf()
+const newValue2 = v2 ? Number(v2) + 1 : 1
+client.setString(key2, newValue2.toString())
+
+// read and write a boolean value
+const key3 = stringToHex("key3")
+const value3 = await client.getBoolean(key3)
+const v3 = value3.valueOf()
+const newValue3 = v3 == undefined ? false : !v3
+client.setBoolean(key3, newValue3)
+
+// remove a value
+client.removeValue(stringToHex("key4"))
+
+// commit the changes (send the transaction)
+const tx = await client.commit()
 ```
 
 ## Poll the message
 
 ```js
+// start the seesion 
+await client.startSession()
 
+let message
+do {
+    // read the message
+    message = await client.pollMessage()
+    console.log("message %s", message)
+    // do the action
+} while (message.isSome())
+
+// mark as read all messages
+await client.commit()
 ```
 
 ## Push a message
 
 ```js
+// start the seesion 
+await client.startSession()
 
+// push a message
+client.addAction({
+    tag: "PriceFeed",
+    value: {
+      tradingPairId: 1,
+      price: 94024n * 1_000_000_000_000_000_000n,
+    },
+})
+
+// send the transaction
+await client.commit()
 ```
-
-## Commit the transaction
-
-```js
-
-```
-
