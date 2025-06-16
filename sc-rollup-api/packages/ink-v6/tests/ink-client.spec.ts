@@ -17,11 +17,14 @@ import { Enum, str, Struct, u128, u32, Bytes } from "scale-ts"
 
 //const rpc = "ws://127.0.0.1:9944"
 //const rpc = "wss://asset-hub-westend-rpc.n.dwellir.com"
-const rpc = "wss://rpc1.paseo.popnetwork.xyz"
-const address = "0xe1419c259c170c0C22b1F174c2BdE248E8b42cC7"
+//const rpc = "wss://rpc1.paseo.popnetwork.xyz"
+//const address = "0xe1419c259c170c0C22b1F174c2BdE248E8b42cC7"
 
 configDotenv()
-const pk = hexAddPrefix(process.env.pk)
+const rpc = process.env.RPC
+const address = process.env.CONTRACT_ADDRESS
+const attestorPk = hexAddPrefix(process.env.ATTESTOR_PRIVATE_KEY)
+const senderPk = hexAddPrefix(process.env.SENDER_PRIVATE_KEY)
 
 test("encode keys", async () => {
   expect(Binary.fromText("q/_tail").asHex()).toBe("0x712f5f7461696c")
@@ -190,14 +193,14 @@ test('Check compatibility', async () => {
 */
 
 test("Read / Write values", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
+    attestorPk,
     undefined,
     requestMessageCodec,
     responseMessageCodec,
@@ -234,14 +237,14 @@ test("Read / Write values", async () => {
 })
 
 test("Poll message", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
+    attestorPk,
     undefined,
     requestMessageCodec,
     responseMessageCodec,
@@ -266,14 +269,14 @@ test("Poll message", async () => {
 })
 
 test("Feed data", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
+    attestorPk,
     undefined,
     requestMessageCodec,
     responseMessageCodec,
@@ -293,15 +296,16 @@ test("Feed data", async () => {
 })
 
 test("Meta Transaction", async () => {
-  if (pk == undefined) {
-    return
-  }
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
+  assert(senderPk, "SENDER_PRIVATE_KEY must be set in .env file")
 
   const client = new InkClient(
     rpc,
     address,
-    pk,
-    pk,
+    attestorPk,
+    senderPk,
     requestMessageCodec,
     responseMessageCodec,
   )
