@@ -38,14 +38,21 @@ By default, the Bun development server will listen on port 3000. Open http://127
 
 This repo also includes code snippets for the following common use cases:
 
-- `/fetch_prices`: Using the `fetch_prices` API to fetch the price from CoinGecko.
-- `/feed_prices`: Using the `feed_prices` API to feed the prices into the ink! smart contract.
-- `/start_feeding_prices`: Using the `start_feeding_prices` API to start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.
-- `/account`: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.
-- `/derive_key`: Basic example of the `deriveKey` API.
-- `/tdx_quote`: The `reportdata` is `test` and generates the quote for attestation report via `tdxQuote` API.
-- `/tdx_quote_raw`: The `reportdata` is `Hello DStack!` and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Hello DStack!` in [Attestation Explorer](https://proof.t16z.com/).
-- `/info`: Returns the TCB Info of the hosted CVM.
+- `/account/worker`: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.
+- `/account/attestor`: Display the address used as attestor to feed the process. Use the `ATTESTOR_PK` env key if provided. Otherwise, use the worker's address.
+- `/account/sender`: Display the address used as sender in the context of Meta tx. Use the `SENDER_PK` env key if provided. Otherwise, the meta tx is not enabled (ie the attestor is the sender).
+- `/fetch_prices`: Using the `fetch_prices` API to fetch the prices from CoinGecko.
+- `/ink-v5/feed-prices/start`: Using the `/ink-v5/feed-prices/start` API to start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.
+- `/ink-v5/feed-prices/stop`: Using the `/ink-v5/feed-prices/stop` API to stop the scheduled task.
+- `/ink-v5/feed-prices/execute`: Using the `/ink-v5/feed-prices/execute` API to force to feed the prices into the ink! smart contract.
+- `/ink-v5/feed-prices/info`: Using the `/ink-v5/feed-prices/info` API to display the information linked to the scheduled task.
+- `/ink-v6/feed-prices/start`: Using the `/ink-v6/feed-prices/start` API to start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.
+- `/ink-v6/feed-prices/stop`: Using the `/ink-v6/feed-prices/stop` API to stop the scheduled task.
+- `/ink-v6/feed-prices/execute`: Using the `/ink-v6/feed-prices/execute` API to force to feed the prices into the ink! smart contract.
+- `/ink-v6/feed-prices/info`: Using the `/ink-v6/feed-prices/info` API to display the information linked to the scheduled task.
+- `/worker/tdx-quote`: The `reportdata` is `Price Feed Oracle` and generates the quote for attestation report via `tdxQuote` API.
+- `/worker/tdx-quote-raw`: The `reportdata` is `Price Feed Oracle` and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Price Feed Oracle` in [Attestation Explorer](https://proof.t16z.com/).
+- `/worker/info`: Returns the TCB Info of the hosted CVM.
 
 ## Build
 
