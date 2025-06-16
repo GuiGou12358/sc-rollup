@@ -223,7 +223,7 @@ async fn test_bad_attestor(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
         .await
         .expect("rollup cond eq failed");
     // no event
-    //assert!(!result.contains_event("Contracts", "ContractEmitted"));
+    assert!(!result.contains_event("Revive", "ContractEmitted"));
 
     Ok(())
 }
@@ -253,7 +253,7 @@ async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult
         .await
         .expect("rollup cond eq failed");
     // no event
-    //assert!(!result.contains_event("Contracts", "ContractEmitted"));
+    assert!(!result.contains_event("Revive", "ContractEmitted"));
 
     // same action must fail because the version number is not correct
     let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
