@@ -1,5 +1,5 @@
 {
-  "name": "price-feed-oracle-phala-cloud-inkv5",
+  "name": "price-feed-oracle-phala-cloud",
   "module": "src/index.ts",
   "type": "module",
   "private": true,

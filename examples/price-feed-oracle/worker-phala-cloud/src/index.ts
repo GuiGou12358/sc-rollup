@@ -12,14 +12,30 @@ import {toHex} from "viem";
 
 const inkV5ClientRpc = process.env.INK_V5_CLIENT_RPC;
 const inkV5ClientAddress = process.env.INK_V5_CLIENT_ADDRESS;
+const inkV5AttestorPk = process.env.INK_V5_ATTESTOR_PK;
+const inkV5SenderPk = process.env.INK_V5_SENDER_PK;
 const inkV6ClientRpc = process.env.INK_V6_CLIENT_RPC;
 const inkV6ClientAddress = process.env.INK_V6_CLIENT_ADDRESS;
-const attestorPk = process.env.ATTESTOR_PK;
-const senderPk = process.env.SENDER_PK;
+const inkV6AttestorPk = process.env.INK_V6_ATTESTOR_PK;
+const inkV6SenderPk = process.env.INK_V6_SENDER_PK;
 const port = process.env.PORT || 3000;
 console.log(`Listening on port ${port}`);
 
 const scheduledTasks: ScheduledTask[] = [];
+
+function getVersion(v: string): InkVersion | undefined {
+  if (v == 'v5' || v == 'V5' || v == 'ink_v5'){
+    return InkVersion.V5;
+  }
+  if (v == 'v6' || v == 'V6' || v == 'ink_v6'){
+    return InkVersion.V6;
+  }
+  return undefined;
+}
+
+function displayVersion(version: InkVersion): string {
+  return version == InkVersion.V5 ? "v5" : "v6";
+}
 
 async function deriveKey(client: TappdClient) : Promise<Uint8Array> {
   const result = await client.deriveKey('polkadot');
@@ -33,13 +49,17 @@ async function getSubstrateKeyringPair(client: TappdClient) : Promise<KeyringPai
 
 async function getInkClientConfig(version: InkVersion) : Promise<InkClientConfig> {
 
-  let rpc, address;
+  let rpc, address, attestorPk, senderPk;
   if (version == InkVersion.V5) {
     rpc = inkV5ClientRpc;
-    address = inkV5ClientAddress
+    address = inkV5ClientAddress;
+    attestorPk = inkV5AttestorPk;
+    senderPk = inkV5SenderPk;
   } else {
     rpc = inkV6ClientRpc;
-    address = inkV6ClientAddress
+    address = inkV6ClientAddress;
+    attestorPk = inkV6AttestorPk;
+    senderPk = inkV6SenderPk;
   }
   if (!rpc || !address){
     console.log('Missing configuration!');
@@ -80,7 +100,7 @@ async function getOrCreateTask(version: InkVersion) : Promise<ScheduledTask> {
 }
 
 async function startFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
-  console.log('Start feeding the prices for ink! contract ' + version);
+  console.log('Start feeding the prices for ink! contract ' + displayVersion(version));
   const task = await getOrCreateTask(version);
   await task.start();
   return task;
@@ -88,7 +108,7 @@ async function startFeedingPrices(version: InkVersion) : Promise<ScheduledTask> 
 
 async function stopFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
 
-  console.log('Stop feeding the prices for ink! contract ' + version);
+  console.log('Stop feeding the prices for ink! contract ' + displayVersion(version));
   const task = await getOrCreateTask(version);
   //if (task && await task.getStatus() != 'stopped'){
   await task.stop();
@@ -98,7 +118,7 @@ async function stopFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
 
 async function executeFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
 
-  console.log('Execute feeding the prices for ink! contract ' + version);
+  console.log('Execute feeding the prices for ink! contract ' + displayVersion(version));
   const task = await getOrCreateTask(version);
   //if (task && await task.getStatus() != 'stopped'){
   task.execute();
@@ -112,7 +132,89 @@ serve({
   port,
   idleTimeout : 30,
   routes: {
-    "/": new Response("Hello Price Feed Oracle!"),
+    "/": new Response("Price Feed Worker"),
+
+    "/fetch-prices": async (req) => {
+      const tradingPairs = getTradingPairs();
+      const prices = await fetchCoingeckoPrices(tradingPairs);
+      return new Response(JSON.stringify({prices}));
+    },
+
+    "/feed-prices/:version/attestor": async (req) => {
+      const version = getVersion(req.params.version);
+      if (version == undefined){
+        return new Response("Unknown version!", {status: 503});
+      }
+      const pk = version == InkVersion.V5 ? inkV5SenderPk : inkV6SenderPk;
+
+      const client = new TappdClient();
+      const keypair = pk
+          ? new Keyring({type: 'sr25519'}).addFromSeed(fromHex(hexAddPrefix(pk)))
+          : await getSubstrateKeyringPair(client);
+
+      const ecdsaKeypair = pk
+          ? new Keyring({type: 'ecdsa'}).addFromSeed(fromHex(hexAddPrefix(pk)))
+          : new Keyring({type: 'ecdsa'}).addFromSeed(await deriveKey(client))
+
+      return new Response(JSON.stringify({
+        sr25519Address: keypair.address,
+        sr25519PublicKey: toHex(keypair.publicKey),
+        ecdsaAddress: ecdsaKeypair.address,
+        ecdsaPublicKey: toHex(ecdsaKeypair.publicKey),
+      }));
+    },
+
+    "/feed-prices/:version/sender": async (req) => {
+      const version = getVersion(req.params.version);
+      if (version == undefined){
+        return new Response("Unknown version!", {status: 503});
+      }
+      const pk = version == InkVersion.V5 ? inkV5SenderPk : inkV6SenderPk;
+      if (!pk){
+        return new Response("No sender set");
+      }
+      const keypair = new Keyring({type: 'sr25519'}).addFromSeed(fromHex(hexAddPrefix(pk)));
+      return new Response(JSON.stringify({
+        address: keypair.address,
+        publicKey: toHex(keypair.publicKey),
+      }));
+    },
+
+    "/feed-prices/:version/info": async (req) => {
+      const version = getVersion(req.params.version);
+      if (version == undefined){
+        return new Response("Unknown version!", {status: 503});
+      }
+      const task = scheduledTasks[version];
+      return new Response(JSON.stringify({task}));
+    },
+
+    "/feed-prices/:version/start": async (req) => {
+      const version = getVersion(req.params.version);
+      if (version == undefined){
+        return new Response("Unknown version!", {status: 503});
+      }
+      const task = await startFeedingPrices(version);
+      return new Response(JSON.stringify({task}));
+    },
+
+    "/feed-prices/:version/stop": async (req) => {
+      const version = getVersion(req.params.version);
+      if (version == undefined){
+        return new Response("Unknown version!", {status: 503});
+      }
+      const task = await stopFeedingPrices(version);
+      return new Response(JSON.stringify({task}));
+    },
+
+    "/feed-prices/:version/execute": async (req) => {
+      const version = getVersion(req.params.version);
+      if (version == undefined){
+        return new Response("Unknown version!", {status: 503});
+      }
+      const task = await executeFeedingPrices(version);
+      return new Response(JSON.stringify({task}));
+    },
 
     "/worker/info": async (req) => {
       const client = new TappdClient();
@@ -132,91 +234,13 @@ serve({
       return new Response(JSON.stringify(result));
     },
 
-    "/account/worker": async (req) => {
+    "/worker/account": async (req) => {
       const client = new TappdClient();
       const keypair = await getSubstrateKeyringPair(client);
       return new Response(JSON.stringify({
         address: keypair.address,
         publicKey: toHex(keypair.publicKey),
       }));
-    },
-
-    "/account/attestor": async (req) => {
-
-      const client = new TappdClient();
-      const keypair = attestorPk
-        ? new Keyring({type: 'sr25519'}).addFromSeed(fromHex(hexAddPrefix(attestorPk)))
-       : await getSubstrateKeyringPair(client);
-
-      const ecdsaKeypair = attestorPk
-          ? new Keyring({type: 'ecdsa'}).addFromSeed(fromHex(hexAddPrefix(attestorPk)))
-          : new Keyring({type: 'ecdsa'}).addFromSeed(await deriveKey(client))
-
-      return new Response(JSON.stringify({
-        sr25519Address: keypair.address,
-        sr25519PublicKey: toHex(keypair.publicKey),
-        ecdsaAddress: ecdsaKeypair.address,
-        ecdsaPublicKey: toHex(ecdsaKeypair.publicKey),
-      }));
-    },
-
-    "/account/sender": async (req) => {
-      console.log("sender" + senderPk)
-      if (!senderPk){
-        return new Response("No sender set");
-      }
-      const keypair = new Keyring({type: 'sr25519'}).addFromSeed(fromHex(hexAddPrefix(senderPk)));
-      return new Response(JSON.stringify({
-        address: keypair.address,
-        publicKey: toHex(keypair.publicKey),
-      }));
-    },
-
-
-    "/fetch-prices": async (req) => {
-      const tradingPairs = getTradingPairs();
-      const prices = await fetchCoingeckoPrices(tradingPairs);
-      return new Response(JSON.stringify({prices}));
-    },
-
-    "/ink-v5/feed-prices/info": async (req) => {
-      const task = scheduledTasks[InkVersion.V5];
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v5/feed-prices/start": async (req) => {
-      const task = await startFeedingPrices(InkVersion.V5);
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v5/feed-prices/stop": async (req) => {
-      const task = await stopFeedingPrices(InkVersion.V5);
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v5/feed-prices/execute": async (req) => {
-      const task = await executeFeedingPrices(InkVersion.V5);
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v6/feed-prices/info": async (req) => {
-      const task = scheduledTasks[InkVersion.V6];
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v6/feed-prices/start": async (req) => {
-      const task = await startFeedingPrices(InkVersion.V6);
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v6/feed-prices/stop": async (req) => {
-      const task = await stopFeedingPrices(InkVersion.V6);
-      return new Response(JSON.stringify({task}));
-    },
-
-    "/ink-v6/feed-prices/execute": async (req) => {
-      const task = await executeFeedingPrices(InkVersion.V6);
-      return new Response(JSON.stringify({task}));
     },
 
   },
@@ -227,8 +251,13 @@ const getTradingPairs = () : PriceRequestMessage[] => {
   return [
     {token0: "bitcoin", token1: "usd", tradingPairId: 1},
     {token0: "ethereum", token1: "usd", tradingPairId: 2},
-    {token0: "polkadot", token1: "usd", tradingPairId: 4},
-    {token0: "kusama", token1: "usd", tradingPairId: 5},
+    {token0: "polkadot", token1: "usd", tradingPairId: 32},
+    {token0: "astar", token1: "usd", tradingPairId: 283},
+    {token0: "pha", token1: "usd", tradingPairId: 528},
+    {token0: "moonbeam", token1: "usd", tradingPairId: 576},
+    {token0: "binancecoin", token1: "usd", tradingPairId: 5},
+    {token0: "shiden", token1: "usd", tradingPairId: 2294},
+    {token0: "kusama", token1: "usd", tradingPairId: 256},
   ];
 }
 
