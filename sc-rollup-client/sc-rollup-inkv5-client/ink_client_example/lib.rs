@@ -4,12 +4,12 @@
 pub mod ink_client {
     use ink::prelude::vec::Vec;
     use inkv5_client_lib::only_role;
-    use inkv5_client_lib::traits::*;
     use inkv5_client_lib::traits::access_control::*;
     use inkv5_client_lib::traits::kv_store::*;
     use inkv5_client_lib::traits::message_queue::*;
-    use inkv5_client_lib::traits::rollup_client::*;
     use inkv5_client_lib::traits::meta_transaction::*;
+    use inkv5_client_lib::traits::rollup_client::*;
+    use inkv5_client_lib::traits::*;
 
     #[derive(Default, Debug)]
     #[ink(storage)]
@@ -24,7 +24,8 @@ pub mod ink_client {
         pub fn new() -> Self {
             let mut instance = Self::default();
             BaseAccessControl::init_with_admin(&mut instance, Self::env().caller());
-            BaseAccessControl::inner_grant_role(&mut instance, ATTESTOR_ROLE, Self::env().caller()).expect("grant attestor role");
+            BaseAccessControl::inner_grant_role(&mut instance, ATTESTOR_ROLE, Self::env().caller())
+                .expect("grant attestor role");
             instance
         }
 
