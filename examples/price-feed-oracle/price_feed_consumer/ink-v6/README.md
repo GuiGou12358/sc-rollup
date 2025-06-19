@@ -1,6 +1,6 @@
 # Price feed consumer (ink! v6)
 
-Example of `Ink! smart contract` that consumes the prices sent by the Price Feed Oracle implemented via a worker deployed on [Phala Cloud](https://cloud.phala.network/)
+Example of `ink! smart contract` that consumes the prices sent by the Price Feed Oracle implemented via a worker deployed on [Phala Cloud](https://cloud.phala.network/)
 It uses the crate `inkv6_client_lib`.
 
 It supports:
