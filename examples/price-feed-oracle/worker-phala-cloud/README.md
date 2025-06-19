@@ -38,7 +38,7 @@ By default, the Bun development server will listen on port 3000. Open http://127
 
 This repo also includes code snippets for the following common use cases:
 
-- `/fetch_prices`: Using the `/fetch_prices` API to fetch the prices from CoinGecko.
+- `/fetch-prices`: Using the `/fetch-prices` API to fetch the prices from CoinGecko.
 - `/feed-prices/v5/start`: Using the `/feed-prices/v5/start` API to start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.
 - `/feed-prices/v5/stop`: Using the `/feed-prices/v5/stop` API to stop the scheduled task.
 - `/feed-prices/v5/execute`: Using the `/feed-prices/v5/execute` API to force to feed the prices into the ink! smart contract.

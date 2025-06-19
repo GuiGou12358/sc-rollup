@@ -47,4 +47,4 @@ All information [here](worker-phala-cloud/README.md)
 
 ## Deploy the UI to display the price
 
-// TODO put the git repo
+Here is a UI example: https://github.com/GuiGou12358/price-feed-ui-v2
