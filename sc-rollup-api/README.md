@@ -1,7 +1,7 @@
 # Smart Contract Rollup API
 
 Use this api in your worker to perform transactional and atomic operations for seamless integration and interaction with your contract.
-- the [core](packages/core) package contains the common code used to interact with any contract.
+- the [core](packages/core) package contains the common logic to interact with any contract.
 - the [evm](packages/evm) package contains the implementation for evm contract using the `ethers` lib.
 - the [ink-v5](packages/ink-v5) package contains the implementation for wasm contract (ink! v5) using the `papi` lib.
 - the [ink-v6](packages/ink-v6) package contains the implementation for wasm contract (ink! v6) using the `papi` lib.
@@ -56,13 +56,13 @@ Import the libraries in your `package.json` file
 
 ## Create the client 
 
-Use the `InkClient` constructor to create a new client instance.
+Use the `InkClient` constructor to create a new client instance with the following parameters:
 - `rpc` : the endpoint to reach the contract address (string - mandatory).
 - `addrress` : the contract address  (string - mandatory).
 - `attestorPk` : the private key used to sign the message. Its address must be granted as attestor in the contract.  (string - mandatory).
-- `senderPk` : If we want to separate the sender and the attestor, you can provide a different private key to send the message. In this case the ecdsa address of attestor must be granted in the contract. If no sender key is provided, we use the attestor key to send the message (string - optional).
-- `requestMessageCodec` : the Codec to read the message from the contract's queue.
-- `responseMessageCodec` : the Codec to write the message sent to the contract.
+- `senderPk` : If you want to separate the sender and the attestor, you can provide a different private key to send the message. In this case the ecdsa address of attestor must be granted in the contract. If no sender key is provided, the attestor key will be used to send the message (string - optional).
+- `requestMessageCodec` : the `Codec` from `scale-ts` lib to read the message from the contract's queue.
+- `responseMessageCodec` : the `Codec` from `scale-ts` lib to write the message sent to the contract.
 
 ```js
 const client = new InkClient(
@@ -75,11 +75,92 @@ const client = new InkClient(
 )
 ```
 
+Here is an example of Codec to encode/decode the `RequestMessage` enum message.
+```js
+/*
+    enum RequestMessage {
+        NewTradingPair {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// trading pair like 'polkadot/usd' => token0: 'polkadot' , 'token1' : 'usd'
+            token0: String,
+            token1: String,
+        },
+        RemoveTradingPair {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+        },
+    }
+ */
+
+import {Enum, str, Struct, u32} from "scale-ts"
+
+const requestMessageCodec = Enum({
+    NewTradingPair: Struct({
+        tradingPairId: u32,
+        tokenA: str,
+        tokenB: str,
+    }),
+    RemoveTradingPair: Struct({
+        tradingPairId: u32,
+    }),
+})
+```
+
+Here is an example of Codec to encode/decode the `ResponseMessage` enum message.
+```js
+/*
+    enum ResponseMessage {
+        PriceFeed {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// price of the trading pair
+            price: u128,
+        },
+        Error {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// error when the price is read
+            err_no: u128,
+        },
+    }
+ */
+const responseMessageCodec = Enum({
+    PriceFeed: Struct({
+        tradingPairId: u32,
+        price: u128,
+    }),
+    Error: Struct({
+        tradingPairId: u32,
+        errNo: u128,
+    }),
+})
+```
+
+## Start - Commit/Rollback the session
+
+Use the `startSession` and method to start the session and the `commit` method to submit all changes in a transactional way. 
+
+```js
+// start the session 
+await client.startSession()
+
+...
+
+// commit the changes (send the transaction)
+const tx = await client.commit()
+```
+
+Use the `rollback` method to cancel all ongoing changes and reset the session.
+
+```js
+await client.rollback()
+```
 
 ## Read/Write the value 
 
 ```js
-// start the seesion 
+// start the session 
 await client.startSession()
 
 // read and write a number value
@@ -112,8 +193,30 @@ const tx = await client.commit()
 
 ## Poll the message
 
+The `requestMessageCodec` Codec is used to decode the message from the smart contract.
+
 ```js
-// start the seesion 
+
+// Define the codec to read the message 
+const requestMessageCodec = Enum({
+    NewTradingPair: Struct({
+        tradingPairId: u32,
+        tokenA: str,
+        tokenB: str,
+    }),
+    RemoveTradingPair: Struct({
+        tradingPairId: u32,
+    }),
+})
+
+// create the client 
+const client = new InkClient(
+    ...
+    requestMessageCodec,
+    ...
+)
+
+// start the session 
 await client.startSession()
 
 let message
@@ -122,6 +225,7 @@ do {
     message = await client.pollMessage()
     console.log("message %s", message)
     // do the action
+     ...
 } while (message.isSome())
 
 // mark as read all messages
@@ -130,8 +234,40 @@ await client.commit()
 
 ## Push a message
 
+The `responseMessageCodec` Codec is used to encode the message sent to the smart contract.
+
+
 ```js
-// start the seesion 
+
+// Define the codec to push the message 
+/*
+    enum ResponseMessage {
+        PriceFeed {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// price of the trading pair
+            price: u128,
+        },
+        Error {
+            /// id of the trading pair
+            trading_pair_id: TradingPairId,
+            /// error when the price is read
+            err_no: u128,
+        },
+    }
+ */
+const responseMessageCodec = Enum({
+    PriceFeed: Struct({
+        tradingPairId: u32,
+        price: u128,
+    }),
+    Error: Struct({
+        tradingPairId: u32,
+        errNo: u128,
+    }),
+})
+
+// start the session 
 await client.startSession()
 
 // push a message
