@@ -1,33 +1,31 @@
-use ink::env::{DefaultEnvironment};
-use ink_e2e::{ContractsBackend, E2EBackend, InstantiationResult};
+use ink::env::DefaultEnvironment;
 use ink::scale::Encode;
+use ink_e2e::{ContractsBackend, E2EBackend, InstantiationResult};
 
-use ink_client::{ink_client};
+use ink_client::ink_client;
 
-use inkv5_client_lib::traits::access_control::{AccessControl};
-use inkv5_client_lib::traits::meta_transaction::{MetaTransaction};
+use inkv5_client_lib::traits::access_control::AccessControl;
+use inkv5_client_lib::traits::meta_transaction::MetaTransaction;
 use inkv5_client_lib::traits::rollup_client::{
-    HandleActionInput, RollupClient, ATTESTOR_ROLE, RollupCondEqMethodParams
+    HandleActionInput, RollupClient, RollupCondEqMethodParams, ATTESTOR_ROLE,
 };
 use std::fmt::Debug;
-
 
 type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 async fn alice_instantiates_client<Client>(
     client: &mut Client,
-) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog>
+) -> InstantiationResult<
+    DefaultEnvironment,
+    <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+>
 where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
     let mut client_constructor = ink_client::InkClientRef::new();
     let contract = client
-        .instantiate(
-            "ink_client",
-            &ink_e2e::alice(),
-            &mut client_constructor
-        )
+        .instantiate("ink_client", &ink_e2e::alice(), &mut client_constructor)
         .submit()
         .await
         .expect("instantiate failed");
@@ -36,16 +34,19 @@ where
 
 async fn alice_grants_bob_as_attestor<Client>(
     client: &mut Client,
-    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+    contract: &InstantiationResult<
+        DefaultEnvironment,
+        <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+    >,
 ) where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
     // bob is granted as attestor
     let bob_address = ink::primitives::AccountId::from(ink_e2e::bob().public_key().0);
-    let grant_role =
-        contract.call_builder::<ink_client::InkClient>()
-            .grant_role(ATTESTOR_ROLE, bob_address);
+    let grant_role = contract
+        .call_builder::<ink_client::InkClient>()
+        .grant_role(ATTESTOR_ROLE, bob_address);
     client
         .call(&ink_e2e::alice(), &grant_role)
         .submit()
@@ -55,16 +56,18 @@ async fn alice_grants_bob_as_attestor<Client>(
 
 async fn alice_push_message<Client>(
     client: &mut Client,
-    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+    contract: &InstantiationResult<
+        DefaultEnvironment,
+        <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+    >,
 ) where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
-
     let message = vec![0];
-    let push_message =
-        contract.call_builder::<ink_client::InkClient>()
-            .push_message(message);
+    let push_message = contract
+        .call_builder::<ink_client::InkClient>()
+        .push_message(message);
 
     client
         .call(&ink_e2e::alice(), &push_message)
@@ -75,15 +78,18 @@ async fn alice_push_message<Client>(
 
 async fn has_pending_message<Client: E2EBackend>(
     client: &mut Client,
-    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+    contract: &InstantiationResult<
+        DefaultEnvironment,
+        <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+    >,
 ) -> bool
 where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
-    let has_pending_message =
-        contract.call_builder::<ink_client::InkClient>()
-            .has_pending_message();
+    let has_pending_message = contract
+        .call_builder::<ink_client::InkClient>()
+        .has_pending_message();
 
     client
         .call(&ink_e2e::alice(), &has_pending_message)
@@ -103,10 +109,11 @@ async fn test_reply(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
 
     // send a reply
     let actions = vec![HandleActionInput::Reply(58u128.encode())];
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(vec![], vec![], actions.clone());
-    client.call(&ink_e2e::bob(), &rollup_cond_eq)
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(vec![], vec![], actions.clone());
+    client
+        .call(&ink_e2e::bob(), &rollup_cond_eq)
         .submit()
         .await
         .expect("reply failed");
@@ -133,10 +140,11 @@ async fn test_set_queue_head<Client: E2EBackend>(mut client: Client) -> E2EResul
 
     // remove the message from the queue
     let actions = vec![HandleActionInput::SetQueueHead(1)];
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(vec![], vec![], actions.clone());
-    client.call(&ink_e2e::bob(), &rollup_cond_eq)
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(vec![], vec![], actions.clone());
+    client
+        .call(&ink_e2e::bob(), &rollup_cond_eq)
         .submit()
         .await
         .expect("reply failed");
@@ -156,34 +164,36 @@ async fn test_grant_revoke_attestor<Client: E2EBackend>(mut client: Client) -> E
     alice_grants_bob_as_attestor(&mut client, &contract).await;
 
     // bob grants charlie as attestor
-    let charlie_address = ink::primitives::AccountId::from(ink_e2e::charlie().public_key().to_account_id().0);
+    let charlie_address =
+        ink::primitives::AccountId::from(ink_e2e::charlie().public_key().to_account_id().0);
     let actions = vec![HandleActionInput::GrantAttestor(charlie_address)];
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(vec![], vec![], actions.clone());
-    client.call(&ink_e2e::bob(), &rollup_cond_eq)
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(vec![], vec![], actions.clone());
+    client
+        .call(&ink_e2e::bob(), &rollup_cond_eq)
         .submit()
         .await
         .expect("grant attestor failed");
 
     // charlie revokes bob as attestor
-    let bob_address = ink::primitives::AccountId::from(ink_e2e::bob().public_key().to_account_id().0);
+    let bob_address =
+        ink::primitives::AccountId::from(ink_e2e::bob().public_key().to_account_id().0);
     let actions = vec![HandleActionInput::RevokeAttestor(bob_address)];
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(vec![], vec![], actions.clone());
-    client.call(&ink_e2e::charlie(), &rollup_cond_eq)
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(vec![], vec![], actions.clone());
+    client
+        .call(&ink_e2e::charlie(), &rollup_cond_eq)
         .submit()
         .await
         .expect("revoke attestor failed");
 
     // bob is not granted as attestor => it should not be able to send a message
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(vec![], vec![], vec![]);
-    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
-        .submit()
-        .await;
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(vec![], vec![], vec![]);
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq).submit().await;
     assert!(
         result.is_err(),
         "only attestor should be able to send messages"
@@ -192,19 +202,16 @@ async fn test_grant_revoke_attestor<Client: E2EBackend>(mut client: Client) -> E
     Ok(())
 }
 
-
 #[ink_e2e::test]
 async fn test_bad_attestor(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
     // given
     let contract = alice_instantiates_client(&mut client).await;
 
     // bob is not granted as attestor => it should not be able to send a message
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(vec![], vec![], vec![]);
-    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
-        .submit()
-        .await;
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(vec![], vec![], vec![]);
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq).submit().await;
     assert!(
         result.is_err(),
         "only attestor should be able to send messages"
@@ -239,9 +246,9 @@ async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult
 
     let conditions = vec![("version".encode(), None)];
     let updates = vec![("version".encode(), Some(1.encode()))];
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(conditions, updates, vec![]);
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(conditions, updates, vec![]);
 
     // bob does an action (correct version number)
     let result = client
@@ -253,9 +260,7 @@ async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult
     //assert!(!result.contains_event("Contracts", "ContractEmitted"));
 
     // same action must fail because the version number is not correct
-    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
-        .submit()
-        .await;
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq).submit().await;
     assert!(
         result.is_err(),
         "Must fail because the version number is not correct"
@@ -264,9 +269,9 @@ async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult
     // do it with the correct version number
     let conditions = vec![("version".encode(), Some(1.encode()))];
     let updates = vec![("version".encode(), Some(2.encode()))];
-    let rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .rollup_cond_eq(conditions, updates, vec![]);
+    let rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .rollup_cond_eq(conditions, updates, vec![]);
 
     let result = client
         .call(&ink_e2e::bob(), &rollup_cond_eq)
@@ -275,9 +280,7 @@ async fn test_optimistic_locking(mut client: ink_e2e::Client<C, E>) -> E2EResult
         .expect("rollup cond eq failed");
 
     // again it must fail because the version number is not correct
-    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq)
-        .submit()
-        .await;
+    let result = client.call(&ink_e2e::bob(), &rollup_cond_eq).submit().await;
     assert!(
         result.is_err(),
         "Must fail because the version number is not correct"
@@ -302,9 +305,9 @@ async fn test_meta_tx_rollup_cond_eq(mut client: ink_e2e::Client<C, E>) -> E2ERe
     let from = ink::primitives::AccountId::from(bob_keypair.public_key().to_account_id().0);
 
     // add the role => it should succeed
-    let grant_role =
-        contract.call_builder::<ink_client::InkClient>()
-            .grant_role(ATTESTOR_ROLE, from);
+    let grant_role = contract
+        .call_builder::<ink_client::InkClient>()
+        .grant_role(ATTESTOR_ROLE, from);
     client
         .call(&ink_e2e::alice(), &grant_role)
         .submit()
@@ -313,9 +316,9 @@ async fn test_meta_tx_rollup_cond_eq(mut client: ink_e2e::Client<C, E>) -> E2ERe
 
     // prepare the meta transaction
     let data = RollupCondEqMethodParams::encode(&(vec![], vec![], vec![]));
-    let prepare_meta_tx =
-        contract.call_builder::<ink_client::InkClient>()
-            .prepare(from, data.clone());
+    let prepare_meta_tx = contract
+        .call_builder::<ink_client::InkClient>()
+        .prepare(from, data.clone());
     let result = client
         .call(&ink_e2e::charlie(), &prepare_meta_tx)
         .dry_run()
@@ -334,9 +337,9 @@ async fn test_meta_tx_rollup_cond_eq(mut client: ink_e2e::Client<C, E>) -> E2ERe
     let signature = bob_keypair.sign(&ink::scale::Encode::encode(&request)).0;
 
     // do the meta tx: charlie sends the message
-    let meta_tx_rollup_cond_eq =
-        contract.call_builder::<ink_client::InkClient>()
-            .meta_tx_rollup_cond_eq(request.clone(), signature);
+    let meta_tx_rollup_cond_eq = contract
+        .call_builder::<ink_client::InkClient>()
+        .meta_tx_rollup_cond_eq(request.clone(), signature);
     client
         .call(&ink_e2e::charlie(), &meta_tx_rollup_cond_eq)
         .submit()
