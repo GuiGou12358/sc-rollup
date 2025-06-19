@@ -81,7 +81,7 @@ async function getInkClientConfig(version: InkVersion) : Promise<InkClientConfig
     version: version,
     rpc: rpc,
     address: address,
-    attestorPk: hexAddPrefix(pk.toString()),
+    attestorPk: toHex(pk),
     senderPk: senderPk ? hexAddPrefix(senderPk) : undefined,
   };
 }
@@ -132,20 +132,42 @@ serve({
   port,
   idleTimeout : 30,
   routes: {
-    "/": new Response("Price Feed Worker"),
-
     "/fetch-prices": async (req) => {
       const tradingPairs = getTradingPairs();
       const prices = await fetchCoingeckoPrices(tradingPairs);
       return new Response(JSON.stringify({prices}));
     },
 
+    "/": new Response("" +
+        "<h1>Price Feed Worker</h1>" +
+        "<div><ul>" +
+        "<li><a href='/fetch-prices'>/fetch-prices</a>: Fetch the prices from CoinGecko.</li>" +
+        "<li><a href='/feed-prices/v5/start'>/feed-prices/v5/start</a>: Start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.</li>" +
+        "<li><a href='/feed-prices/v5/stop'>/feed-prices/v5/stop</a>: Stop the scheduled task.</li>" +
+        "<li><a href='/feed-prices/v5/execute'>/feed-prices/v5/execute</a>: Force to feed the prices into the ink! smart contract.</li>" +
+        "<li><a href='/feed-prices/v5/info'>/feed-prices/v5/info</a>: Display the information linked to the scheduled task.</li>" +
+        "<li><a href='/feed-prices/v5/attestor'>/feed-prices/v5/attestor</a>: Display the address used as attestor to feed the process. If the `INK_V5_ATTESTOR_PK` env key if not provided, the worker's address will be used.</li>" +
+        "<li><a href='/feed-prices/v5/sender'>/feed-prices/v5/sender</a>: Display the address used as sender in the context of meta-transaction. If the `INK_V5_SENDER_PK` env key if not provided, the meta tx is not enabled (ie the attestor is the sender).</li>" +
+        "<li><a href='/feed-prices/v6/start'>/feed-prices/v6/start</a>: Start a scheduled task, running every 5 minutes, to feed the prices into the ink! smart contract.</li>" +
+        "<li><a href='/feed-prices/v6/stop'>/feed-prices/v6/stop</a>: Stop the scheduled task.</li>" +
+        "<li><a href='/feed-prices/v6/execute'>/feed-prices/v6/execute</a>: Force to feed the prices into the ink! smart contract.</li>" +
+        "<li><a href='/feed-prices/v6/info'>/feed-prices/v6/info</a>: Display the information linked to the scheduled task.</li>" +
+        "<li><a href='/feed-prices/v6/attestor'>/feed-prices/v6/attestor</a>: Display the address used as attestor to feed the process. If the `INK_V6_ATTESTOR_PK` env key if not provided, the worker's address will be used.</li>" +
+        "<li><a href='/feed-prices/v6/sender'>/feed-prices/v6/sender</a>: Display the address used as sender in the context of meta-transaction. If the `INK_V6_SENDER_PK` env key if not provided, the meta tx is not enabled (ie the attestor is the sender).</li>" +
+        "<li><a href='/worker/account'>/worker/account</a>: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.</li>" +
+        "<li><a href='/worker/tdx-quote'>/worker/tdx-quote</a>: The `reportdata` is `Price Feed Oracle` and generates the quote for attestation report via `tdxQuote` API.</li>" +
+        "<li><a href='/worker/tdx-quote-raw'>/worker/tdx-quote-raw</a>: The `reportdata` is `Price Feed Oracle` and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Price Feed Oracle` in [Attestation Explorer](https://proof.t16z.com/).</li>" +
+        "<li><a href='/worker/info'>/worker/info</a>: Returns the TCB Info of the hosted CVM." +
+        "" +
+        "</li></ul></div>"
+    ),
+
     "/feed-prices/:version/attestor": async (req) => {
       const version = getVersion(req.params.version);
       if (version == undefined){
         return new Response("Unknown version!", {status: 503});
       }
-      const pk = version == InkVersion.V5 ? inkV5SenderPk : inkV6SenderPk;
+      const pk = version == InkVersion.V5 ? inkV5AttestorPk : inkV6AttestorPk;
 
       const client = new TappdClient();
       const keypair = pk
@@ -237,9 +259,12 @@ serve({
     "/worker/account": async (req) => {
       const client = new TappdClient();
       const keypair = await getSubstrateKeyringPair(client);
+      const ecdsaKeypair = new Keyring({type: 'ecdsa'}).addFromSeed(await deriveKey(client));
       return new Response(JSON.stringify({
-        address: keypair.address,
-        publicKey: toHex(keypair.publicKey),
+        sr25519Address: keypair.address,
+        sr25519PublicKey: toHex(keypair.publicKey),
+        ecdsaAddress: ecdsaKeypair.address,
+        ecdsaPublicKey: toHex(ecdsaKeypair.publicKey),
       }));
     },
 
