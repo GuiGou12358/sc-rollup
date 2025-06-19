@@ -271,7 +271,7 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
 
     // do it again
     set_caller::<DefaultEnvironment>(accounts.bob);
-    let (request, hash) = contract
+    let (request, _hash) = contract
         .prepare(from, data)
         .expect("Error when preparing meta tx");
 

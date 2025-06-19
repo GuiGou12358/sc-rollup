@@ -88,7 +88,7 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
     fn get_nonce(&self, from: Address) -> Nonce {
         MetaTransactionStorage::get_storage(self)
             .nonces
-            .get(&from)
+            .get(from)
             .unwrap_or(0)
     }
 
@@ -136,7 +136,7 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
             .ok_or(RollupClientError::NonceOverflow)?;
         MetaTransactionStorage::get_mut_storage(self)
             .nonces
-            .insert(&request.from, &nonce);
+            .insert(request.from, &nonce);
         Ok(())
     }
 

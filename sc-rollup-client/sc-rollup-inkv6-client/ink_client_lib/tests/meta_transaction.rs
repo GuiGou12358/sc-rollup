@@ -2,7 +2,7 @@ mod contract;
 mod test_utils;
 
 use ink::env::test::{set_callee, set_caller};
-use ink::primitives::{AccountId, AccountIdMapper};
+use ink::primitives::{AccountIdMapper};
 use ink::scale::Encode;
 use ink::Address;
 use inkv6_client_lib::traits::meta_transaction::*;
@@ -41,7 +41,7 @@ fn test_prepare() {
     let data = u8::encode(&5);
 
     // prepare the meta transaction
-    let (request, hash) = contract
+    let (request, _hash) = contract
         .prepare(from, data.clone())
         .expect("Error when preparing meta tx");
 
@@ -267,7 +267,7 @@ fn test_meta_tx_rollup_cond_eq_missing_role() {
 
     // do it again
     set_caller(accounts.bob);
-    let (request, hash) = contract
+    let (request, _hash) = contract
         .prepare(from, data)
         .expect("Error when preparing meta tx");
 
