@@ -18,8 +18,7 @@
     "build": "pnpm clean && pnpm build-core",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
-    "test": "pnpm -r test run",
-    "test:ci": "pnpm -r test:ci"
+    "test": "pnpm -r test run"
   },
   "prettier": {
     "printWidth": 80,
