@@ -14,12 +14,6 @@ import {
 } from "@polkadot/util"
 import { Enum, str, Struct, u128, u32, Bytes } from "scale-ts"
 
-
-//const rpc = "ws://127.0.0.1:9944"
-//const rpc = "wss://asset-hub-westend-rpc.n.dwellir.com"
-//const rpc = "wss://rpc1.paseo.popnetwork.xyz"
-//const address = "0xe1419c259c170c0C22b1F174c2BdE248E8b42cC7"
-
 configDotenv()
 const rpc = process.env.RPC
 const address = process.env.CONTRACT_ADDRESS
@@ -99,32 +93,6 @@ test("encoding / decoding Type", async () => {
   expect(codec.decodeString(encodedString)).toBe(s)
 })
 
-/*
-    enum RequestMessage {
-        NewTradingPair {
-            /// id of the trading pair
-            trading_pair_id: TradingPairId,
-            /// trading pair like 'polkadot/usd' => token0: 'polkadot' , 'token1' : 'usd'
-            token0: String,
-            token1: String,
-        },
-        RemoveTradingPair {
-            /// id of the trading pair
-            trading_pair_id: TradingPairId,
-        },
-    }
- */
-const requestMessageCodec2 = Enum({
-  NewTradingPair: Struct({
-    tradingPairId: u32,
-    tokenA: str,
-    tokenB: str,
-  }),
-  RemoveTradingPair: Struct({
-    tradingPairId: u32,
-  }),
-})
-
 const requestMessageCodec = Bytes()
 
 /*
@@ -178,19 +146,6 @@ test("encoding / decoding Action", async () => {
     },
   })
 })
-
-/*
-test('Check compatibility', async () => {
-
-  if (pk == undefined){
-    return;
-  }
-
-  const client = new InkClient(rpc, address, pk, myMessageCoder);
-  await client.checkCompatibility();
-
-});
-*/
 
 test("Read / Write values", async () => {
   assert(rpc, "RPC must be set in .env file")

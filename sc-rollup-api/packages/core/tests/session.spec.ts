@@ -1,6 +1,6 @@
-import {expect, test} from "vitest"
-import {Session} from "../src/session"
-import {Some} from "../src/types"
+import { expect, test } from "vitest"
+import { Session } from "../src/session"
+import { Some } from "../src/types"
 
 test("Empty session", async () => {
   const session = new Session()

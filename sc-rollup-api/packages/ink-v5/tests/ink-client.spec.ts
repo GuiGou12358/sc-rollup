@@ -1,12 +1,18 @@
-import {assert, expect, test} from "vitest"
-import {InkClient, InkTypeCoder} from "../src/ink-client"
+import { assert, expect, test } from "vitest"
+import { InkClient, InkTypeCoder } from "../src/ink-client"
 import * as process from "node:process"
-import {configDotenv} from "dotenv"
-import {mergeUint8} from "polkadot-api/utils"
-import {Binary} from "@polkadot-api/substrate-bindings"
-import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
-import {Bytes, Enum, str, Struct, u128, u32} from "scale-ts"
-
+import { configDotenv } from "dotenv"
+import { mergeUint8 } from "polkadot-api/utils"
+import { Binary } from "@polkadot-api/substrate-bindings"
+import {
+  hexAddPrefix,
+  hexToU8a,
+  stringToHex,
+  stringToU8a,
+  u8aConcat,
+  u8aToHex,
+} from "@polkadot/util"
+import { Bytes, Enum, str, Struct, u128, u32 } from "scale-ts"
 
 configDotenv()
 const rpc = process.env.RPC
@@ -87,7 +93,6 @@ test("encoding / decoding Type", async () => {
   expect(codec.decodeString(encodedString)).toBe(s)
 })
 
-
 const requestMessageCodec = Bytes()
 
 /*
@@ -141,19 +146,6 @@ test("encoding / decoding Action", async () => {
     },
   })
 })
-
-/*
-test('Check compatibility', async () => {
-
-  if (pk == undefined){
-    return;
-  }
-
-  const client = new InkClient(rpc, address, pk, myMessageCoder);
-  await client.checkCompatibility();
-
-});
-*/
 
 test("Read / Write values", async () => {
   assert(rpc, "RPC must be set in .env file")
