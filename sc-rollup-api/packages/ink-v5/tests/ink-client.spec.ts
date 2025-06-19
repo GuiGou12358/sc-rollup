@@ -87,31 +87,6 @@ test("encoding / decoding Type", async () => {
   expect(codec.decodeString(encodedString)).toBe(s)
 })
 
-/*
-    enum RequestMessage {
-        NewTradingPair {
-            /// id of the trading pair
-            trading_pair_id: TradingPairId,
-            /// trading pair like 'polkadot/usd' => token0: 'polkadot' , 'token1' : 'usd'
-            token0: String,
-            token1: String,
-        },
-        RemoveTradingPair {
-            /// id of the trading pair
-            trading_pair_id: TradingPairId,
-        },
-    }
- */
-const requestMessageCodec2 = Enum({
-  NewTradingPair: Struct({
-    tradingPairId: u32,
-    tokenA: str,
-    tokenB: str,
-  }),
-  RemoveTradingPair: Struct({
-    tradingPairId: u32,
-  }),
-})
 
 const requestMessageCodec = Bytes()
 
