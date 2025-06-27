@@ -225,7 +225,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
      */
     // check if there is no change in the read values
     this.currentSession.values.forEach((value, key) => {
-      console.log("condition: key %s equals to with value %s", key, value)
+      console.log("Condition: key %s equals to with value %s", key, value)
       conditions.push(this.rawTypeEncoder.encodeKeyValue(key, value))
     })
 
@@ -233,7 +233,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     // optimistic locking: bump the version
     const newVersion = this.bumpVersion()
     console.log(
-      "update key %s with value %s",
+      "Update key %s with value %s",
       this.versionNumberKey,
       newVersion,
     )
@@ -245,7 +245,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     )
 
     this.currentSession.updates.forEach((value, key) => {
-      console.log("update key %s with value %s", key, value)
+      console.log("Update key %s with value %s", key, value)
       updates.push(this.rawTypeEncoder.encodeKeyValue(key, value))
     })
 
@@ -263,7 +263,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     }
 
     this.currentSession.actions.forEach((action) => {
-      console.log("Action : %s " + action)
+      console.log("Action : %s ", action)
       actions.push(this.rawTypeEncoder.encodeReply(action))
     })
 
@@ -274,7 +274,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
       txHash = await this.sendTransaction(conditions, updates, actions)
     }
 
-    console.log("Tx hash ", txHash)
+    console.log("Tx hash : %s", txHash)
     await this.startSession()
     return Some.of(txHash)
   }
