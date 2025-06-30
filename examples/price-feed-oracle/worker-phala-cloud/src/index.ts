@@ -90,10 +90,15 @@ async function getOrCreateTask(version: InkVersion) : Promise<ScheduledTask> {
   if (!scheduledTasks[version]){
     scheduledTasks[version] = cron.schedule('*/5 * * * *',
         async () => {
-          const config = await getInkClientConfig(version);
-          const tradingPairs = getTradingPairs();
-          const tx =  await feedPrices(config, tradingPairs);
-          console.log('tx:' + tx);
+          try {
+            console.log('start feeding price for ink! contract :' + displayVersion(version));
+            const config = await getInkClientConfig(version);
+            const tradingPairs = getTradingPairs();
+            const tx = await feedPrices(config, tradingPairs);
+            console.log('tx:' + tx);
+          } catch (e){
+            console.error(e);
+          }
         });
   }
   return scheduledTasks[version];
@@ -155,11 +160,10 @@ serve({
         "<li><a href='/feed-prices/v6/attestor'>/feed-prices/v6/attestor</a>: Display the address used as attestor to feed the process. If the `INK_V6_ATTESTOR_PK` env key if not provided, the worker's address will be used.</li>" +
         "<li><a href='/feed-prices/v6/sender'>/feed-prices/v6/sender</a>: Display the address used as sender in the context of meta-transaction. If the `INK_V6_SENDER_PK` env key if not provided, the meta tx is not enabled (ie the attestor is the sender).</li>" +
         "<li><a href='/worker/account'>/worker/account</a>: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.</li>" +
-        "<li><a href='/worker/tdx-quote'>/worker/tdx-quote</a>: The `reportdata` is `Price Feed Oracle` and generates the quote for attestation report via `tdxQuote` API.</li>" +
-        "<li><a href='/worker/tdx-quote-raw'>/worker/tdx-quote-raw</a>: The `reportdata` is `Price Feed Oracle` and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Price Feed Oracle` in [Attestation Explorer](https://proof.t16z.com/).</li>" +
-        "<li><a href='/worker/info'>/worker/info</a>: Returns the TCB Info of the hosted CVM." +
-        "" +
-        "</li></ul></div>"
+        "<li><a href='/worker/tdx-quote'>/worker/tdx-quote</a>: Generates the quote for attestation report via `tdxQuote` API with the worker public key as `reportdata`.</li>" +
+        "<li><a href='/worker/tdx-quote-raw'>/worker/tdx-quote-raw</a>: Generates the quote for attestation report with the worker public key as `reportdata`. The difference from `/tdx_quote` is that you can see the `reportdata` (ie the worker public key) in <a href='https://proof.t16z.com'>Attestation Explorer</a>.</li>" +
+        "<li><a href='/worker/info'>/worker/info</a>: Returns the TCB Info of the hosted CVM.</li>" +
+        "</ul></div>"
     ),
 
     "/feed-prices/:version/attestor": async (req) => {
@@ -246,13 +250,17 @@ serve({
 
     "/worker/tdx-quote": async (req) => {
       const client = new TappdClient();
-      const result = await client.tdxQuote('Price Feed Oracle');
+      const keypair = await getSubstrateKeyringPair(client);
+      const publicKey = toHex(keypair.publicKey).slice(2);
+      const result = await client.tdxQuote(publicKey);
       return new Response(JSON.stringify(result));
     },
 
     "/worker/tdx-quote-raw": async (req) => {
       const client = new TappdClient();
-      const result = await client.tdxQuote('Price Feed Oracle', 'raw');
+      const keypair = await getSubstrateKeyringPair(client);
+      const publicKey = toHex(keypair.publicKey).slice(2);
+      const result = await client.tdxQuote(publicKey, 'raw');
       return new Response(JSON.stringify(result));
     },
 
