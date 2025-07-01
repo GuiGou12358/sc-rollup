@@ -6,7 +6,7 @@ import cron, {type ScheduledTask} from "node-cron";
 import {fetchCoingeckoPrices} from "./coingecko-api.ts";
 import {type InkClientConfig, InkVersion, type PriceRequestMessage} from "./types.ts";
 import {feedPrices} from "./price-feed-oracle.ts";
-import {hexAddPrefix} from "@polkadot/util";
+import {hexAddPrefix, hexToU8a} from "@polkadot/util";
 import {fromHex} from "polkadot-api/utils"
 import {toHex} from "viem";
 
@@ -39,7 +39,7 @@ function displayVersion(version: InkVersion): string {
 
 async function deriveKey(client: TappdClient) : Promise<Uint8Array> {
   const result = await client.deriveKey('polkadot');
-  return result.asUint8Array(32);
+  return hexToU8a(result.key, 32);
 }
 
 async function getSubstrateKeyringPair(client: TappdClient) : Promise<KeyringPair> {
