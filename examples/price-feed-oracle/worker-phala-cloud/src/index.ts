@@ -4,7 +4,7 @@ import {Keyring} from "@polkadot/keyring";
 import type {KeyringPair} from "@polkadot/keyring/types";
 import cron, {type ScheduledTask} from "node-cron";
 import {fetchCoingeckoPrices} from "./coingecko-api.ts";
-import {type InkClientConfig, InkVersion, type PriceRequestMessage} from "./types.ts";
+import {type InkClientConfig, InkVersion} from "./types.ts";
 import {feedPrices} from "./price-feed-oracle.ts";
 import {hexAddPrefix, hexToU8a} from "@polkadot/util";
 import {fromHex} from "polkadot-api/utils"
@@ -23,6 +23,19 @@ console.log(`Listening on port ${port}`);
 
 const scheduledTasks: ScheduledTask[] = [];
 
+const tradingPairs = [
+    {token0: "bitcoin", token1: "usd", tradingPairId: 1},
+    {token0: "ethereum", token1: "usd", tradingPairId: 2},
+    {token0: "polkadot", token1: "usd", tradingPairId: 32},
+    {token0: "astar", token1: "usd", tradingPairId: 283},
+    {token0: "pha", token1: "usd", tradingPairId: 528},
+    {token0: "moonbeam", token1: "usd", tradingPairId: 576},
+    {token0: "binancecoin", token1: "usd", tradingPairId: 5},
+    {token0: "shiden", token1: "usd", tradingPairId: 2294},
+    {token0: "kusama", token1: "usd", tradingPairId: 256},
+  ];
+
+
 function getVersion(v: string): InkVersion | undefined {
   if (v == 'v5' || v == 'V5' || v == 'ink_v5'){
     return InkVersion.V5;
@@ -39,7 +52,7 @@ function displayVersion(version: InkVersion): string {
 
 async function deriveKey(client: TappdClient) : Promise<Uint8Array> {
   const result = await client.deriveKey('polkadot');
-  return hexToU8a(result.key, 32);
+  return hexToU8a(result.key, 32*8);
 }
 
 async function getSubstrateKeyringPair(client: TappdClient) : Promise<KeyringPair> {
@@ -85,20 +98,13 @@ async function getInkClientConfig(version: InkVersion) : Promise<InkClientConfig
     senderPk: senderPk ? hexAddPrefix(senderPk) : undefined,
   };
 }
+
 async function getOrCreateTask(version: InkVersion) : Promise<ScheduledTask> {
 
   if (!scheduledTasks[version]){
     scheduledTasks[version] = cron.schedule('*/5 * * * *',
         async () => {
-          try {
-            console.log('start feeding price for ink! contract :' + displayVersion(version));
-            const config = await getInkClientConfig(version);
-            const tradingPairs = getTradingPairs();
-            const tx = await feedPrices(config, tradingPairs);
-            console.log('tx:' + tx);
-          } catch (e){
-            console.error(e);
-          }
+            return feedPrices(version, getInkClientConfig, tradingPairs).then((tx) => tx.valueOf())
         });
   }
   return scheduledTasks[version];
@@ -112,7 +118,6 @@ async function startFeedingPrices(version: InkVersion) : Promise<ScheduledTask> 
 }
 
 async function stopFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
-
   console.log('Stop feeding the prices for ink! contract ' + displayVersion(version));
   const task = await getOrCreateTask(version);
   //if (task && await task.getStatus() != 'stopped'){
@@ -122,7 +127,6 @@ async function stopFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
 }
 
 async function executeFeedingPrices(version: InkVersion) : Promise<ScheduledTask> {
-
   console.log('Execute feeding the prices for ink! contract ' + displayVersion(version));
   const task = await getOrCreateTask(version);
   //if (task && await task.getStatus() != 'stopped'){
@@ -138,7 +142,6 @@ serve({
   idleTimeout : 30,
   routes: {
     "/fetch-prices": async (req) => {
-      const tradingPairs = getTradingPairs();
       const prices = await fetchCoingeckoPrices(tradingPairs);
       return new Response(JSON.stringify({prices}));
     },
@@ -278,19 +281,4 @@ serve({
 
   },
 });
-
-
-const getTradingPairs = () : PriceRequestMessage[] => {
-  return [
-    {token0: "bitcoin", token1: "usd", tradingPairId: 1},
-    {token0: "ethereum", token1: "usd", tradingPairId: 2},
-    {token0: "polkadot", token1: "usd", tradingPairId: 32},
-    {token0: "astar", token1: "usd", tradingPairId: 283},
-    {token0: "pha", token1: "usd", tradingPairId: 528},
-    {token0: "moonbeam", token1: "usd", tradingPairId: 576},
-    {token0: "binancecoin", token1: "usd", tradingPairId: 5},
-    {token0: "shiden", token1: "usd", tradingPairId: 2294},
-    {token0: "kusama", token1: "usd", tradingPairId: 256},
-  ];
-}
 
