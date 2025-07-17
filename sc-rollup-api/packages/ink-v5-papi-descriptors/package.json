@@ -24,12 +24,9 @@
     "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
     "generate": "pnpm run gen-chain-metadata && pnpm run gen-contract-metadata",
     "prepack": "rm -rf dist && mkdir dist && cp -rf .papi/descriptors/dist/* dist",
-    "release": "pnpm publish --access public --tag tag0.1.1-beta1"
+    "release": "pnpm publish --access public --tag tag0.1.1-beta1 --force"
   },
   "peerDependencies": {
     "polkadot-api": "*"
-  },
-  "dependencies": {
-    "@polkadot-api/descriptors": "file:.papi/descriptors"
   }
 }
