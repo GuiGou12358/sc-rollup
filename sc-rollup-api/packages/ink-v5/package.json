@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink-v5",
-  "version": "0.1.0-beta1",
+  "version": "0.1.1-beta1",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -46,22 +46,22 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.1.0-beta1 --no-git-checks"
+    "release": "pnpm publish --access public --tag tag0.1.1-beta1"
   },
   "devDependencies": {
-    "dotenv": "^16.4.7",
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.9"
+    "dotenv": "^17.2.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.4-beta9",
-    "@guigou/sc-rollup-ink-v5-descriptors": "^0.1.0-beta8",
-    "@polkadot-api/sdk-ink": "^0.1.0",
-    "@polkadot-api/substrate-bindings": "^0.14.0",
-    "@polkadot-labs/hdkd-helpers": "^0.0.16",
-    "@polkadot/keyring": "^13.5.1",
-    "@polkadot/util": "^13.5.1",
-    "polkadot-api": "^1.13.1",
+    "@guigou/sc-rollup-core": "^0.1.0-beta1",
+    "@guigou/sc-rollup-ink-v5-descriptors": "^0.1.0-beta1",
+    "@polkadot-api/sdk-ink": "^0.3.2",
+    "@polkadot-api/substrate-bindings": "^0.15.0",
+    "@polkadot-labs/hdkd-helpers": "^0.0.19",
+    "@polkadot/keyring": "^13.5.3",
+    "@polkadot/util": "^13.5.3",
+    "polkadot-api": "^1.15.0",
     "scale-ts": "^1.6.1"
   }
 }

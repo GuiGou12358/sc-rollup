@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-evm",
-  "version": "0.1.0-beta1",
+  "version": "0.1.1-beta1",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -57,15 +57,15 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.1.0-beta1 --no-git-checks"
+    "release": "pnpm publish --access public --tag tag0.1.1-beta1"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.0.4-beta9",
-    "ethers": "^6.14.0"
+    "@guigou/sc-rollup-core": "^0.1.0-beta1",
+    "ethers": "^6.15.0"
   },
   "devDependencies": {
-    "dotenv": "^16.5.0",
-    "typescript": "^5.8.2",
-    "vitest": "^3.0.9"
+    "dotenv": "^17.2.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }
