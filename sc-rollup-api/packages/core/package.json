@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-core",
-  "version": "0.1.1-beta1",
+  "version": "0.1.1",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -71,7 +71,7 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.1.1-beta1"
+    "release": "pnpm publish --access public"
   },
   "devDependencies": {
     "typescript": "^5.8.3"
