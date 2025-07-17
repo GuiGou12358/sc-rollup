@@ -13,10 +13,10 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.1.1-beta1",
-    "@guigou/sc-rollup-ink-v5": "^0.1.1-beta2",
-    "@guigou/sc-rollup-ink-v6": "^0.1.1-beta2",
-    "@guigou/util-crypto": "^0.1.1-beta1",
+    "@guigou/sc-rollup-core": "^0.1.1",
+    "@guigou/sc-rollup-ink-v5": "^0.1.1",
+    "@guigou/sc-rollup-ink-v6": "^0.1.1",
+    "@guigou/util-crypto": "^0.1.1",
     "@phala/dstack-sdk": "^0.2.2",
     "@polkadot/keyring": "^13.5.3",
     "@polkadot/util": "^13.5.3",
