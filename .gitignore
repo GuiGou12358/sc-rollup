@@ -10,3 +10,4 @@
 /sc-rollup-api/packages/**/node_modules
 /sc-rollup-api/packages/ink-v5-papi-descriptors/.papi
 /sc-rollup-api/packages/ink-v6-papi-descriptors/.papi
+/examples/price-feed-oracle/worker-phala-cloud/package-lock.json
