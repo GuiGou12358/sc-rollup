@@ -215,7 +215,7 @@ function logParams(
     console.log("condition - key : " + v[0] + " - value : " + v[1]),
   )
   updates.forEach((v) =>
-    console.log("updates - key : " + v[0] + " - value : " + v[1]),
+    console.log("update - key : " + v[0] + " - value : " + v[1]),
   )
   actions.forEach((v) => console.log("action : " + v))
 }
