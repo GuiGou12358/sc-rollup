@@ -8,8 +8,7 @@ import {
   RawTypeEncoder,
   TypeCoder,
 } from "@guigou/sc-rollup-core"
-import { contracts, shibuya } from "@guigou/sc-rollup-ink-v5-descriptors"
-//import { contracts, shibuya } from "@polkadot-api/descriptors"
+import { contracts, astar } from "@guigou/sc-rollup-ink-v5-descriptors"
 import { createClient } from "polkadot-api"
 import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
 import { getPolkadotSigner, PolkadotSigner } from "polkadot-api/signer"
@@ -135,7 +134,7 @@ export class InkClient<Message, Action> extends Client<
     )
 
     const client = createClient(withPolkadotSdkCompat(getWsProvider(rpc)))
-    const typedApi = client.getTypedApi(shibuya)
+    const typedApi = client.getTypedApi(astar)
     const sdk = createInkSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
 
