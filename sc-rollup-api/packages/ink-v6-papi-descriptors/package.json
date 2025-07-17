@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-beta1",
+  "version": "0.1.1-beta1",
   "name": "@guigou/sc-rollup-ink-v6-descriptors",
   "files": [
     "dist"
