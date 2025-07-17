@@ -1,6 +1,6 @@
 {
   "name": "@guigou/sc-rollup-ink-v6",
-  "version": "0.1.1-beta2",
+  "version": "0.1.1",
   "author": "GuiGou",
   "repository": {
     "type": "git",
@@ -46,7 +46,7 @@
     "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepack": "pnpm run clean && pnpm run build",
-    "release": "pnpm publish --access public --tag tag0.1.1-beta2"
+    "release": "pnpm publish --access public"
 
   },
   "devDependencies": {
@@ -55,8 +55,8 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@guigou/sc-rollup-core": "^0.1.1-beta1",
-    "@guigou/sc-rollup-ink-v6-descriptors" : "^0.1.1-beta2",
+    "@guigou/sc-rollup-core": "^0.1.1",
+    "@guigou/sc-rollup-ink-v6-descriptors" : "^0.1.1",
     "@polkadot-api/sdk-ink": "^0.3.2",
     "@polkadot-api/substrate-bindings": "^0.15.0",
     "@polkadot-labs/hdkd-helpers": "^0.0.19",
