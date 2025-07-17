@@ -1,0 +1,75 @@
+{
+  "name": "@guigou/util-crypto",
+  "version": "0.0.4-beta9",
+  "author": "GuiGou",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GuiGou12358/sc-rollup.git",
+    "directory": "sc-rollup-api/packages/util-crypto"
+  },
+  "license": "ISC",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/esm/index.mjs",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
+      },
+      "module": "./dist/esm/index.mjs",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./vrf": {
+      "node": {
+        "import": "./dist/esm/vrf.mjs",
+        "require": "./dist/vrf.js",
+        "default": "./dist/vrf.js"
+      },
+      "module": "./dist/esm/vrf.mjs",
+      "import": "./dist/esm/vrf.mjs",
+      "require": "./dist/vrf.js",
+      "default": "./dist/vrf.js"
+    },
+    "./polkadot": {
+      "node": {
+        "import": "./dist/esm/polkadot.mjs",
+        "require": "./dist/polkadot.js",
+        "default": "./dist/polkadot.js"
+      },
+      "module": "./dist/esm/polkadot.mjs",
+      "import": "./dist/esm/polkadot.mjs",
+      "require": "./dist/polkadot.js",
+      "default": "./dist/polkadot.js"
+    },
+    "./package.json": "./package.json",
+    "./types": "./dist/index.d.ts"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist && rm -rf src/*.js",
+    "build-core": "tsc --noEmit && rollup -c ../../rollup.config.js",
+    "build": "pnpm clean && pnpm build-core",
+    "test": "vitest --no-isolate",
+    "lint": "prettier --check README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format": "prettier --write README.md \"src/**/*.{js,jsx,ts,tsx,json,md}\" \"tests/**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prepack": "pnpm run clean && pnpm run build",
+    "release": "pnpm publish --access public --tag tag0.0.4-beta9 --no-git-checks"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@polkadot/util": "^13.5.3",
+    "@polkadot/util-crypto": "^13.5.3",
+    "@polkadot/keyring": "^13.5.3",
+    "@phala/dstack-sdk": "^0.2.2"
+  }
+}
