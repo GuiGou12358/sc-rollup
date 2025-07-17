@@ -186,7 +186,6 @@ export class EvmClient<Message, Action> extends Client<
   }
 }
 
-
 function prepareParams(conditions: KvRawType[], updates: KvRawType[]) {
   const conditionKeys = conditions.map((v) => v[0])
   const conditionValues = conditions.map((v) => v[1])

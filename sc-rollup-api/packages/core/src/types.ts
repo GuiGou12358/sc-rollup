@@ -33,15 +33,15 @@ export class Option<T> {
     return this.value
   }
 
-  toString() : string {
+  toString(): string {
     if (this.value == undefined) {
-      return 'None';
+      return "None"
     }
     return `Some(${this.value})`
   }
 
-  equals(other: Option<T>) : boolean {
-    return this.value === other.value;
+  equals(other: Option<T>): boolean {
+    return this.value === other.value
   }
 
   static of<T>(value: T | undefined): Option<T> {
@@ -52,7 +52,7 @@ export class Option<T> {
   }
 
   static empty<T>(): Option<T> {
-    return new None();
+    return new None()
   }
 }
 
