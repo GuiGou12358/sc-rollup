@@ -8,13 +8,13 @@ import {
   RawTypeEncoder,
   TypeCoder,
 } from "@guigou/sc-rollup-core"
-import {ah, contracts} from "@guigou/sc-rollup-ink-v6-descriptors"
-import {createClient} from "polkadot-api"
-import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
-import {getPolkadotSigner, PolkadotSigner} from "polkadot-api/signer"
-import {fromHex, toHex} from "polkadot-api/utils"
-import {getWsProvider} from "polkadot-api/ws-provider/web"
-import {createReviveSdk} from "@polkadot-api/sdk-ink"
+import { contracts, paseo } from "@guigou/sc-rollup-ink-v6-descriptors"
+import { createClient } from "polkadot-api"
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { getPolkadotSigner, PolkadotSigner } from "polkadot-api/signer"
+import { fromHex, toHex } from "polkadot-api/utils"
+import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { createReviveSdk } from "@polkadot-api/sdk-ink"
 import {
   AccountId,
   Binary,
@@ -34,10 +34,17 @@ import {
   u8,
   Vector,
 } from "@polkadot-api/substrate-bindings"
-import {Keyring} from "@polkadot/keyring"
-import type {KeyringPair} from "@polkadot/keyring/types"
-import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
-import {Enum} from "scale-ts"
+import { Keyring } from "@polkadot/keyring"
+import type { KeyringPair } from "@polkadot/keyring/types"
+import {
+  hexAddPrefix,
+  hexToU8a,
+  stringToHex,
+  stringToU8a,
+  u8aConcat,
+  u8aToHex,
+} from "@polkadot/util"
+import { Enum } from "scale-ts"
 
 // q/_tail : 0x712f5f7461696c
 //const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
@@ -127,7 +134,7 @@ export class InkClient<Message, Action> extends Client<
     )
 
     const client = createClient(withPolkadotSdkCompat(getWsProvider(rpc)))
-    const typedApi = client.getTypedApi(ah)
+    const typedApi = client.getTypedApi(paseo)
     const sdk = createReviveSdk(typedApi, contracts.ink_client)
     this.contract = sdk.getContract(address)
 
