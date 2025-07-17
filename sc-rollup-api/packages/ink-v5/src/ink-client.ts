@@ -332,7 +332,7 @@ export class InkClient<Message, Action> extends Client<
     }
 
     const encodedData = dataCodec.enc(data)
-    console.log("Encoded data : %s ", u8aToHex(encodedData))
+    console.debug("Encoded data : %s ", u8aToHex(encodedData))
 
     // query the prepare method to get the nonce
     console.log("Query the MetaTransaction::prepare method ...")
@@ -353,11 +353,11 @@ export class InkClient<Message, Action> extends Client<
     }
     const [forwardRequest, hash] = valueP.response
 
-    console.log("forwardRequest.from %s", forwardRequest.from)
-    console.log("forwardRequest.to %s", forwardRequest.to)
-    console.log("forwardRequest.nonce %s", forwardRequest.nonce)
-    console.log("forwardRequest.data %s", forwardRequest.data.asHex())
-    console.log("hash %s", hash.asHex())
+    console.debug("forwardRequest.from : %s", forwardRequest.from)
+    console.debug("forwardRequest.to : %s", forwardRequest.to)
+    console.debug("forwardRequest.nonce : %s", forwardRequest.nonce)
+    console.debug("forwardRequest.data : %s", forwardRequest.data.asHex())
+    console.debug("hash : %s", hash.asHex())
 
     // Sign the message by the attestor
     // If there was an existing ecdsa_sign_prehashed method, we can directly sign the hash.
@@ -374,9 +374,9 @@ export class InkClient<Message, Action> extends Client<
       nonce: forwardRequest.nonce,
       data: forwardRequest.data.asBytes(),
     })
-    console.log("Encoded message %s", u8aToHex(encodedMessage))
+    console.debug("Encoded message %s", u8aToHex(encodedMessage))
     const signature = this.signerEcdsa.sign(encodedMessage)
-    console.log("Signature : %s", u8aToHex(signature))
+    console.debug("Signature : %s", u8aToHex(signature))
 
     console.log("Dry Run MetaTransaction::meta_tx_rollup_cond_eq ...")
     const { value, success } = await this.contract.query(
@@ -390,7 +390,7 @@ export class InkClient<Message, Action> extends Client<
       },
     )
     if (!success) {
-      console.log("Error when dry run tx : %s ", value)
+      console.error("Error when dry run tx : %s ", value)
       return Promise.reject("Error when dry run tx " + value.toString())
     }
 
