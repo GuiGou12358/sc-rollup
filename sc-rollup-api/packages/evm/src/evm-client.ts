@@ -115,7 +115,6 @@ export class EvmClient<Message, Action> extends Client<
     updates: KvRawType[],
     actions: ActionRawType[],
   ): Promise<HexString> {
-    logParams(conditions, updates, actions)
     const { conditionKeys, conditionValues, updateKeys, updatesValues } =
       prepareParams(conditions, updates)
     const tx = await this.contract.rollupU256CondEq(
@@ -137,7 +136,6 @@ export class EvmClient<Message, Action> extends Client<
       return Promise.reject("Meta tx signer is not set")
     }
 
-    logParams(conditions, updates, actions)
     const { conditionKeys, conditionValues, updateKeys, updatesValues } =
       prepareParams(conditions, updates)
 
@@ -188,19 +186,6 @@ export class EvmClient<Message, Action> extends Client<
   }
 }
 
-function logParams(
-  conditions: KvRawType[],
-  updates: KvRawType[],
-  actions: ActionRawType[],
-) {
-  conditions.forEach((v) =>
-    console.log("condition - key : " + v[0] + " - value : " + v[1]),
-  )
-  updates.forEach((v) =>
-    console.log("updates - key : " + v[0] + " - value : " + v[1]),
-  )
-  actions.forEach((v) => console.log("action : " + v))
-}
 
 function prepareParams(conditions: KvRawType[], updates: KvRawType[]) {
   const conditionKeys = conditions.map((v) => v[0])
