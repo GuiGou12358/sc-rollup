@@ -9,7 +9,7 @@ import {feedPrices} from "./price-feed-oracle.ts";
 import {hexAddPrefix} from "@polkadot/util";
 import {fromHex} from "polkadot-api/utils"
 import {toHex} from "viem";
-import {hasher} from "@polkadot/util-crypto/secp256k1/hasher";
+import {computePrivateKey} from "@guigou/util-crypto";
 
 const inkV5ClientRpc = process.env.INK_V5_CLIENT_RPC;
 const inkV5ClientAddress = process.env.INK_V5_CLIENT_ADDRESS;
@@ -52,8 +52,8 @@ function displayVersion(version: InkVersion): string {
 }
 
 async function deriveKey(client: TappdClient) : Promise<Uint8Array> {
-  const result = await client.deriveKey('polkadot');
-  return hasher('blake2', result.key);
+  const deriveKeyResponse = await client.deriveKey('polkadot');
+  return computePrivateKey(deriveKeyResponse);
 }
 
 async function getSubstrateKeyringPair(client: TappdClient) : Promise<KeyringPair> {
