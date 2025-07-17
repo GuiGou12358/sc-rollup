@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.1.1-beta1",
-    "@guigou/sc-rollup-ink-v6-descriptors" : "^0.1.0-beta1",
+    "@guigou/sc-rollup-ink-v6-descriptors" : "^0.1.1-beta1",
     "@polkadot-api/sdk-ink": "^0.3.2",
     "@polkadot-api/substrate-bindings": "^0.15.0",
     "@polkadot-labs/hdkd-helpers": "^0.0.19",
