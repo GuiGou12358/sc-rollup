@@ -13,6 +13,7 @@ import {
   u8aToHex,
 } from "@polkadot/util"
 import { Bytes, Enum, str, Struct, u128, u32 } from "scale-ts"
+//import {writeHeapSnapshot} from "v8";
 
 configDotenv()
 const rpc = process.env.RPC
@@ -277,3 +278,54 @@ test("Meta Transaction", async () => {
 
   await client.commit()
 })
+
+/*
+test("Memory Leak", async () => {
+  assert(rpc, "RPC must be set in .env file")
+  assert(address, "CONTRACT_ADDRESS must be set in .env file")
+  assert(attestorPk, "ATTESTOR_PRIVATE_KEY must be set in .env file")
+  assert(senderPk, "SENDER_PRIVATE_KEY must be set in .env file")
+
+
+  const client = new InkClient(
+      rpc,
+      address,
+      attestorPk,
+      senderPk,
+      requestMessageCodec,
+      responseMessageCodec,
+  )
+
+
+  const runJob = async () => {
+
+    try {
+
+      await client.startSession()
+
+      client.addAction({
+        tag: "PriceFeed",
+        value: {
+          tradingPairId: 1,
+          price: 94024n * 1_000_000_000_000_000_000n,
+        },
+      })
+
+      await client.commit()
+    } catch (e){
+      await client.rollback();
+    }
+  }
+
+  const file = "heap-test";
+  writeHeapSnapshot(file + "-initial.heapsnapshot");
+  for (let i = 0; i < 5 ; i++) {
+    console.log("iteration " + i);
+    await runJob();
+    writeHeapSnapshot(file + "-iteration-" + i + ".heapsnapshot")
+  }
+
+  writeHeapSnapshot(file +"-final.heapsnapshot");
+
+})
+ */
