@@ -6,9 +6,10 @@ import cron, {type ScheduledTask} from "node-cron";
 import {fetchCoingeckoPrices} from "./coingecko-api.ts";
 import {type InkClientConfig, InkVersion} from "./types.ts";
 import {feedPrices} from "./price-feed-oracle.ts";
-import {hexAddPrefix, hexToU8a} from "@polkadot/util";
+import {hexAddPrefix} from "@polkadot/util";
 import {fromHex} from "polkadot-api/utils"
 import {toHex} from "viem";
+import {hasher} from "@polkadot/util-crypto/secp256k1/hasher";
 
 const inkV5ClientRpc = process.env.INK_V5_CLIENT_RPC;
 const inkV5ClientAddress = process.env.INK_V5_CLIENT_ADDRESS;
@@ -52,7 +53,7 @@ function displayVersion(version: InkVersion): string {
 
 async function deriveKey(client: TappdClient) : Promise<Uint8Array> {
   const result = await client.deriveKey('polkadot');
-  return hexToU8a(result.key, 32*8);
+  return hasher('blake2', result.key);
 }
 
 async function getSubstrateKeyringPair(client: TappdClient) : Promise<KeyringPair> {
