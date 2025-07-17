@@ -192,7 +192,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
 
   private bumpVersion(): Option<number> {
     if (this.currentSession.version == undefined) {
-      throw new Error("the session is not started")
+      throw new Error("The session is not started")
     }
     const version = this.currentSession.version.valueOf()
     if (version == undefined) {
@@ -225,7 +225,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
      */
     // check if there is no change in the read values
     this.currentSession.values.forEach((value, key) => {
-      console.log("Condition: key %s equals to with value %s", key, value)
+      console.log("Condition: key %s equals to %s", key, value.toString())
       conditions.push(this.rawTypeEncoder.encodeKeyValue(key, value))
     })
 
@@ -245,7 +245,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     )
 
     this.currentSession.updates.forEach((value, key) => {
-      console.log("Update key %s with value %s", key, value)
+      console.log("Update key %s with value %s", key, value.toString())
       updates.push(this.rawTypeEncoder.encodeKeyValue(key, value))
     })
 
@@ -263,7 +263,7 @@ export abstract class Client<KvRawType, ActionRawType, Message, Action> {
     }
 
     this.currentSession.actions.forEach((action) => {
-      console.log("Action : %s ", action)
+      console.log("Action : " + action)
       actions.push(this.rawTypeEncoder.encodeReply(action))
     })
 
