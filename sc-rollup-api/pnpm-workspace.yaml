@@ -5,3 +5,4 @@ packages:
   - packages/ink-v5-papi-descriptors
   - packages/ink-v6
   - packages/ink-v6-papi-descriptors
+  - packages/util-crypto
