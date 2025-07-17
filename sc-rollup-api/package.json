@@ -19,7 +19,7 @@
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "test": "pnpm -r test run",
-    "release": "pnpm -r test run"
+    "release": "pnpm -r release"
   },
   "prettier": {
     "printWidth": 80,
