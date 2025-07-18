@@ -2,7 +2,7 @@
 
 ## Contract build with ink! v6
 
-[Here](sc-rollup-inkv6-client) to build a wasm smart contract rollup client with ink! v6. 
+[Here](sc-rollup-inkv6-client) to build a wasm or evm contract rollup client with ink! v6. 
 
 ## Contract build with ink! v5
 

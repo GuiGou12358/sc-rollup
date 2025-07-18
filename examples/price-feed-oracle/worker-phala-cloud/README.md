@@ -1,8 +1,8 @@
 # Price Feed Worker deployed on Phala Cloud
 
 
-This worker fetch the prices from CoinGecko and feed them into the wasm contract. 
-This worker uses the [sc-rolluo-api](/sc-rollup-api) to connect to the wasm contract. It is developed with [Bun](https://bun.sh/) and deployed on [Phala Cloud](https://cloud.phala.network/).
+This worker fetch the prices from CoinGecko and feed them into the smart contract. 
+This worker uses the [sc-rolluo-api](/sc-rollup-api) to connect to the smart contract. It is developed with [Bun](https://bun.sh/) and deployed on [Phala Cloud](https://cloud.phala.network/).
 This repo also includes a default Dockerfile and docker-compose.yml for deployment.
 
 ## Installation
