@@ -1,4 +1,4 @@
-# Smart Contract Rollup Client built with ink! v5
+# Smart Contract Rollup Client built with ink! v5 (WASM)
 
 ## Introduction
 

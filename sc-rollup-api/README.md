@@ -2,9 +2,9 @@
 
 Use this api in your worker to perform transactional and atomic operations for seamless integration and interaction with your contract.
 - the [core](packages/core) package contains the common logic to interact with any contract.
-- the [evm](packages/evm) package contains the implementation for evm contract using the `ethers` lib.
-- the [ink-v5](packages/ink-v5) package contains the implementation for wasm contract (ink! v5) using the `papi` lib.
-- the [ink-v6](packages/ink-v6) package contains the implementation for smart contract (ink! v6) using the `papi` lib.
+- the [evm](packages/evm) package contains the implementation for EVM contract using the `ethers` lib.
+- the [ink-v5](packages/ink-v5) package contains the implementation for WASM contract (ink! v5) using the `papi` lib.
+- the [ink-v6](packages/ink-v6) package contains the implementation for PolkaVM contract (ink! v6) using the `papi` lib.
 - the [ink-v5-papi-descriptors](packages/ink-v5-papi-descriptors) and [ink-v6-papi-descriptors](packages/ink-v5-papi-descriptors) packages contain the contract descriptors required by `papi` lib.
 
 
@@ -30,7 +30,7 @@ pnpm test
 ```
 
 
-# Integration for ink! contract
+# Integration for contracts written with ink! v5 (WASM) or ink! v6 (PolkaVM)
 
 ## Add imports (ink! v6)
 

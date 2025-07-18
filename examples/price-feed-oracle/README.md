@@ -2,13 +2,13 @@
 
 Example of `ink! smart contract` that consumes the prices sent by the [Price Feed Oracle](worker-phala-cloud) implemented via a worker deployed on [Phala Cloud](https://cloud.phala.network/)
 
-## Deploy the smart contract (ink! v6)
+## Deploy the smart contract (ink! v6 - PolkaVM)
 
 Build the [contract](price_feed_consumer/ink-v6) or use the [artifact](price_feed_consumer/ink-v6/artifacts) adn then deploy it on a Substrate node with `revive` pallet.
 
 For testing, the contract `0x96213b72A4CF50402D9dFe71919350451B8dC356` is deployed on Pop Network (testnet). 
 
-## Deploy the smart contract (ink! v5)
+## Deploy the smart contract (ink! v5 - WASM)
 
 Build the [contract](price_feed_consumer/ink-v5) or use the [artifact](price_feed_consumer/ink-v5/artifacts) adn then deploy it on a Substrate node with `contracts` pallet.
 

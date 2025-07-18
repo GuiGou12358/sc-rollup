@@ -1,4 +1,4 @@
-# Smart Contract Rollup Client built with ink! v6
+# Smart Contract Rollup Client built with ink! v6 (PolkaVM)
 
 ## Introduction
 
