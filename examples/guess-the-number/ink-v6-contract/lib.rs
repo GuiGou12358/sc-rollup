@@ -142,7 +142,8 @@ pub mod guess_the_number {
             // set the admin of this contract
             BaseAccessControl::init_with_admin(&mut instance, caller);
             // set the attestor of this contract (todo change it)
-            BaseAccessControl::inner_grant_role_unchecked(&mut instance, ATTESTOR_ROLE, caller).expect("Grant the Attestor");
+            BaseAccessControl::inner_grant_role_unchecked(&mut instance, ATTESTOR_ROLE, caller)
+                .expect("Grant the Attestor");
             instance
         }
 
@@ -265,7 +266,8 @@ pub mod guess_the_number {
                 Some(game) => {
                     // update the current game (the player could start a new game without waiting the clue!)
                     // update the current attempt (the player could make a new guess without waiting the clue!)
-                    if game.game_number == response.game_number && game.attempt == response.attempt {
+                    if game.game_number == response.game_number && game.attempt == response.attempt
+                    {
                         self.games.insert(
                             player,
                             &Game {
@@ -513,9 +515,7 @@ pub mod guess_the_number {
             let contract = alice_instantiates_contract(&mut client).await;
 
             // read the current game and check it doesn't exist yet
-            let get_current_game = contract
-                .call_builder::<GuessTheNumber>()
-                .get_current_game();
+            let get_current_game = contract.call_builder::<GuessTheNumber>().get_current_game();
             let get_res = client
                 .call(&ink_e2e::charlie(), &get_current_game)
                 .dry_run()
@@ -556,7 +556,7 @@ pub mod guess_the_number {
 
             // bob is granted as attestor
             alice_grants_bob_as_attestor(&mut client, &contract).await;
-            
+
             let charlie_address =
                 AccountIdMapper::to_address(&ink_e2e::charlie().public_key().to_account_id().0);
 
@@ -567,9 +567,7 @@ pub mod guess_the_number {
             guess(&mut client, &contract, &ink_e2e::charlie(), 50).await;
 
             // read the current game and check if the guess is made
-            let get_current_game = contract
-                .call_builder::<GuessTheNumber>()
-                .get_current_game();
+            let get_current_game = contract.call_builder::<GuessTheNumber>().get_current_game();
             let get_res = client
                 .call(&ink_e2e::charlie(), &get_current_game)
                 .dry_run()
