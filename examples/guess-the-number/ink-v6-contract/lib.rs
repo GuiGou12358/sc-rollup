@@ -141,6 +141,8 @@ pub mod guess_the_number {
             let caller = Self::env().caller();
             // set the admin of this contract
             BaseAccessControl::init_with_admin(&mut instance, caller);
+            // set the attestor of this contract (todo change it)
+            BaseAccessControl::inner_grant_role_unchecked(&mut instance, ATTESTOR_ROLE, caller).expect("Grant the Attestor");
             instance
         }
 
@@ -231,7 +233,12 @@ pub mod guess_the_number {
         }
 
         #[ink(message)]
-        pub fn get_current_game(&self, player: Address) -> Option<Game> {
+        pub fn get_current_game(&self) -> Option<Game> {
+            self.games.get(Self::env().caller())
+        }
+
+        #[ink(message)]
+        pub fn get_current_game_from(&self, player: Address) -> Option<Game> {
             self.games.get(player)
         }
 
@@ -505,13 +512,10 @@ pub mod guess_the_number {
             // given
             let contract = alice_instantiates_contract(&mut client).await;
 
-            let charlie_address =
-                AccountIdMapper::to_address(&ink_e2e::charlie().public_key().to_account_id().0);
-
             // read the current game and check it doesn't exist yet
             let get_current_game = contract
                 .call_builder::<GuessTheNumber>()
-                .get_current_game(charlie_address);
+                .get_current_game();
             let get_res = client
                 .call(&ink_e2e::charlie(), &get_current_game)
                 .dry_run()
@@ -552,7 +556,7 @@ pub mod guess_the_number {
 
             // bob is granted as attestor
             alice_grants_bob_as_attestor(&mut client, &contract).await;
-
+            
             let charlie_address =
                 AccountIdMapper::to_address(&ink_e2e::charlie().public_key().to_account_id().0);
 
@@ -565,7 +569,7 @@ pub mod guess_the_number {
             // read the current game and check if the guess is made
             let get_current_game = contract
                 .call_builder::<GuessTheNumber>()
-                .get_current_game(charlie_address);
+                .get_current_game();
             let get_res = client
                 .call(&ink_e2e::charlie(), &get_current_game)
                 .dry_run()

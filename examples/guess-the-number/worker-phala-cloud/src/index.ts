@@ -24,8 +24,8 @@ async function getSubstrateKeyringPair(client: TappdClient) : Promise<KeyringPai
 
 function getConfig() : Config {
 
-  const address = process.env.MANAGER_ADDRESS;
-  const rpc = process.env.MANAGER_RPC;
+  const address = process.env.CONTRACT_ADDRESS;
+  const rpc = process.env.RPC;
   const attestorPk = process.env.ATTESTOR_PK;
 
   if (!address){
@@ -71,7 +71,7 @@ function getOrCreateTask() : ScheduledTask {
           } catch (e){
             console.error(e);
           }
-        });
+        }, {noOverlap: true} );
   }
   return scheduledTask;
 }

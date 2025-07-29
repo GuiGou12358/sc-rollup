@@ -39,7 +39,7 @@ export class GuessTheNumberWorker {
     let message
     do {
       message = await this.client.pollMessage();
-      message.map(this.handleMessage)
+      message.map(m => this.handleMessage(m))
     } while (message.isSome())
 
     const tx = await this.client.commit()
@@ -76,7 +76,7 @@ export class GuessTheNumberWorker {
     };
   }
 
-  getTargetNumber(gameNumber: bigint, minNumber: number, maxNumber: number, player: Uint8Array): number {
+  getTargetNumber(gameNumber: bigint, minNumber: number, maxNumber: number, player: Address): number {
     // build the salt used by the vrf
     const vrfSalt = saltVrfStructCodec.enc({
       gameNumber,
@@ -87,12 +87,14 @@ export class GuessTheNumberWorker {
   }
 }
 
+type Address = Uint8Array;
+const addressCodec = Bytes(20);
 
 type RequestMessage = {
   gameNumber: bigint;
   minNumber: number;
   maxNumber: number;
-  player: Uint8Array;
+  player: Address;
   attempt: number;
   guess: number;
 }
@@ -101,7 +103,7 @@ const requestMessageCodec : Codec<RequestMessage> = Struct({
   gameNumber: u128,
   minNumber: u16,
   maxNumber: u16,
-  player: Bytes(32),
+  player: addressCodec,
   attempt: u32,
   guess: u16,
 });
@@ -113,7 +115,7 @@ const CLUE_FOUND = 2;
 
 export type ResponseMessage = {
   gameNumber: bigint;
-  player: Uint8Array;
+  player: Address;
   attempt: number;
   guess: number;
   clue: number;
@@ -121,7 +123,7 @@ export type ResponseMessage = {
 
 const responseMessageCodec : Codec<ResponseMessage> = Struct({
   gameNumber: u128,
-  player: Bytes(32),
+  player: addressCodec,
   attempt: u32,
   guess: u16,
   clue: u8,
@@ -130,10 +132,10 @@ const responseMessageCodec : Codec<ResponseMessage> = Struct({
 
 type SaltVrfStruct = {
   gameNumber: bigint;
-  player: Uint8Array;
+  player: Address;
 }
 
 const saltVrfStructCodec : Codec<SaltVrfStruct> = Struct({
   gameNumber: u128,
-  player: Bytes(32),
+  player: addressCodec,
 });
