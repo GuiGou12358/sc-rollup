@@ -95,6 +95,7 @@ pub mod guess_the_number {
     pub enum ContractError {
         AccessControlError(AccessControlError),
         RollupClientError(RollupClientError),
+        MinMaxIncorrect,
         GameNumberOverflow,
         AttemptOverflow,
         MissingGame,
@@ -153,6 +154,11 @@ pub mod guess_the_number {
             min_number: Number,
             max_number: Number,
         ) -> Result<(), ContractError> {
+            
+            if min_number >= max_number {
+                return Err(ContractError::MinMaxIncorrect);
+            }
+            
             // the caller is the player
             let player = Self::env().caller();
             let game_number = self.next_game_number;
