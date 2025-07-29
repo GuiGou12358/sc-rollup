@@ -1,0 +1,27 @@
+{
+  "name": "guess-the-number-worker",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --hot src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@guigou/sc-rollup-core": "^0.1.1",
+    "@guigou/sc-rollup-ink-v6": "^0.1.1",
+    "@guigou/util-crypto": "^0.1.1",
+    "@phala/dstack-sdk": "^0.2.2",
+    "@polkadot/keyring": "^13.5.3",
+    "@polkadot/util": "^13.5.3",
+    "bree": "^9.2.4",
+    "node-cron": "^4.2.1",
+    "polkadot-api": "^1.15.0",
+    "scale-ts": "^1.6.1"
+  }
+}
