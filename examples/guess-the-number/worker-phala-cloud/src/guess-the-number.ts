@@ -39,11 +39,10 @@ export class GuessTheNumberWorker {
     let message
     do {
       message = await this.client.pollMessage();
-      message.map(m => this.handleMessage(m))
-    } while (message.isSome())
+      message.map(m => this.handleMessage(m));
+    } while (message.isSome());
 
-    const tx = await this.client.commit()
-    console.log("tx : %s ", tx);
+    await this.client.commit();
 
   }
 
@@ -128,7 +127,6 @@ const responseMessageCodec : Codec<ResponseMessage> = Struct({
   guess: u16,
   clue: u8,
 });
-
 
 type SaltVrfStruct = {
   gameNumber: bigint;
