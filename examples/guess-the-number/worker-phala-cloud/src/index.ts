@@ -109,7 +109,7 @@ serve({
         "<li><a href='/execute'>/execute</a>: Force the schedulled task.</li>" +
         "<li><a href='/worker/account'>/worker/account</a>: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.</li>" +
         "<li><a href='/worker/tdx-quote'>/worker/tdx-quote</a>: The `reportdata` is the worker public key and generates the quote for attestation report via `tdxQuote` API.</li>" +
-        "<li><a href='/worker/tdx-quote-raw'>/worker/tdx-quote-raw</a>: The `reportdata` is the worker public key and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the raw text `Price Feed Oracle` in <a href='https://proof.t16z.com/' target='_blank'>Attestation Explorer</a>.</li>" +
+        "<li><a href='/worker/tdx-quote-raw'>/worker/tdx-quote-raw</a>: The `reportdata` is the worker public key and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the worker public key in <a href='https://proof.t16z.com/' target='_blank'>Attestation Explorer</a>.</li>" +
         "<li><a href='/worker/info'>/worker/info</a>: Returns the TCB Info of the hosted CVM.</li>" +
         "</ul></div>"
     ),
