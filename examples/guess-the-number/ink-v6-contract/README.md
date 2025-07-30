@@ -4,15 +4,14 @@ Example of `ink! smart contract` that implements `Gues The Number` games. The VR
 We use the crate `inkv6_client_lib` to facilitate the communication between `ink! smart contract` and the worker. 
 
 It supports:
- - create a trading pair with an id and the token names. The name must match with the API id from CoinGecko. By example: `polkadot`, `astar`, `pha`, `usd`. Only an address granted as `MANAGER` can do it.
- - configure the attestor authorized to send the prices. Only an address granted as `MANAGER` can do it.
- - send a request to get the price of a given trading pair. Only an address granted as `MANAGER` can do it.
- - handle the messages to feed the trading pair. Only an address granted as `ATTESTOR` can do it.
- - display the trading pair with this id.
- - allow meta transactions to separate the attestor and the payer.
- - managed the roles and grant an address as `ADMIN`, `MANAGER` or `ATTESTOR`. Only the admin can do it.
+ - User starts a new game with the min and max numbers in parameter.
+ - User make a guess to find the target number. The target number is computed by the VRF deployed on Phala Cloud.
+ - The worker sends the clue (More/Less/Found). The worker must be granted as `ATTESTOR`.
+ - The user/UI can query the current game (last guess, last clue, number of attempts).
+ - The admin can manage the roles and grant an address as `ADMIN` or `ATTESTOR`. Only the admin can do it.
+ - Allow meta transactions to separate the attestor and the payer.
 
-By default, the contract owner is granted as `ADMIN` and `MANAGER` but it is not granted as `ATTESTOR`.
+By default, the contract owner is granted as `ADMIN` but it is not granted as `ATTESTOR`.
 
 ## Build
 
