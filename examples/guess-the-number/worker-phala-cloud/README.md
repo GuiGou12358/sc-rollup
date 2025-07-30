@@ -38,9 +38,9 @@ By default, the Bun development server will listen on port 3000. Open http://127
 
 This repo also includes code snippets for the following common use cases:
 
-- `/start`: Start a scheduled task, running every 30 seconds, to poll the messages and send the responses.
+- `/start`: Start a scheduled task, running every 30 seconds, to poll the messages, compute the target number via a VRF and send the clue.
 - `/stop`: Stop the scheduled task.
-- `/execute`: Force the schedulled task.
+- `/execute`: Force the execution of scheduled task.
 - `/worker/account`: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.
 - `/worker/tdx-quote`: The `reportdata` is the worker public key and generates the quote for attestation report via `tdxQuote` API.
 - `/worker/tdx-quote-raw`: The `reportdata` is the worker public key and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the worker public key in [Attestation Explorer](https://proof.t16z.com/).

@@ -10,8 +10,6 @@ import {type Config, GuessTheNumberWorker} from "./guess-the-number.ts";
 const port = process.env.PORT || 3000;
 console.log(`Listening on port ${port}`);
 
-let scheduledTask: ScheduledTask | undefined = undefined;
-
 async function deriveKey(client: TappdClient) : Promise<Uint8Array> {
   const deriveKeyResponse = await client.deriveKey('polkadot');
   return computePrivateKey(deriveKeyResponse);
@@ -45,7 +43,7 @@ function getConfig() : Config {
   };
 }
 
-let worker : GuessTheNumberWorker ;
+let worker : GuessTheNumberWorker | undefined = undefined;
 
 function getOrCreateWorker() : GuessTheNumberWorker {
 
@@ -57,7 +55,7 @@ function getOrCreateWorker() : GuessTheNumberWorker {
   return worker;
 }
 
-
+let scheduledTask: ScheduledTask | undefined = undefined;
 
 function getOrCreateTask() : ScheduledTask {
 
@@ -104,16 +102,15 @@ serve({
     "/": new Response("" +
         "<h1>Guess The Number Worker</h1>" +
         "<div><ul>" +
-        "<li><a href='/start'>/start</a>: Start a scheduled task, running every 30 seconds, to poll the messages and send the responses.</li>" +
+        "<li><a href='/start'>/start</a>: Start a scheduled task, running every 30 seconds, to poll the messages, compute the target number via a VRF and send the clue.</li>" +
         "<li><a href='/stop'>/stop</a>: Stop the scheduled task.</li>" +
-        "<li><a href='/execute'>/execute</a>: Force the schedulled task.</li>" +
+        "<li><a href='/execute'>/execute</a>: Force the execution of scheduled task.</li>" +
         "<li><a href='/worker/account'>/worker/account</a>: Using the `deriveKey` API to generate a deterministic wallet for Polkadot, a.k.a. a wallet held by the TEE instance.</li>" +
         "<li><a href='/worker/tdx-quote'>/worker/tdx-quote</a>: The `reportdata` is the worker public key and generates the quote for attestation report via `tdxQuote` API.</li>" +
         "<li><a href='/worker/tdx-quote-raw'>/worker/tdx-quote-raw</a>: The `reportdata` is the worker public key and generates the quote for attestation report. The difference from `/tdx_quote` is that you can see the worker public key in <a href='https://proof.t16z.com/' target='_blank'>Attestation Explorer</a>.</li>" +
         "<li><a href='/worker/info'>/worker/info</a>: Returns the TCB Info of the hosted CVM.</li>" +
         "</ul></div>"
     ),
-
 
     "/start": async (req) => {
       const task = startScheduledTask();
