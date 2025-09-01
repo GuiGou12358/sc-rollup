@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.1.2",
   "name": "@guigou/sc-rollup-ink-v6-descriptors",
   "files": [
     "dist"
@@ -20,7 +20,7 @@
   "sideEffects": false,
   "scripts": {
     "clean": "rm -rf dist .papi",
-    "gen-chain-metadata": "pnpm exec papi add -w wss://rpc1.paseo.popnetwork.xyz paseo",
+    "gen-chain-metadata": "pnpm exec papi add -w wss://testnet-passet-hub.polkadot.io pah",
     "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
     "generate": "pnpm run gen-chain-metadata && pnpm run gen-contract-metadata",
     "prepack": "rm -rf dist && mkdir dist && cp -rf .papi/descriptors/dist/* dist",
