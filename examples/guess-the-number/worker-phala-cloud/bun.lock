@@ -5,7 +5,7 @@
       "name": "guess-the-number-worker",
       "dependencies": {
         "@guigou/sc-rollup-core": "^0.1.1",
-        "@guigou/sc-rollup-ink-v6": "^0.1.1",
+        "@guigou/sc-rollup-ink-v6": "^0.1.2",
         "@guigou/util-crypto": "^0.1.1",
         "@phala/dstack-sdk": "^0.2.2",
         "@polkadot/keyring": "^13.5.3",
@@ -92,9 +92,9 @@
 
     "@guigou/sc-rollup-core": ["@guigou/sc-rollup-core@0.1.1", "", {}, "sha512-rUssQzPaNO9Gn5bwWEgQD+h8QIjBphKRPhWVub/qCboPiwFxD3bI6d3g+EVci+Icq+C8KqbdAyuz4vRfAy/JqQ=="],
 
-    "@guigou/sc-rollup-ink-v6": ["@guigou/sc-rollup-ink-v6@0.1.1", "", { "dependencies": { "@guigou/sc-rollup-core": "^0.1.1", "@guigou/sc-rollup-ink-v6-descriptors": "^0.1.1", "@polkadot-api/sdk-ink": "^0.3.2", "@polkadot-api/substrate-bindings": "^0.15.0", "@polkadot-labs/hdkd-helpers": "^0.0.19", "@polkadot/keyring": "^13.5.3", "@polkadot/util": "^13.5.3", "polkadot-api": "^1.15.0", "scale-ts": "^1.6.1" } }, "sha512-YzhvO+yjJX43CjZVj7ah5CQHfBo6nHKv7KaBc9gf7CO3km2U4XtK9AhBsUPh5vudIVGQNqEqL9gzHO0UD35rgg=="],
+    "@guigou/sc-rollup-ink-v6": ["@guigou/sc-rollup-ink-v6@0.1.2", "", { "dependencies": { "@guigou/sc-rollup-core": "^0.1.1", "@guigou/sc-rollup-ink-v6-descriptors": "^0.1.3", "@polkadot-api/sdk-ink": "^0.3.2", "@polkadot-api/substrate-bindings": "^0.15.0", "@polkadot-labs/hdkd-helpers": "^0.0.19", "@polkadot/keyring": "^13.5.3", "@polkadot/util": "^13.5.3", "polkadot-api": "^1.15.0", "scale-ts": "^1.6.1" } }, "sha512-VoqJVJFRcPVHvbj2A6CAvdL3g/gIl05V/l6oFZa8FE6JdnZqwKEF6PRDuomOHakOvOoDp1bYOGUSDno5SCS4Lw=="],
 
-    "@guigou/sc-rollup-ink-v6-descriptors": ["@guigou/sc-rollup-ink-v6-descriptors@0.1.1", "", { "peerDependencies": { "polkadot-api": "*" } }, "sha512-7/f7Ppm3Q3l28x2mKGskjOTTKb4CpqCU18VOQ7YX4Rw3YJbdu0CvJ222BvoeM2VbxXLPt+6Aqc3O+bab1ZHQHg=="],
+    "@guigou/sc-rollup-ink-v6-descriptors": ["@guigou/sc-rollup-ink-v6-descriptors@0.1.3", "", { "peerDependencies": { "polkadot-api": "*" } }, "sha512-hzCcryo8C1GvyVu/seHcA09C4mSCNCOGEcMWq3aj5lFchin6fnScLCMRmd8fo/wg8FZIxD4Oiq46eztkwpwIKg=="],
 
     "@guigou/util-crypto": ["@guigou/util-crypto@0.1.1", "", { "dependencies": { "@phala/dstack-sdk": "^0.2.2", "@polkadot/keyring": "^13.5.3", "@polkadot/util": "^13.5.3", "@polkadot/util-crypto": "^13.5.3" } }, "sha512-9TpVmISwkHyb0DH7YTKW/hsWIEHz1x0bXzvqQbjndFzbWyu0cpTzz1jYnj/QXJS4S6AnxCvjWEBLR152z1bPlA=="],
 
