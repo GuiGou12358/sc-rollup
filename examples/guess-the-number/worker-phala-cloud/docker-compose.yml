@@ -3,7 +3,7 @@ services:
     image: guigoudev/guess-the-number-worker:latest
     container_name: app
     ports:
-      - "3000:3000"
+      - "3020:3020"
     volumes:
       - /var/run/tappd.sock:/var/run/tappd.sock
     environment:
