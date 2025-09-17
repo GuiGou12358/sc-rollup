@@ -32,7 +32,7 @@ The default toml of your project
 
 ```toml
 [dependencies]
-ink = { version = "6.0.0-alpha", default-features = false, features = ["unstable-hostfn"] }
+ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.3", default-features = false, features = ["unstable-hostfn"] }
 inkv6_client_lib = { git = "https://github.com/GuiGou12358/sc-rollup", default-features = false}
 
 [lib]

@@ -5,11 +5,11 @@ authors = ["GuiGou"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "6.0.0-alpha", default-features = false, features = ["unstable-hostfn"] }
+ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.3", default-features = false, features = ["unstable-hostfn"] }
 
 [dev-dependencies]
 hex-literal = "1.0.0"
-subxt-signer = "0.42.1"
+subxt-signer = "0.44.0"
 
 [lib]
 path = "lib.rs"
@@ -21,3 +21,6 @@ std = [
     "ink/std",
 ]
 e2e-tests = []
+
+[package.metadata.ink-lang]
+abi = "ink"
