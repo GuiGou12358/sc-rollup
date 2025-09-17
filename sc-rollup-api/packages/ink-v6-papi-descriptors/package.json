@@ -1,5 +1,5 @@
 {
-  "version": "0.1.4",
+  "version": "0.1.5",
   "name": "@guigou/sc-rollup-ink-v6-descriptors",
   "files": [
     "dist"
@@ -28,8 +28,5 @@
   },
   "peerDependencies": {
     "polkadot-api": "*"
-  },
-  "dependencies": {
-    "@polkadot-api/descriptors": "file:.papi/descriptors"
   }
 }
