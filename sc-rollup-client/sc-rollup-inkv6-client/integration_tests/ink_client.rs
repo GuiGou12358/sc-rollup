@@ -16,7 +16,7 @@ type E2EResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 async fn alice_instantiates_client<Client>(
     client: &mut Client,
-) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog>
+) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>
 where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
@@ -36,7 +36,7 @@ where
 
 async fn alice_grants_bob_as_attestor<Client>(
     client: &mut Client,
-    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
 ) where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
@@ -55,7 +55,7 @@ async fn alice_grants_bob_as_attestor<Client>(
 
 async fn alice_push_message<Client>(
     client: &mut Client,
-    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
 ) where
     Client: E2EBackend,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
@@ -75,7 +75,7 @@ async fn alice_push_message<Client>(
 
 async fn has_pending_message<Client: E2EBackend>(
     client: &mut Client,
-    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+    contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
 ) -> bool
 where
     Client: E2EBackend,

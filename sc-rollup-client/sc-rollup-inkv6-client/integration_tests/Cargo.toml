@@ -22,5 +22,9 @@ std = [
     "ink/std",
     "inkv6_client_lib/std",
     "ink_client/std",
+    "ink_e2e/std",
 ]
 e2e-tests = []
+
+[package.metadata.ink-lang]
+abi = "ink"
