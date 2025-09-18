@@ -5,13 +5,14 @@ authors = ["GuiGou"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "6.0.0-alpha", default-features = false }
-inkv6_client_lib = { git = "https://github.com/GuiGou12358/sc-rollup", default-features = false}
+ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false, features = ["unstable-hostfn"] }
+#inkv6_client_lib = { git = "https://github.com/GuiGou12358/sc-rollup", default-features = false}
+inkv6_client_lib = { path = "../../../../sc-rollup-client/sc-rollup-inkv6-client/ink_client_lib", default-features = false}
 
 [dev-dependencies]
-ink_e2e = { version = "6.0.0-alpha" }
+ink_e2e = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false }
 hex-literal = { version = "1.0.0" }
-subxt-signer = { version = "0.42.1" }
+subxt-signer = { version = "0.44.0" }
 
 [lib]
 path = "lib.rs"
@@ -24,3 +25,6 @@ std = [
 ]
 ink-as-dependency = []
 e2e-tests = []
+
+[package.metadata.ink-lang]
+abi = "ink"
