@@ -8,13 +8,13 @@ import {
   RawTypeEncoder,
   TypeCoder,
 } from "@guigou/sc-rollup-core"
-import {astar, contracts} from "@guigou/sc-rollup-ink-v5-descriptors"
-import {createClient} from "polkadot-api"
-import {withPolkadotSdkCompat} from "polkadot-api/polkadot-sdk-compat"
-import {getPolkadotSigner, PolkadotSigner} from "polkadot-api/signer"
-import {fromHex, toHex} from "polkadot-api/utils"
-import {getWsProvider} from "polkadot-api/ws-provider/web"
-import {createInkSdk} from "@polkadot-api/sdk-ink"
+import { astar, contracts } from "@guigou/sc-rollup-ink-v5-descriptors"
+import { createClient } from "polkadot-api"
+import { withPolkadotSdkCompat } from "polkadot-api/polkadot-sdk-compat"
+import { getPolkadotSigner, PolkadotSigner } from "polkadot-api/signer"
+import { fromHex, toHex } from "polkadot-api/utils"
+import { getWsProvider } from "polkadot-api/ws-provider/web"
+import { createInkSdk } from "@polkadot-api/sdk-ink"
 import {
   AccountId,
   Binary,
@@ -32,12 +32,19 @@ import {
   u32,
   u64,
   u8,
+  Variant,
   Vector,
 } from "@polkadot-api/substrate-bindings"
-import {Keyring} from "@polkadot/keyring"
-import type {KeyringPair} from "@polkadot/keyring/types"
-import {hexAddPrefix, hexToU8a, stringToHex, stringToU8a, u8aConcat, u8aToHex,} from "@polkadot/util"
-import {Enum} from "scale-ts"
+import { Keyring } from "@polkadot/keyring"
+import type { KeyringPair } from "@polkadot/keyring/types"
+import {
+  hexAddPrefix,
+  hexToU8a,
+  stringToHex,
+  stringToU8a,
+  u8aConcat,
+  u8aToHex,
+} from "@polkadot/util"
 
 // q/_tail : 0x712f5f7461696c
 //const QUEUE_TAIL_KEY = Binary.fromText("q/_tail").asHex()
@@ -70,19 +77,19 @@ export type ActionRawType =
 
 type ActionRawScaleType =
   | {
-      tag: "Reply"
+      type: "Reply"
       value: Uint8Array
     }
   | {
-      tag: "SetQueueHead"
+      type: "SetQueueHead"
       value: number
     }
   | {
-      tag: "GrantAttestor"
+      type: "GrantAttestor"
       value: SS58String
     }
   | {
-      tag: "RevokeAttestor"
+      type: "RevokeAttestor"
       value: SS58String
     }
 
@@ -271,8 +278,8 @@ export class InkClient<Message, Action> extends Client<
       },
     )
     if (!success) {
-      console.error("Error when dry run tx ");
-      console.error(value);
+      console.error("Error when dry run tx ")
+      console.error(value)
       return Promise.reject("Error when dry run tx " + value.toString())
     }
 
@@ -289,8 +296,8 @@ export class InkClient<Message, Action> extends Client<
       .signAndSubmit(this.sender)
 
     if (!result.ok) {
-      console.error("Error when dry run tx ");
-      console.error(result);
+      console.error("Error when dry run tx ")
+      console.error(result)
       return Promise.reject("Error when submitting tx " + result)
     }
     return result.txHash
@@ -312,7 +319,7 @@ export class InkClient<Message, Action> extends Client<
       updates: Vector(Tuple(Bytes(), ScaleOption(Bytes()))),
 
       actions: Vector(
-        Enum({
+        Variant({
           Reply: Bytes(),
           SetQueueHead: u32,
           GrantAttestor: AccountId(),
@@ -434,22 +441,22 @@ function convertAction(action: ActionRawType): ActionRawScaleType {
   switch (action.type) {
     case "Reply":
       return {
-        tag: "Reply",
+        type: "Reply",
         value: action.value.asBytes(),
       }
     case "SetQueueHead":
       return {
-        tag: "SetQueueHead",
+        type: "SetQueueHead",
         value: action.value,
       }
     case "RevokeAttestor":
       return {
-        tag: "RevokeAttestor",
+        type: "RevokeAttestor",
         value: action.value,
       }
     case "GrantAttestor":
       return {
-        tag: "GrantAttestor",
+        type: "GrantAttestor",
         value: action.value,
       }
   }
