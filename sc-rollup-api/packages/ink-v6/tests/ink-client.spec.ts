@@ -3,7 +3,14 @@ import { InkClient, InkTypeCoder } from "../src/ink-client"
 import * as process from "node:process"
 import { configDotenv } from "dotenv"
 import { mergeUint8 } from "polkadot-api/utils"
-import { Binary } from "@polkadot-api/substrate-bindings"
+import {
+  Binary,
+  Bytes,
+  Struct,
+  u128,
+  u32,
+  Variant,
+} from "@polkadot-api/substrate-bindings"
 import {
   hexAddPrefix,
   hexToU8a,
@@ -12,7 +19,6 @@ import {
   u8aConcat,
   u8aToHex,
 } from "@polkadot/util"
-import { Enum, str, Struct, u128, u32, Bytes } from "scale-ts"
 
 configDotenv()
 const rpc = process.env.RPC
@@ -112,7 +118,7 @@ const requestMessageCodec = Bytes()
     }
  */
 
-const responseMessageCodec = Enum({
+const responseMessageCodec = Variant({
   PriceFeed: Struct({
     tradingPairId: u32,
     price: u128,
@@ -125,7 +131,7 @@ const responseMessageCodec = Enum({
 
 test("encoding / decoding Action", async () => {
   const encoded = responseMessageCodec.enc({
-    tag: "PriceFeed",
+    type: "PriceFeed",
     value: {
       tradingPairId: 1,
       price: 94024n * 1_000_000_000_000_000_000n,
@@ -139,7 +145,7 @@ test("encoding / decoding Action", async () => {
   )
 
   expect(decoded).toStrictEqual({
-    tag: "PriceFeed",
+    type: "PriceFeed",
     value: {
       tradingPairId: 2,
       price: 94024n * 1_000_000_000_000_000_000n,
@@ -240,7 +246,7 @@ test("Feed data", async () => {
   await client.startSession()
 
   client.addAction({
-    tag: "PriceFeed",
+    type: "PriceFeed",
     value: {
       tradingPairId: 1,
       price: 94024n * 1_000_000_000_000_000_000n,
@@ -268,7 +274,7 @@ test("Meta Transaction", async () => {
   await client.startSession()
 
   client.addAction({
-    tag: "PriceFeed",
+    type: "PriceFeed",
     value: {
       tradingPairId: 1,
       price: 94024n * 1_000_000_000_000_000_000n,
