@@ -2,7 +2,6 @@ use crate::traits::kv_store::{Key, Value};
 use crate::traits::rollup_client::{BaseRollupClient, HandleActionInput};
 use crate::traits::RollupClientError;
 use ink::env::hash::{Blake2x256, HashOutput};
-use ink::env::DefaultEnvironment;
 use ink::prelude::vec::Vec;
 use ink::primitives::{AccountIdMapper, Hash};
 use ink::scale;
@@ -153,9 +152,7 @@ pub trait BaseMetaTransaction: MetaTransactionStorage + BaseRollupClient {
             .map_err(|_| RollupClientError::FailedToDecode)?;
 
         // emit the event
-        ::ink::env::emit_event::<DefaultEnvironment, MetaTransactionDecoded>(
-            MetaTransactionDecoded {},
-        );
+        ::ink::env::emit_event(MetaTransactionDecoded {});
 
         // call the rollup with the attestor role
         self.inner_rollup_cond_eq_with_attestor(request.from, data.0, data.1, data.2)?;

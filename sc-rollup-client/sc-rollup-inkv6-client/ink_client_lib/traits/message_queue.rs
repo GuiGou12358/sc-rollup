@@ -1,6 +1,5 @@
 use crate::traits::kv_store::KvStore;
 use crate::traits::RollupClientError;
-use ink::env::DefaultEnvironment;
 use ink::prelude::vec::Vec;
 use ink::scale::{Decode, Encode};
 
@@ -68,7 +67,7 @@ pub trait MessageQueue: KvStore {
                 .ok_or(RollupClientError::QueueIndexOverflow)?,
         );
 
-        ::ink::env::emit_event::<DefaultEnvironment, MessageQueued>(MessageQueued {
+        ::ink::env::emit_event(MessageQueued {
             id,
             data: encoded_value,
         });
@@ -132,9 +131,7 @@ pub trait MessageQueue: KvStore {
 
         self.set_queue_head(target_id);
 
-        ::ink::env::emit_event::<DefaultEnvironment, MessageProcessed>(MessageProcessed {
-            id: target_id,
-        });
+        ::ink::env::emit_event(MessageProcessed { id: target_id });
 
         Ok(())
     }

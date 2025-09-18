@@ -1,4 +1,3 @@
-use ink::env::DefaultEnvironment;
 use ink::storage::Mapping;
 use ink::Address;
 
@@ -118,7 +117,7 @@ pub trait BaseAccessControl: AccessControlStorage {
         // add the role
         self.inner_add_role(role, account);
         // emit the event
-        ::ink::env::emit_event::<DefaultEnvironment, RoleGranted>(RoleGranted {
+        ::ink::env::emit_event(RoleGranted {
             role,
             grantee: account,
             grantor: ::ink::env::caller(),
@@ -146,7 +145,7 @@ pub trait BaseAccessControl: AccessControlStorage {
         // remove the role
         self.inner_remove_role(role, account);
         // emit the event
-        ::ink::env::emit_event::<DefaultEnvironment, RoleRevoked>(RoleRevoked {
+        ::ink::env::emit_event(RoleRevoked {
             role,
             account,
             sender: ::ink::env::caller(),
@@ -163,7 +162,7 @@ pub trait BaseAccessControl: AccessControlStorage {
         // set the owner
         self.inner_add_role(ADMIN_ROLE, admin);
         // emit the event
-        ::ink::env::emit_event::<DefaultEnvironment, RoleGranted>(RoleGranted {
+        ::ink::env::emit_event(RoleGranted {
             role: ADMIN_ROLE,
             grantee: admin,
             grantor: ::ink::env::caller(),
