@@ -154,11 +154,10 @@ pub mod guess_the_number {
             min_number: Number,
             max_number: Number,
         ) -> Result<(), ContractError> {
-            
             if min_number >= max_number {
                 return Err(ContractError::MinMaxIncorrect);
             }
-            
+
             // the caller is the player
             let player = Self::env().caller();
             let game_number = self.next_game_number;
@@ -431,9 +430,10 @@ pub mod guess_the_number {
         ) -> InstantiationResult<
             DefaultEnvironment,
             <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+            ink::abi::Ink,
         >
         where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             let mut client_constructor = GuessTheNumberRef::new();
@@ -454,10 +454,11 @@ pub mod guess_the_number {
             contract: &InstantiationResult<
                 DefaultEnvironment,
                 <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+                ink::abi::Ink,
             >,
             player: &Keypair,
         ) where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             // start a new game
@@ -476,11 +477,12 @@ pub mod guess_the_number {
             contract: &InstantiationResult<
                 DefaultEnvironment,
                 <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+                ink::abi::Ink,
             >,
             player: &Keypair,
             number: Number,
         ) where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             // start a new game
@@ -497,9 +499,10 @@ pub mod guess_the_number {
             contract: &InstantiationResult<
                 DefaultEnvironment,
                 <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+                ink::abi::Ink,
             >,
         ) where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             // bob is granted as attestor
