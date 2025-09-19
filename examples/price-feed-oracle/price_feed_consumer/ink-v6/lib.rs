@@ -369,9 +369,9 @@ pub mod price_feed_consumer {
         
         async fn alice_instantiates_contract<Client>(
             client: &mut Client,
-        ) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog>
+        ) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>
         where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             let mut client_constructor = PriceFeedConsumerRef::new();
@@ -388,10 +388,10 @@ pub mod price_feed_consumer {
         }
         async fn alice_creates_trading_pair<Client>(
             client: &mut Client,
-            contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+            contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
             trading_pair_id: &TradingPairId,
         ) where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             // create the trading pair
@@ -411,9 +411,9 @@ pub mod price_feed_consumer {
 
         async fn alice_grants_bob_as_attestor<Client>(
             client: &mut Client,
-            contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog>,
+            contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
         ) where
-            Client: E2EBackend,
+            Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
             // bob is granted as attestor

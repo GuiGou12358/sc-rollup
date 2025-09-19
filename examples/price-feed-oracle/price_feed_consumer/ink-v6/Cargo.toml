@@ -21,6 +21,7 @@ path = "lib.rs"
 default = ["std"]
 std = [
     "ink/std",
+    "ink_e2e/std",
     "inkv6_client_lib/std",
 ]
 ink-as-dependency = []
