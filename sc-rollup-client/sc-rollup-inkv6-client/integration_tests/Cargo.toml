@@ -5,12 +5,12 @@ authors = ["guigou"]
 edition = "2021"
 
 [dependencies]
-ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.3", default-features = false, features = ["unstable-hostfn"] }
+ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false, features = ["unstable-hostfn"] }
 inkv6_client_lib = { path = "../ink_client_lib", default-features = false }
 ink_client = { path = "../ink_client_example", default-features = false, features = ["ink-as-dependency"] }
 
 [dev-dependencies]
-ink_e2e = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.3", default-features = false }
+ink_e2e = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false }
 subxt-signer = { version = "0.44.0" }
 
 [lib]

@@ -18,7 +18,7 @@ async fn alice_instantiates_client<Client>(
     client: &mut Client,
 ) -> InstantiationResult<DefaultEnvironment,  <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>
 where
-    Client: E2EBackend,
+    Client: E2EBackend<DefaultEnvironment>,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
     let mut client_constructor = ink_client::InkClientRef::new();
@@ -38,7 +38,7 @@ async fn alice_grants_bob_as_attestor<Client>(
     client: &mut Client,
     contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
 ) where
-    Client: E2EBackend,
+    Client: E2EBackend<DefaultEnvironment>,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
     // bob is granted as attestor
@@ -57,7 +57,7 @@ async fn alice_push_message<Client>(
     client: &mut Client,
     contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
 ) where
-    Client: E2EBackend,
+    Client: E2EBackend<DefaultEnvironment>,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
 
@@ -73,12 +73,12 @@ async fn alice_push_message<Client>(
         .expect("push message failed");
 }
 
-async fn has_pending_message<Client: E2EBackend>(
+async fn has_pending_message<Client>(
     client: &mut Client,
     contract: &InstantiationResult<DefaultEnvironment, <Client as ContractsBackend<DefaultEnvironment>>::EventLog, ink::abi::Ink>,
 ) -> bool
 where
-    Client: E2EBackend,
+    Client: E2EBackend<DefaultEnvironment>,
     <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
 {
     let has_pending_message =
