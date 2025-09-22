@@ -64,8 +64,8 @@
     "ethers": "^6.15.0"
   },
   "devDependencies": {
-    "dotenv": "^17.2.0",
-    "typescript": "^5.8.3",
+    "dotenv": "^17.2.2",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
 }

@@ -59,11 +59,11 @@
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.1.1",
     "@guigou/sc-rollup-ink-v6-descriptors": "^0.1.9",
-    "@polkadot-labs/hdkd-helpers": "^0.0.25",
-    "polkadot-api": "^1.18.0",
+    "@polkadot-api/sdk-ink": "^0.4.3",
     "@polkadot-api/substrate-bindings": "^0.16.3",
-    "@polkadot-api/sdk-ink": "^0.4.2",
+    "@polkadot-labs/hdkd-helpers": "^0.0.25",
     "@polkadot/keyring": "^13.5.6",
-    "@polkadot/util": "^13.5.6"
+    "@polkadot/util": "^13.5.6",
+    "polkadot-api": "^1.18.0"
   }
 }
