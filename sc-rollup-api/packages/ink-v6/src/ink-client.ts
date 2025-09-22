@@ -238,6 +238,7 @@ export class InkClient<Message, Action> extends Client<
       },
     )
     if (!success) {
+      console.error(value)
       return Promise.reject("Error to query has_message method")
     }
     return value.response
@@ -255,6 +256,7 @@ export class InkClient<Message, Action> extends Client<
     )
 
     if (!success) {
+      console.error(value)
       return Promise.reject("Error to query get_value method for key " + key)
     }
 
@@ -279,6 +281,7 @@ export class InkClient<Message, Action> extends Client<
       },
     )
     if (!success) {
+      console.error(value)
       return Promise.reject("Error when dry run tx " + value.toString())
     }
 
@@ -295,6 +298,7 @@ export class InkClient<Message, Action> extends Client<
       .signAndSubmit(this.sender)
 
     if (!result.ok) {
+      console.error(value)
       return Promise.reject("Error when submitting tx " + result)
     }
     return result.txHash
@@ -347,6 +351,7 @@ export class InkClient<Message, Action> extends Client<
       },
     )
     if (!successP) {
+      console.error(valueP)
       return Promise.reject(
         "Error Query the MetaTransaction::prepare method" + valueP,
       )
