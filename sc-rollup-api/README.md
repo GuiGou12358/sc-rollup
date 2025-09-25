@@ -23,7 +23,7 @@ pnpm build
 ## Test
 
 1. Copy `ink-v5\.env_shibuya` as `ink-v5\.env` if you haven't done it before. It tells the worker to connect to [the contract](../sc-rollup-client/sc-rollup-inkv5-client) you have created and deployed on Shibuya.
-2. Copy `ink-v6\.env_paseo` as `ink-v6\.env` if you haven't done it before. It tells the worker to connect to [the contract](../sc-rollup-client/sc-rollup-inkv6-client) you have created and deployed on Pop.
+2. Copy `ink-v6\.env_pah` as `ink-v6\.env` if you haven't done it before. It tells the worker to connect to [the contract](../sc-rollup-client/sc-rollup-inkv6-client) you have created and deployed on PAssetHub.
 3. Run the tests:
 ```
 pnpm test
@@ -61,8 +61,8 @@ Use the `InkClient` constructor to create a new client instance with the followi
 - `addrress` : the contract address  (string - mandatory).
 - `attestorPk` : the private key used to sign the message. Its address must be granted as attestor in the contract.  (string - mandatory).
 - `senderPk` : If you want to separate the sender and the attestor, you can provide a different private key to send the message. In this case the ecdsa address of attestor must be granted in the contract. If no sender key is provided, the attestor key will be used to send the message (string - optional).
-- `requestMessageCodec` : the `Codec` from `scale-ts` lib to read the message from the contract's queue.
-- `responseMessageCodec` : the `Codec` from `scale-ts` lib to write the message sent to the contract.
+- `requestMessageCodec` : the `Codec` from `substrate-bindings` lib to read the message from the contract's queue.
+- `responseMessageCodec` : the `Codec` from `substrate-bindings` lib to write the message sent to the contract.
 
 ```js
 const client = new InkClient(
@@ -93,9 +93,9 @@ Here is an example of Codec to encode/decode the `RequestMessage` enum message.
     }
  */
 
-import {Enum, str, Struct, u32} from "scale-ts"
+import {Variant, str, Struct, u32} from "substrate-bindings"
 
-const requestMessageCodec = Enum({
+const requestMessageCodec = Variant({
     NewTradingPair: Struct({
         tradingPairId: u32,
         tokenA: str,
@@ -125,7 +125,7 @@ Here is an example of Codec to encode/decode the `ResponseMessage` enum message.
         },
     }
  */
-const responseMessageCodec = Enum({
+const responseMessageCodec = Variant({
     PriceFeed: Struct({
         tradingPairId: u32,
         price: u128,
@@ -198,7 +198,7 @@ The `requestMessageCodec` Codec is used to decode the message from the smart con
 ```js
 
 // Define the codec to read the message 
-const requestMessageCodec = Enum({
+const requestMessageCodec = Variant({
     NewTradingPair: Struct({
         tradingPairId: u32,
         tokenA: str,
@@ -256,7 +256,7 @@ The `responseMessageCodec` Codec is used to encode the message sent to the smart
         },
     }
  */
-const responseMessageCodec = Enum({
+const responseMessageCodec = Variant({
     PriceFeed: Struct({
         tradingPairId: u32,
         price: u128,
