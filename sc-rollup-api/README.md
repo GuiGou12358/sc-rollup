@@ -272,7 +272,7 @@ await client.startSession()
 
 // push a message
 client.addAction({
-    tag: "PriceFeed",
+    type: "PriceFeed",
     value: {
       tradingPairId: 1,
       price: 94024n * 1_000_000_000_000_000_000n,
