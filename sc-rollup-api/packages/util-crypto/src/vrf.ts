@@ -20,8 +20,8 @@ export class Vrf {
 
   static getFromClient(client: TappdClient): Promise<Vrf> {
     return client
-      .deriveKey("vrf")
-      .then((deriveKeyResponse) => new Vrf(toKeypair(deriveKeyResponse)))
+      .getKey("vrf")
+      .then((keyResponse) => new Vrf(toKeypair(keyResponse)))
   }
 
   getRandomNumber(salt: Uint8Array, min: number, max: number): number {
