@@ -1,8 +1,8 @@
 import {InkClient as InkV6Client} from "@guigou/sc-rollup-ink-v6";
-import {Bytes, type Codec, Struct, u128, u16, u32, u8} from "scale-ts";
+import {Bytes, type Codec, Option, Struct, u128, u16, u32, u8} from "scale-ts";
 import {hexToU8a} from "@polkadot/util";
 import {Vrf} from "@guigou/util-crypto";
-import type {HexString} from "@guigou/sc-rollup-core";
+import {type HexString} from "@guigou/sc-rollup-core";
 
 export type Config = {
   rpc: string;
@@ -66,12 +66,22 @@ export class GuessTheNumberWorker {
     } else {
       clue = CLUE_LESS;
     }
+
+    const attempt = message.attempt;
+    const maxAttempts = message.maxAttempts;
+    let responseTarget : number | undefined = undefined;
+    if (clue == CLUE_FOUND || attempt >= maxAttempts){
+      responseTarget = target;
+    }
+
     return {
       gameNumber: message.gameNumber,
       player: message.player,
       attempt: message.attempt,
       guess: guess,
-      clue
+      clue,
+      maxAttempts,
+      target: responseTarget,
     };
   }
 
@@ -96,6 +106,7 @@ type RequestMessage = {
   player: Address;
   attempt: number;
   guess: number;
+  maxAttempts: number;
 }
 
 const requestMessageCodec : Codec<RequestMessage> = Struct({
@@ -105,6 +116,7 @@ const requestMessageCodec : Codec<RequestMessage> = Struct({
   player: addressCodec,
   attempt: u32,
   guess: u16,
+  maxAttempts: u32,
 });
 
 
@@ -118,6 +130,8 @@ export type ResponseMessage = {
   attempt: number;
   guess: number;
   clue: number;
+  maxAttempts: number;
+  target: number | undefined;
 }
 
 const responseMessageCodec : Codec<ResponseMessage> = Struct({
@@ -126,6 +140,8 @@ const responseMessageCodec : Codec<ResponseMessage> = Struct({
   attempt: u32,
   guess: u16,
   clue: u8,
+  maxAttempts: u32,
+  target: Option(u16),
 });
 
 type SaltVrfStruct = {
