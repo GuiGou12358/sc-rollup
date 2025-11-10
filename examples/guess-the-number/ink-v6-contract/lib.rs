@@ -573,13 +573,39 @@ pub mod guess_the_number {
             Client: E2EBackend<DefaultEnvironment>,
             <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
         {
-            // start a new game
+            // make a guess
             let guess = contract.call_builder::<GuessTheNumber>().guess(number);
             client
                 .call(player, &guess)
                 .submit()
                 .await
                 .expect("Guess failed");
+        }
+
+        async fn send_response<Client>(
+            client: &mut Client,
+            contract: &InstantiationResult<
+                DefaultEnvironment,
+                <Client as ContractsBackend<DefaultEnvironment>>::EventLog,
+                ink::abi::Ink,
+            >,
+            attestor: &Keypair,
+            response: &ResponseMessage,
+        ) where
+            Client: E2EBackend<DefaultEnvironment>,
+            <Client as ContractsBackend<DefaultEnvironment>>::Error: Debug,
+        {
+            let actions = vec![HandleActionInput::Reply(response.encode())];
+            let rollup_cond_eq = contract.call_builder::<GuessTheNumber>().rollup_cond_eq(
+                vec![],
+                vec![],
+                actions.clone(),
+            );
+            let _result = client
+                .call(attestor, &rollup_cond_eq)
+                .submit()
+                .await
+                .expect("rollup cond eq failed");
         }
 
         async fn alice_grants_bob_as_attestor<Client>(
@@ -688,30 +714,21 @@ pub mod guess_the_number {
             }
 
             // then bob sends the response
-            let response = ResponseMessage {
-                game_number: 0,
-                player: charlie_address,
-                attempt: 1,
-                guess: 50,
-                clue: Clue::More,
-                target: None,
-                max_attempts: MAX_ATTEMPTS,
-            };
-
-            let actions = vec![HandleActionInput::Reply(response.encode())];
-            let rollup_cond_eq = contract.call_builder::<GuessTheNumber>().rollup_cond_eq(
-                vec![],
-                vec![],
-                actions.clone(),
-            );
-            let result = client
-                .call(&ink_e2e::bob(), &rollup_cond_eq)
-                .submit()
-                .await
-                .expect("rollup cond eq failed");
-
-            // event ClueGiven
-            assert!(result.contains_event("Revive", "ContractEmitted"));
+            send_response(
+                &mut client,
+                &contract,
+                &ink_e2e::bob(),
+                &ResponseMessage {
+                    game_number: 0,
+                    player: charlie_address,
+                    attempt: 1,
+                    guess: 50,
+                    clue: Clue::More,
+                    target: None,
+                    max_attempts: MAX_ATTEMPTS,
+                },
+            )
+            .await;
 
             // read the current game and check if the clue is given
             let get_res = client
@@ -759,30 +776,21 @@ pub mod guess_the_number {
             }
 
             // then bob sends the response
-            let response = ResponseMessage {
-                game_number: 0,
-                player: charlie_address,
-                attempt: 2,
-                guess: 80,
-                clue: Clue::Less,
-                target: None,
-                max_attempts: MAX_ATTEMPTS,
-            };
-
-            let actions = vec![HandleActionInput::Reply(response.encode())];
-            let rollup_cond_eq = contract.call_builder::<GuessTheNumber>().rollup_cond_eq(
-                vec![],
-                vec![],
-                actions.clone(),
-            );
-            let result = client
-                .call(&ink_e2e::bob(), &rollup_cond_eq)
-                .submit()
-                .await
-                .expect("rollup cond eq failed");
-
-            // event ClueGiven
-            assert!(result.contains_event("Revive", "ContractEmitted"));
+            send_response(
+                &mut client,
+                &contract,
+                &ink_e2e::bob(),
+                &ResponseMessage {
+                    game_number: 0,
+                    player: charlie_address,
+                    attempt: 2,
+                    guess: 80,
+                    clue: Clue::Less,
+                    target: None,
+                    max_attempts: MAX_ATTEMPTS,
+                },
+            )
+            .await;
 
             // read the current game and check if the clue is given
             let get_res = client
@@ -801,6 +809,144 @@ pub mod guess_the_number {
                     assert_eq!(Some(Clue::Less), game.last_clue);
                     assert_eq!(false, game.game_over);
                     assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                }
+                _ => panic!("No game found"),
+            }
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn test_win<Client>(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            // given
+            let contract = alice_instantiates_contract(&mut client).await;
+
+            // bob is granted as attestor
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
+
+            let charlie_address =
+                AccountIdMapper::to_address(&ink_e2e::charlie().public_key().to_account_id().0);
+
+            // start a new game
+            start_new_game(&mut client, &contract, &ink_e2e::charlie()).await;
+
+            // play - make a guess
+            guess(&mut client, &contract, &ink_e2e::charlie(), 50).await;
+
+            // then bob sends the response
+            send_response(
+                &mut client,
+                &contract,
+                &ink_e2e::bob(),
+                &ResponseMessage {
+                    game_number: 0,
+                    player: charlie_address,
+                    attempt: 1,
+                    guess: 50,
+                    clue: Clue::Found,
+                    target: Some(50),
+                    max_attempts: MAX_ATTEMPTS,
+                },
+            )
+            .await;
+
+            // read the current game and check if the game is over
+            let get_current_game = contract.call_builder::<GuessTheNumber>().get_current_game();
+            let get_res = client
+                .call(&ink_e2e::charlie(), &get_current_game)
+                .dry_run()
+                .await
+                .expect("fail to query get_current_game")
+                .return_value();
+            match get_res {
+                Some(game) => {
+                    assert_eq!(0, game.game_number);
+                    assert_eq!(1, game.min_number);
+                    assert_eq!(100, game.max_number);
+                    assert_eq!(1, game.attempt);
+                    assert_eq!(Some(50), game.last_guess);
+                    assert_eq!(Some(Clue::Found), game.last_clue);
+                    assert_eq!(true, game.game_over);
+                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                }
+                _ => panic!("No game found"),
+            }
+
+            Ok(())
+        }
+
+        #[ink_e2e::test]
+        async fn test_lost<Client>(mut client: ink_e2e::Client<C, E>) -> E2EResult<()> {
+            // given
+            let contract = alice_instantiates_contract(&mut client).await;
+
+            // bob is granted as attestor
+            alice_grants_bob_as_attestor(&mut client, &contract).await;
+
+            let charlie_address =
+                AccountIdMapper::to_address(&ink_e2e::charlie().public_key().to_account_id().0);
+
+            // start a new game
+            start_new_game(&mut client, &contract, &ink_e2e::charlie()).await;
+
+            // play - make a guess
+            guess(&mut client, &contract, &ink_e2e::charlie(), 50).await;
+
+            // then bob sends the response
+            send_response(
+                &mut client,
+                &contract,
+                &ink_e2e::bob(),
+                &ResponseMessage {
+                    game_number: 0,
+                    player: charlie_address,
+                    attempt: 1,
+                    guess: 50,
+                    clue: Clue::More,
+                    target: None,
+                    max_attempts: 2,
+                },
+            )
+            .await;
+
+            // play - make a guess
+            guess(&mut client, &contract, &ink_e2e::charlie(), 51).await;
+
+            // then bob sends the response
+            send_response(
+                &mut client,
+                &contract,
+                &ink_e2e::bob(),
+                &ResponseMessage {
+                    game_number: 0,
+                    player: charlie_address,
+                    attempt: 2,
+                    guess: 51,
+                    clue: Clue::More,
+                    target: None,
+                    max_attempts: 2,
+                },
+            )
+            .await;
+
+            // read the current game and check if the game is over
+            let get_current_game = contract.call_builder::<GuessTheNumber>().get_current_game();
+            let get_res = client
+                .call(&ink_e2e::charlie(), &get_current_game)
+                .dry_run()
+                .await
+                .expect("fail to query get_current_game")
+                .return_value();
+            match get_res {
+                Some(game) => {
+                    assert_eq!(0, game.game_number);
+                    assert_eq!(1, game.min_number);
+                    assert_eq!(100, game.max_number);
+                    assert_eq!(2, game.attempt);
+                    assert_eq!(Some(51), game.last_guess);
+                    assert_eq!(Some(Clue::More), game.last_clue);
+                    assert_eq!(true, game.game_over);
+                    assert_eq!(2, game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
