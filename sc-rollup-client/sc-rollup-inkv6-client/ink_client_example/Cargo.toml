@@ -5,7 +5,7 @@ authors = ["GuiGou"]
 edition = "2021"
 
 [dependencies]
-ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false, features = ["unstable-hostfn"] }
+ink = { version = "6.0.0-beta", default-features = false, features = ["unstable-hostfn"] }
 inkv6_client_lib = { path = "../ink_client_lib", default-features = false}
 
 [lib]
