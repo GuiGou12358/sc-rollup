@@ -15,6 +15,8 @@ pub mod guess_the_number {
     pub type GameNumber = u128;
     pub type Number = u16;
 
+    const MAX_ATTEMPTS: u32 = 5;
+
     /// Clue linked to the last number: More or Less than <x>
     #[derive(Debug, PartialEq, Clone)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
@@ -39,10 +41,14 @@ pub mod guess_the_number {
         max_number: Number,
         /// number of attempts
         attempt: u32,
-        /// last guess made bu the user
+        /// last guess made by the user
         last_guess: Option<Number>,
         /// last clue provided by the worker, linked to the last guess
         last_clue: Option<Clue>,
+        /// number of max attempts
+        max_attempts: u32,
+        /// true if the game is over (i.e. the user won or lost)
+        game_over: bool,
     }
 
     /// Storage
@@ -67,6 +73,27 @@ pub mod guess_the_number {
         player: Address,
         min_number: Number,
         max_number: Number,
+        max_attempts: u32,
+    }
+
+    /// Event emitted when the game is over
+    #[ink(event)]
+    pub struct GameOver {
+        #[ink(topic)]
+        game_number: GameNumber,
+        #[ink(topic)]
+        player: Address,
+        win: bool,
+        target: Number,
+    }
+
+    /// Event emitted when the game is cancelled
+    #[ink(event)]
+    pub struct GameCancelled {
+        #[ink(topic)]
+        game_number: GameNumber,
+        #[ink(topic)]
+        player: Address,
     }
 
     /// Event emitted when the player makes a guess
@@ -74,6 +101,8 @@ pub mod guess_the_number {
     pub struct GuessMade {
         #[ink(topic)]
         game_number: GameNumber,
+        #[ink(topic)]
+        player: Address,
         attempt: u32,
         guess: Number,
     }
@@ -83,9 +112,21 @@ pub mod guess_the_number {
     pub struct ClueGiven {
         #[ink(topic)]
         game_number: GameNumber,
+        #[ink(topic)]
+        player: Address,
         attempt: u32,
         guess: Number,
         clue: Clue,
+    }
+
+    /// Event emitted when the max attempts is updated
+    #[ink(event)]
+    pub struct MaxAttemptsUpdated {
+        #[ink(topic)]
+        game_number: GameNumber,
+        #[ink(topic)]
+        player: Address,
+        max_attempts: u32,
     }
 
     /// Errors occurred in the contract
@@ -99,6 +140,7 @@ pub mod guess_the_number {
         GameNumberOverflow,
         AttemptOverflow,
         MissingGame,
+        GameOver,
     }
     /// convertor from AccessControlError to ContractError
     impl From<AccessControlError> for ContractError {
@@ -123,6 +165,7 @@ pub mod guess_the_number {
         player: Address,
         attempt: u32,
         guess: Number,
+        max_attempts: u32,
     }
 
     /// Response pushed by the off-chain worker to provide the clue
@@ -133,6 +176,8 @@ pub mod guess_the_number {
         attempt: u32,
         guess: Number,
         clue: Clue,
+        max_attempts: u32,
+        target: Option<Number>,
     }
 
     impl GuessTheNumber {
@@ -161,6 +206,7 @@ pub mod guess_the_number {
             // the caller is the player
             let player = Self::env().caller();
             let game_number = self.next_game_number;
+            let max_attempts = MAX_ATTEMPTS;
             // we create a new game
             let game = Game {
                 game_number,
@@ -169,6 +215,8 @@ pub mod guess_the_number {
                 attempt: 0,
                 last_clue: None,
                 last_guess: None,
+                max_attempts,
+                game_over: false,
             };
             // this game is the current one (override the existing one).
             self.games.insert(player, &game);
@@ -185,6 +233,7 @@ pub mod guess_the_number {
                 player,
                 min_number,
                 max_number,
+                max_attempts,
             });
 
             Ok(())
@@ -198,6 +247,11 @@ pub mod guess_the_number {
             // get the current game
             match self.games.get(player) {
                 Some(game) => {
+                    // manage the game over
+                    if game.game_over {
+                        return Err(ContractError::GameOver);
+                    }
+
                     // increment the attempt number
                     let attempt = game
                         .attempt
@@ -213,6 +267,8 @@ pub mod guess_the_number {
                             attempt,
                             last_guess: Some(guess),
                             last_clue: None,
+                            max_attempts: game.max_attempts,
+                            game_over: game.game_over,
                         },
                     );
                     // push the message in the queue to request a clue from the worker
@@ -221,6 +277,7 @@ pub mod guess_the_number {
                         min_number: game.min_number,
                         max_number: game.max_number,
                         attempt,
+                        max_attempts: game.max_attempts,
                         guess,
                         player,
                     };
@@ -229,6 +286,7 @@ pub mod guess_the_number {
                     // emit the event
                     Self::env().emit_event(GuessMade {
                         game_number: game.game_number,
+                        player,
                         attempt,
                         guess,
                     });
@@ -273,6 +331,41 @@ pub mod guess_the_number {
                     // update the current attempt (the player could make a new guess without waiting the clue!)
                     if game.game_number == response.game_number && game.attempt == response.attempt
                     {
+                        let max_attempts = response.max_attempts;
+                        let win = response.clue.clone() == Clue::Found;
+                        let game_over = win || game.attempt >= max_attempts;
+
+                        // check if the max attempts is updated
+                        if max_attempts != game.max_attempts {
+                            // emit the event
+                            Self::env().emit_event(MaxAttemptsUpdated {
+                                game_number: response.game_number,
+                                player,
+                                max_attempts,
+                            });
+                        }
+
+                        // manage when the game is over
+                        if game_over {
+                            // emit the event
+                            Self::env().emit_event(GameOver {
+                                game_number: response.game_number,
+                                player,
+                                target: response.target.unwrap_or(0),
+                                win,
+                            });
+                        } else {
+                            // emit the event
+                            Self::env().emit_event(ClueGiven {
+                                game_number: response.game_number,
+                                player,
+                                attempt: response.attempt,
+                                guess: response.guess,
+                                clue: response.clue.clone(),
+                            });
+                        }
+
+                        // update the storage
                         self.games.insert(
                             player,
                             &Game {
@@ -280,18 +373,13 @@ pub mod guess_the_number {
                                 min_number: game.min_number,
                                 max_number: game.max_number,
                                 attempt: game.attempt,
+                                max_attempts: max_attempts,
                                 last_guess: Some(response.guess),
-                                last_clue: Some(response.clue.clone()),
+                                last_clue: Some(response.clue),
+                                game_over: game_over,
                             },
                         );
                     }
-                    // emit the event
-                    Self::env().emit_event(ClueGiven {
-                        game_number: response.game_number,
-                        attempt: response.attempt,
-                        guess: response.guess,
-                        clue: response.clue,
-                    });
                 }
                 _ => return Err(RollupClientError::BusinessError(1)),
             };
@@ -551,6 +639,8 @@ pub mod guess_the_number {
                     assert_eq!(0, game.attempt);
                     assert_eq!(None, game.last_guess);
                     assert_eq!(None, game.last_clue);
+                    assert_eq!(false, game.game_over);
+                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
                 }
                 _ => panic!("No game started"),
             }
@@ -591,6 +681,8 @@ pub mod guess_the_number {
                     assert_eq!(1, game.attempt);
                     assert_eq!(Some(50), game.last_guess);
                     assert_eq!(None, game.last_clue);
+                    assert_eq!(false, game.game_over);
+                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -602,6 +694,8 @@ pub mod guess_the_number {
                 attempt: 1,
                 guess: 50,
                 clue: Clue::More,
+                target: None,
+                max_attempts: MAX_ATTEMPTS,
             };
 
             let actions = vec![HandleActionInput::Reply(response.encode())];
@@ -634,6 +728,8 @@ pub mod guess_the_number {
                     assert_eq!(1, game.attempt);
                     assert_eq!(Some(50), game.last_guess);
                     assert_eq!(Some(Clue::More), game.last_clue);
+                    assert_eq!(false, game.game_over);
+                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -656,6 +752,8 @@ pub mod guess_the_number {
                     assert_eq!(2, game.attempt);
                     assert_eq!(Some(80), game.last_guess);
                     assert_eq!(None, game.last_clue);
+                    assert_eq!(false, game.game_over);
+                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -667,6 +765,8 @@ pub mod guess_the_number {
                 attempt: 2,
                 guess: 80,
                 clue: Clue::Less,
+                target: None,
+                max_attempts: MAX_ATTEMPTS,
             };
 
             let actions = vec![HandleActionInput::Reply(response.encode())];
@@ -699,6 +799,8 @@ pub mod guess_the_number {
                     assert_eq!(2, game.attempt);
                     assert_eq!(Some(80), game.last_guess);
                     assert_eq!(Some(Clue::Less), game.last_clue);
+                    assert_eq!(false, game.game_over);
+                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
