@@ -1,11 +1,11 @@
 {
   "source": {
-    "hash": "0x941b35d2e16d88e05d9e46a462cabe394e25efe99bd7dcaa016b6c7aedacb3d6",
-    "language": "ink! 6.0.0-alpha.4",
-    "compiler": "rustc 1.89.0",
+    "hash": "0x568e6318d5a3f15ad365b01b4e5550ba7552bcc98f61a9c65fabec6960230fd1",
+    "language": "ink! 6.0.0-beta",
+    "compiler": "rustc 1.91.0",
     "build_info": {
       "build_mode": "Debug",
-      "cargo_contract_version": "6.0.0-alpha.4",
+      "cargo_contract_version": "6.0.0-beta",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu"
     }
   },
@@ -30,7 +30,7 @@
             "ink_primitives",
             "ConstructorResult"
           ],
-          "type": 30
+          "type": 31
         },
         "selector": "0x9bae9d5e"
       }
@@ -116,6 +116,17 @@
               ],
               "type": 18
             }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_attempts",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
           }
         ],
         "docs": [
@@ -123,7 +134,7 @@
         ],
         "label": "NewGame",
         "module_path": "guess_the_number::guess_the_number",
-        "signature_topic": "0xc8a7c5d86cdaf43555273e08a00e4cdaa93cf22046685231d5eb1b6c0d29fa92"
+        "signature_topic": "0xcad83b3c3de3e0f32695b7c585b47e254cacd4fab040794b72adcbaa6a9b75c6"
       },
       {
         "args": [
@@ -140,19 +151,30 @@
           },
           {
             "docs": [],
-            "indexed": false,
-            "label": "attempt",
+            "indexed": true,
+            "label": "player",
             "type": {
               "displayName": [
-                "u32"
+                "Address"
               ],
-              "type": 6
+              "type": 3
             }
           },
           {
             "docs": [],
             "indexed": false,
-            "label": "guess",
+            "label": "win",
+            "type": {
+              "displayName": [
+                "bool"
+              ],
+              "type": 19
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "target",
             "type": {
               "displayName": [
                 "Number"
@@ -162,11 +184,11 @@
           }
         ],
         "docs": [
-          "Event emitted when the player makes a guess"
+          "Event emitted when the game is over"
         ],
-        "label": "GuessMade",
+        "label": "GameOver",
         "module_path": "guess_the_number::guess_the_number",
-        "signature_topic": "0xbfe3e4de23c556408a7c400baf6b27364bdb763595ac8f3547c20db70131083a"
+        "signature_topic": "0x3db1630316e0f6c2b1c4274ba861a905acb84d336a2ba821871076503558da72"
       },
       {
         "args": [
@@ -179,6 +201,17 @@
                 "GameNumber"
               ],
               "type": 14
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "player",
+            "type": {
+              "displayName": [
+                "Address"
+              ],
+              "type": 3
             }
           },
           {
@@ -211,7 +244,7 @@
               "displayName": [
                 "Clue"
               ],
-              "type": 23
+              "type": 24
             }
           }
         ],
@@ -220,7 +253,136 @@
         ],
         "label": "ClueGiven",
         "module_path": "guess_the_number::guess_the_number",
-        "signature_topic": "0xd30c753e3012d98d428abde3eebaae62a09d7d043d8018f1ecb4e6c5d3dc9429"
+        "signature_topic": "0x6fbbc2beca7d1247dbf89f89623d64c4431ae74cc6ec660f6ce708d846997769"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "game_number",
+            "type": {
+              "displayName": [
+                "GameNumber"
+              ],
+              "type": 14
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "player",
+            "type": {
+              "displayName": [
+                "Address"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "attempt",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "guess",
+            "type": {
+              "displayName": [
+                "Number"
+              ],
+              "type": 18
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when the player makes a guess"
+        ],
+        "label": "GuessMade",
+        "module_path": "guess_the_number::guess_the_number",
+        "signature_topic": "0xf5b23c2011134ba2467787da32da9ddda148939ab974db7735944b8ea67c3e5d"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "game_number",
+            "type": {
+              "displayName": [
+                "GameNumber"
+              ],
+              "type": 14
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "player",
+            "type": {
+              "displayName": [
+                "Address"
+              ],
+              "type": 3
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when the game is cancelled"
+        ],
+        "label": "GameCancelled",
+        "module_path": "guess_the_number::guess_the_number",
+        "signature_topic": "0xe1c579bb2a3625a2352da9d7e54506f12b7b582ceb069232e25005bddcbbbb21"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "game_number",
+            "type": {
+              "displayName": [
+                "GameNumber"
+              ],
+              "type": 14
+            }
+          },
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "player",
+            "type": {
+              "displayName": [
+                "Address"
+              ],
+              "type": 3
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "max_attempts",
+            "type": {
+              "displayName": [
+                "u32"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when the max attempts is updated"
+        ],
+        "label": "MaxAttemptsUpdated",
+        "module_path": "guess_the_number::guess_the_number",
+        "signature_topic": "0x732f6678ce566a0ec18049af450298a2ebd0f38244d07ed84d01af908a9b6e20"
       },
       {
         "args": [],
@@ -230,6 +392,59 @@
         "label": "MetaTransactionDecoded",
         "module_path": "inkv6_client_lib::traits::meta_transaction",
         "signature_topic": "0x4ee61a2092334a28b8ce7389a8ba2a9c1a9909e0c95b01cbbafb07b7bb576048"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "id",
+            "type": {
+              "displayName": [
+                "QueueIndex"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "data",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 10
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when a message is push in the queue"
+        ],
+        "label": "MessageQueued",
+        "module_path": "inkv6_client_lib::traits::message_queue",
+        "signature_topic": "0xcfd8f7cee62376e0a894a1c5d124ec219dc678fd742bcb7f183455a362744aa1"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "id",
+            "type": {
+              "displayName": [
+                "QueueIndex"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when a message is processed"
+        ],
+        "label": "MessageProcessed",
+        "module_path": "inkv6_client_lib::traits::message_queue",
+        "signature_topic": "0xdb1dbb06d6c5f62bcd2d0b8e2b251826b43e15a2b17b80080837dc8cd561a283"
       },
       {
         "args": [
@@ -316,59 +531,6 @@
         "label": "RoleRevoked",
         "module_path": "inkv6_client_lib::traits::access_control",
         "signature_topic": "0x67cf5731bde3ef79029b3c63ea7a49b0e816d53d665ff88e412b696684ab9c11"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "id",
-            "type": {
-              "displayName": [
-                "QueueIndex"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "data",
-            "type": {
-              "displayName": [
-                "Vec"
-              ],
-              "type": 10
-            }
-          }
-        ],
-        "docs": [
-          "Event emitted when a message is push in the queue"
-        ],
-        "label": "MessageQueued",
-        "module_path": "inkv6_client_lib::traits::message_queue",
-        "signature_topic": "0xcfd8f7cee62376e0a894a1c5d124ec219dc678fd742bcb7f183455a362744aa1"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "id",
-            "type": {
-              "displayName": [
-                "QueueIndex"
-              ],
-              "type": 6
-            }
-          }
-        ],
-        "docs": [
-          "Event emitted when a message is processed"
-        ],
-        "label": "MessageProcessed",
-        "module_path": "inkv6_client_lib::traits::message_queue",
-        "signature_topic": "0xdb1dbb06d6c5f62bcd2d0b8e2b251826b43e15a2b17b80080837dc8cd561a283"
       }
     ],
     "lang_error": {
@@ -376,7 +538,7 @@
         "ink",
         "LangError"
       ],
-      "type": 31
+      "type": 32
     },
     "messages": [
       {
@@ -410,7 +572,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 32
+          "type": 33
         },
         "selector": "0x1f9caafb"
       },
@@ -436,7 +598,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 32
+          "type": 33
         },
         "selector": "0x064928fc"
       },
@@ -452,7 +614,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 37
+          "type": 38
         },
         "selector": "0xdad84d0a"
       },
@@ -478,7 +640,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 37
+          "type": 38
         },
         "selector": "0x6ab5a5ad"
       },
@@ -494,7 +656,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 39
+          "type": 40
         },
         "selector": "0x760a2625"
       },
@@ -510,7 +672,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 39
+          "type": 40
         },
         "selector": "0x65a54856"
       },
@@ -545,7 +707,7 @@
             "ink",
             "MessageResult"
           ],
-          "type": 40
+          "type": 41
         },
         "selector": "0xc1d9ac18"
       },
@@ -1003,13 +1165,31 @@
                             }
                           },
                           "name": "last_clue"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57a1fbcf",
+                              "ty": 6
+                            }
+                          },
+                          "name": "max_attempts"
+                        },
+                        {
+                          "layout": {
+                            "leaf": {
+                              "key": "0x57a1fbcf",
+                              "ty": 19
+                            }
+                          },
+                          "name": "game_over"
                         }
                       ],
                       "name": "Game"
                     }
                   },
                   "root_key": "0x57a1fbcf",
-                  "ty": 19
+                  "ty": 20
                 }
               },
               "name": "games"
@@ -1019,7 +1199,7 @@
         }
       },
       "root_key": "0x00000000",
-      "ty": 26
+      "ty": 27
     }
   },
   "types": [
@@ -1341,6 +1521,14 @@
       "id": 19,
       "type": {
         "def": {
+          "primitive": "bool"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": {
+        "def": {
           "composite": {}
         },
         "params": [
@@ -1350,11 +1538,11 @@
           },
           {
             "name": "V",
-            "type": 20
+            "type": 21
           },
           {
             "name": "KeyType",
-            "type": 24
+            "type": 25
           }
         ],
         "path": [
@@ -1366,7 +1554,7 @@
       }
     },
     {
-      "id": 20,
+      "id": 21,
       "type": {
         "def": {
           "composite": {
@@ -1393,13 +1581,23 @@
               },
               {
                 "name": "last_guess",
-                "type": 21,
+                "type": 22,
                 "typeName": "Option<Number>"
               },
               {
                 "name": "last_clue",
-                "type": 22,
+                "type": 23,
                 "typeName": "Option<Clue>"
+              },
+              {
+                "name": "max_attempts",
+                "type": 6,
+                "typeName": "u32"
+              },
+              {
+                "name": "game_over",
+                "type": 19,
+                "typeName": "bool"
               }
             ]
           }
@@ -1412,7 +1610,7 @@
       }
     },
     {
-      "id": 21,
+      "id": 22,
       "type": {
         "def": {
           "variant": {
@@ -1445,7 +1643,7 @@
       }
     },
     {
-      "id": 22,
+      "id": 23,
       "type": {
         "def": {
           "variant": {
@@ -1457,7 +1655,7 @@
               {
                 "fields": [
                   {
-                    "type": 23
+                    "type": 24
                   }
                 ],
                 "index": 1,
@@ -1469,7 +1667,7 @@
         "params": [
           {
             "name": "T",
-            "type": 23
+            "type": 24
           }
         ],
         "path": [
@@ -1478,7 +1676,7 @@
       }
     },
     {
-      "id": 23,
+      "id": 24,
       "type": {
         "def": {
           "variant": {
@@ -1506,7 +1704,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 25,
       "type": {
         "def": {
           "composite": {}
@@ -1518,7 +1716,7 @@
           },
           {
             "name": "R",
-            "type": 25
+            "type": 26
           }
         ],
         "path": [
@@ -1529,7 +1727,7 @@
       }
     },
     {
-      "id": 25,
+      "id": 26,
       "type": {
         "def": {
           "composite": {}
@@ -1548,24 +1746,24 @@
       }
     },
     {
-      "id": 26,
+      "id": 27,
       "type": {
         "def": {
           "composite": {
             "fields": [
               {
                 "name": "access_control",
-                "type": 27,
+                "type": 28,
                 "typeName": "<AccessControlData as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1782428080u32, ()>,>>::Type"
               },
               {
                 "name": "kv_store",
-                "type": 28,
+                "type": 29,
                 "typeName": "<KvStoreData as::ink::storage::traits::AutoStorableHint<::ink::\nstorage::traits::ManualKey<1616124750u32, ()>,>>::Type"
               },
               {
                 "name": "meta_transaction",
-                "type": 29,
+                "type": 30,
                 "typeName": "<MetaTransactionData as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<1064582622u32, ()>,>>::Type"
               },
               {
@@ -1575,7 +1773,7 @@
               },
               {
                 "name": "games",
-                "type": 19,
+                "type": 20,
                 "typeName": "<Mapping<Address, Game> as::ink::storage::traits::AutoStorableHint\n<::ink::storage::traits::ManualKey<3489374551u32, ()>,>>::Type"
               }
             ]
@@ -1589,7 +1787,7 @@
       }
     },
     {
-      "id": 27,
+      "id": 28,
       "type": {
         "def": {
           "composite": {
@@ -1611,7 +1809,7 @@
       }
     },
     {
-      "id": 28,
+      "id": 29,
       "type": {
         "def": {
           "composite": {
@@ -1633,7 +1831,7 @@
       }
     },
     {
-      "id": 29,
+      "id": 30,
       "type": {
         "def": {
           "composite": {
@@ -1655,7 +1853,7 @@
       }
     },
     {
-      "id": 30,
+      "id": 31,
       "type": {
         "def": {
           "variant": {
@@ -1672,7 +1870,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -1688,7 +1886,7 @@
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -1697,7 +1895,7 @@
       }
     },
     {
-      "id": 31,
+      "id": 32,
       "type": {
         "def": {
           "variant": {
@@ -1716,48 +1914,6 @@
       }
     },
     {
-      "id": 32,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 33
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 31
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 33
-          },
-          {
-            "name": "E",
-            "type": 31
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
       "id": 33,
       "type": {
         "def": {
@@ -1766,7 +1922,7 @@
               {
                 "fields": [
                   {
-                    "type": 0
+                    "type": 34
                   }
                 ],
                 "index": 0,
@@ -1775,7 +1931,7 @@
               {
                 "fields": [
                   {
-                    "type": 34
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -1787,11 +1943,11 @@
         "params": [
           {
             "name": "T",
-            "type": 0
+            "type": 34
           },
           {
             "name": "E",
-            "type": 34
+            "type": 32
           }
         ],
         "path": [
@@ -1808,7 +1964,49 @@
               {
                 "fields": [
                   {
-                    "type": 35,
+                    "type": 0
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 35
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 0
+          },
+          {
+            "name": "E",
+            "type": 35
+          }
+        ],
+        "path": [
+          "Result"
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "type": {
+        "def": {
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 36,
                     "typeName": "AccessControlError"
                   }
                 ],
@@ -1818,7 +2016,7 @@
               {
                 "fields": [
                   {
-                    "type": 36,
+                    "type": 37,
                     "typeName": "RollupClientError"
                   }
                 ],
@@ -1840,6 +2038,10 @@
               {
                 "index": 5,
                 "name": "MissingGame"
+              },
+              {
+                "index": 6,
+                "name": "GameOver"
               }
             ]
           }
@@ -1852,7 +2054,7 @@
       }
     },
     {
-      "id": 35,
+      "id": 36,
       "type": {
         "def": {
           "variant": {
@@ -1881,7 +2083,7 @@
       }
     },
     {
-      "id": 36,
+      "id": 37,
       "type": {
         "def": {
           "variant": {
@@ -1909,7 +2111,7 @@
               {
                 "fields": [
                   {
-                    "type": 35,
+                    "type": 36,
                     "typeName": "AccessControlError"
                   }
                 ],
@@ -1919,7 +2121,7 @@
               {
                 "fields": [
                   {
-                    "type": 35,
+                    "type": 36,
                     "typeName": "AccessControlError"
                   }
                 ],
@@ -1981,7 +2183,7 @@
       }
     },
     {
-      "id": 37,
+      "id": 38,
       "type": {
         "def": {
           "variant": {
@@ -1989,7 +2191,7 @@
               {
                 "fields": [
                   {
-                    "type": 38
+                    "type": 39
                   }
                 ],
                 "index": 0,
@@ -1998,7 +2200,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2010,11 +2212,11 @@
         "params": [
           {
             "name": "T",
-            "type": 38
+            "type": 39
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2023,7 +2225,7 @@
       }
     },
     {
-      "id": 38,
+      "id": 39,
       "type": {
         "def": {
           "variant": {
@@ -2035,7 +2237,7 @@
               {
                 "fields": [
                   {
-                    "type": 20
+                    "type": 21
                   }
                 ],
                 "index": 1,
@@ -2047,7 +2249,7 @@
         "params": [
           {
             "name": "T",
-            "type": 20
+            "type": 21
           }
         ],
         "path": [
@@ -2056,7 +2258,7 @@
       }
     },
     {
-      "id": 39,
+      "id": 40,
       "type": {
         "def": {
           "variant": {
@@ -2073,7 +2275,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2089,49 +2291,7 @@
           },
           {
             "name": "E",
-            "type": 31
-          }
-        ],
-        "path": [
-          "Result"
-        ]
-      }
-    },
-    {
-      "id": 40,
-      "type": {
-        "def": {
-          "variant": {
-            "variants": [
-              {
-                "fields": [
-                  {
-                    "type": 41
-                  }
-                ],
-                "index": 0,
-                "name": "Ok"
-              },
-              {
-                "fields": [
-                  {
-                    "type": 31
-                  }
-                ],
-                "index": 1,
-                "name": "Err"
-              }
-            ]
-          }
-        },
-        "params": [
-          {
-            "name": "T",
-            "type": 41
-          },
-          {
-            "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2143,8 +2303,42 @@
       "id": 41,
       "type": {
         "def": {
-          "primitive": "bool"
-        }
+          "variant": {
+            "variants": [
+              {
+                "fields": [
+                  {
+                    "type": 19
+                  }
+                ],
+                "index": 0,
+                "name": "Ok"
+              },
+              {
+                "fields": [
+                  {
+                    "type": 32
+                  }
+                ],
+                "index": 1,
+                "name": "Err"
+              }
+            ]
+          }
+        },
+        "params": [
+          {
+            "name": "T",
+            "type": 19
+          },
+          {
+            "name": "E",
+            "type": 32
+          }
+        ],
+        "path": [
+          "Result"
+        ]
       }
     },
     {
@@ -2165,7 +2359,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2181,7 +2375,7 @@
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2207,7 +2401,7 @@
               {
                 "fields": [
                   {
-                    "type": 35
+                    "type": 36
                   }
                 ],
                 "index": 1,
@@ -2223,7 +2417,7 @@
           },
           {
             "name": "E",
-            "type": 35
+            "type": 36
           }
         ],
         "path": [
@@ -2249,7 +2443,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2265,7 +2459,7 @@
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2324,7 +2518,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2340,7 +2534,7 @@
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2357,7 +2551,7 @@
               {
                 "fields": [
                   {
-                    "type": 41
+                    "type": 19
                   }
                 ],
                 "index": 0,
@@ -2366,7 +2560,7 @@
               {
                 "fields": [
                   {
-                    "type": 36
+                    "type": 37
                   }
                 ],
                 "index": 1,
@@ -2378,11 +2572,11 @@
         "params": [
           {
             "name": "T",
-            "type": 41
+            "type": 19
           },
           {
             "name": "E",
-            "type": 36
+            "type": 37
           }
         ],
         "path": [
@@ -2496,7 +2690,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2512,7 +2706,7 @@
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2538,7 +2732,7 @@
               {
                 "fields": [
                   {
-                    "type": 36
+                    "type": 37
                   }
                 ],
                 "index": 1,
@@ -2554,7 +2748,7 @@
           },
           {
             "name": "E",
-            "type": 36
+            "type": 37
           }
         ],
         "path": [
@@ -2580,7 +2774,7 @@
               {
                 "fields": [
                   {
-                    "type": 31
+                    "type": 32
                   }
                 ],
                 "index": 1,
@@ -2596,7 +2790,7 @@
           },
           {
             "name": "E",
-            "type": 31
+            "type": 32
           }
         ],
         "path": [
@@ -2622,7 +2816,7 @@
               {
                 "fields": [
                   {
-                    "type": 36
+                    "type": 37
                   }
                 ],
                 "index": 1,
@@ -2638,7 +2832,7 @@
           },
           {
             "name": "E",
-            "type": 36
+            "type": 37
           }
         ],
         "path": [
