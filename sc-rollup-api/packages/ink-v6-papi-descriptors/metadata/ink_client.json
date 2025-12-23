@@ -1,17 +1,17 @@
 {
   "source": {
-    "hash": "0x65c78dec334920127aa8fd3a359fee0142bb6663dd584472c4fc589f5d2a53d8",
-    "language": "ink! 6.0.0-alpha.3",
-    "compiler": "rustc 1.89.0",
+    "hash": "0xa0356ab31f7288020d8d5169f58613fb7cf05a3bb28fec55d1de873b00636ba6",
+    "language": "ink! 6.0.0-beta.1",
+    "compiler": "rustc 1.92.0",
     "build_info": {
       "build_mode": "Debug",
-      "cargo_contract_version": "6.0.0-alpha.3",
+      "cargo_contract_version": "6.0.0-beta.1",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu"
     }
   },
   "contract": {
     "name": "ink_client",
-    "version": "0.0.1",
+    "version": "0.1.2",
     "authors": [
       "GuiGou"
     ]
@@ -62,23 +62,69 @@
         "type": 47
       },
       "nativeToEthRatio": 100000000,
+      "poolAssetsPrecompileIndex": 800,
       "staticBufferSize": 16384,
       "timestamp": {
         "displayName": [
           "Timestamp"
         ],
         "type": 51
-      }
+      },
+      "trustBackedAssetsPrecompileIndex": 288
     },
     "events": [
       {
-        "args": [],
-        "docs": [
-          "Event emitted when a meta transaction is decoded"
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "id",
+            "type": {
+              "displayName": [
+                "QueueIndex"
+              ],
+              "type": 6
+            }
+          },
+          {
+            "docs": [],
+            "indexed": false,
+            "label": "data",
+            "type": {
+              "displayName": [
+                "Vec"
+              ],
+              "type": 10
+            }
+          }
         ],
-        "label": "MetaTransactionDecoded",
-        "module_path": "inkv6_client_lib::traits::meta_transaction",
-        "signature_topic": "0x4ee61a2092334a28b8ce7389a8ba2a9c1a9909e0c95b01cbbafb07b7bb576048"
+        "docs": [
+          "Event emitted when a message is push in the queue"
+        ],
+        "label": "MessageQueued",
+        "module_path": "inkv6_client_lib::traits::message_queue",
+        "signature_topic": "0xcfd8f7cee62376e0a894a1c5d124ec219dc678fd742bcb7f183455a362744aa1"
+      },
+      {
+        "args": [
+          {
+            "docs": [],
+            "indexed": true,
+            "label": "id",
+            "type": {
+              "displayName": [
+                "QueueIndex"
+              ],
+              "type": 6
+            }
+          }
+        ],
+        "docs": [
+          "Event emitted when a message is processed"
+        ],
+        "label": "MessageProcessed",
+        "module_path": "inkv6_client_lib::traits::message_queue",
+        "signature_topic": "0xdb1dbb06d6c5f62bcd2d0b8e2b251826b43e15a2b17b80080837dc8cd561a283"
       },
       {
         "args": [
@@ -167,57 +213,13 @@
         "signature_topic": "0x67cf5731bde3ef79029b3c63ea7a49b0e816d53d665ff88e412b696684ab9c11"
       },
       {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "id",
-            "type": {
-              "displayName": [
-                "QueueIndex"
-              ],
-              "type": 6
-            }
-          },
-          {
-            "docs": [],
-            "indexed": false,
-            "label": "data",
-            "type": {
-              "displayName": [
-                "Vec"
-              ],
-              "type": 10
-            }
-          }
-        ],
+        "args": [],
         "docs": [
-          "Event emitted when a message is push in the queue"
+          "Event emitted when a meta transaction is decoded"
         ],
-        "label": "MessageQueued",
-        "module_path": "inkv6_client_lib::traits::message_queue",
-        "signature_topic": "0xcfd8f7cee62376e0a894a1c5d124ec219dc678fd742bcb7f183455a362744aa1"
-      },
-      {
-        "args": [
-          {
-            "docs": [],
-            "indexed": true,
-            "label": "id",
-            "type": {
-              "displayName": [
-                "QueueIndex"
-              ],
-              "type": 6
-            }
-          }
-        ],
-        "docs": [
-          "Event emitted when a message is processed"
-        ],
-        "label": "MessageProcessed",
-        "module_path": "inkv6_client_lib::traits::message_queue",
-        "signature_topic": "0xdb1dbb06d6c5f62bcd2d0b8e2b251826b43e15a2b17b80080837dc8cd561a283"
+        "label": "MetaTransactionDecoded",
+        "module_path": "inkv6_client_lib::traits::meta_transaction",
+        "signature_topic": "0x4ee61a2092334a28b8ce7389a8ba2a9c1a9909e0c95b01cbbafb07b7bb576048"
       }
     ],
     "lang_error": {
