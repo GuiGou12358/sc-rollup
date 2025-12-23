@@ -15,7 +15,7 @@ Please read the full documentation to learn more about ink! : https://use.ink/
 ## Pre-condition
 
 - Rust >= 1.88
-- cargo-contract v6.0.0-alpha.4
+- cargo-contract v6.0.0-beta.1
 
 ## `inkv6_client_lib` crate
 

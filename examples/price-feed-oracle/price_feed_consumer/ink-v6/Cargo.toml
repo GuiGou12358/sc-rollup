@@ -1,16 +1,16 @@
 [package]
 name = "price_feed_consumer"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["GuiGou"]
 edition = "2021"
 
 [dependencies]
-ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false, features = ["unstable-hostfn"] }
-inkv6_client_lib = { git = "https://github.com/GuiGou12358/sc-rollup", default-features = false}
-#inkv6_client_lib = { path = "../../../../sc-rollup-client/sc-rollup-inkv6-client/ink_client_lib", default-features = false}
+ink = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-beta.1", default-features = false, features = ["unstable-hostfn"] }
+#inkv6_client_lib = { git = "https://github.com/GuiGou12358/sc-rollup", default-features = false}
+inkv6_client_lib = { path = "../../../../sc-rollup-client/sc-rollup-inkv6-client/ink_client_lib", default-features = false}
 
 [dev-dependencies]
-ink_e2e = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-alpha.4", default-features = false }
+ink_e2e = { git = "https://github.com/use-ink/ink.git", tag = "v6.0.0-beta.1", default-features = false }
 hex-literal = { version = "1.0.0" }
 subxt-signer = { version = "0.44.0" }
 

@@ -1,17 +1,17 @@
 {
   "source": {
-    "hash": "0x568e6318d5a3f15ad365b01b4e5550ba7552bcc98f61a9c65fabec6960230fd1",
-    "language": "ink! 6.0.0-beta",
-    "compiler": "rustc 1.91.0",
+    "hash": "0x36c7f4643719fb7790b673a3617a5a5f280491855b45fb5e52101d3d7c3d0324",
+    "language": "ink! 6.0.0-beta.1",
+    "compiler": "rustc 1.92.0",
     "build_info": {
       "build_mode": "Debug",
-      "cargo_contract_version": "6.0.0-beta",
+      "cargo_contract_version": "6.0.0-beta.1",
       "rust_toolchain": "stable-x86_64-unknown-linux-gnu"
     }
   },
   "contract": {
     "name": "guess_the_number",
-    "version": "0.1.0",
+    "version": "0.1.2",
     "authors": [
       "GuiGou"
     ]
@@ -62,13 +62,15 @@
         "type": 58
       },
       "nativeToEthRatio": 100000000,
+      "poolAssetsPrecompileIndex": 800,
       "staticBufferSize": 16384,
       "timestamp": {
         "displayName": [
           "Timestamp"
         ],
         "type": 62
-      }
+      },
+      "trustBackedAssetsPrecompileIndex": 288
     },
     "events": [
       {
@@ -385,15 +387,6 @@
         "signature_topic": "0x732f6678ce566a0ec18049af450298a2ebd0f38244d07ed84d01af908a9b6e20"
       },
       {
-        "args": [],
-        "docs": [
-          "Event emitted when a meta transaction is decoded"
-        ],
-        "label": "MetaTransactionDecoded",
-        "module_path": "inkv6_client_lib::traits::meta_transaction",
-        "signature_topic": "0x4ee61a2092334a28b8ce7389a8ba2a9c1a9909e0c95b01cbbafb07b7bb576048"
-      },
-      {
         "args": [
           {
             "docs": [],
@@ -531,6 +524,15 @@
         "label": "RoleRevoked",
         "module_path": "inkv6_client_lib::traits::access_control",
         "signature_topic": "0x67cf5731bde3ef79029b3c63ea7a49b0e816d53d665ff88e412b696684ab9c11"
+      },
+      {
+        "args": [],
+        "docs": [
+          "Event emitted when a meta transaction is decoded"
+        ],
+        "label": "MetaTransactionDecoded",
+        "module_path": "inkv6_client_lib::traits::meta_transaction",
+        "signature_topic": "0x4ee61a2092334a28b8ce7389a8ba2a9c1a9909e0c95b01cbbafb07b7bb576048"
       }
     ],
     "lang_error": {

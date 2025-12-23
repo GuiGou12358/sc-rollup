@@ -1,11 +1,11 @@
 [package]
 name = "ink_client"
-version = "0.0.1"
+version = "0.1.2"
 authors = ["GuiGou"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "6.0.0-beta", default-features = false, features = ["unstable-hostfn"] }
+ink = { version = "6.0.0-beta.1", default-features = false, features = ["unstable-hostfn"] }
 inkv6_client_lib = { path = "../ink_client_lib", default-features = false}
 
 [lib]
