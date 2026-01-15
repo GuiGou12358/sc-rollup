@@ -15,8 +15,6 @@ pub mod guess_the_number {
     pub type GameNumber = u128;
     pub type Number = u16;
 
-    const MAX_ATTEMPTS: u32 = 5;
-
     /// Clue linked to the last number: More or Less than <x>
     #[derive(Debug, PartialEq, Clone)]
     #[ink::scale_derive(Encode, Decode, TypeInfo)]
@@ -46,7 +44,7 @@ pub mod guess_the_number {
         /// last clue provided by the worker, linked to the last guess
         last_clue: Option<Clue>,
         /// number of max attempts
-        max_attempts: u32,
+        max_attempts: Option<u32>,
         /// true if the game is over (i.e. the user won or lost)
         game_over: bool,
     }
@@ -73,7 +71,6 @@ pub mod guess_the_number {
         player: Address,
         min_number: Number,
         max_number: Number,
-        max_attempts: u32,
     }
 
     /// Event emitted when the game is over
@@ -165,7 +162,6 @@ pub mod guess_the_number {
         player: Address,
         attempt: u32,
         guess: Number,
-        max_attempts: u32,
     }
 
     /// Response pushed by the off-chain worker to provide the clue
@@ -206,7 +202,6 @@ pub mod guess_the_number {
             // the caller is the player
             let player = Self::env().caller();
             let game_number = self.next_game_number;
-            let max_attempts = MAX_ATTEMPTS;
             // we create a new game
             let game = Game {
                 game_number,
@@ -215,7 +210,7 @@ pub mod guess_the_number {
                 attempt: 0,
                 last_clue: None,
                 last_guess: None,
-                max_attempts,
+                max_attempts: None,
                 game_over: false,
             };
             // this game is the current one (override the existing one).
@@ -233,7 +228,6 @@ pub mod guess_the_number {
                 player,
                 min_number,
                 max_number,
-                max_attempts,
             });
 
             Ok(())
@@ -277,7 +271,6 @@ pub mod guess_the_number {
                         min_number: game.min_number,
                         max_number: game.max_number,
                         attempt,
-                        max_attempts: game.max_attempts,
                         guess,
                         player,
                     };
@@ -335,16 +328,6 @@ pub mod guess_the_number {
                         let win = response.clue.clone() == Clue::Found;
                         let game_over = win || game.attempt >= max_attempts;
 
-                        // check if the max attempts is updated
-                        if max_attempts != game.max_attempts {
-                            // emit the event
-                            Self::env().emit_event(MaxAttemptsUpdated {
-                                game_number: response.game_number,
-                                player,
-                                max_attempts,
-                            });
-                        }
-
                         // manage when the game is over
                         if game_over {
                             // emit the event
@@ -373,7 +356,7 @@ pub mod guess_the_number {
                                 min_number: game.min_number,
                                 max_number: game.max_number,
                                 attempt: game.attempt,
-                                max_attempts: max_attempts,
+                                max_attempts: Some(max_attempts),
                                 last_guess: Some(response.guess),
                                 last_clue: Some(response.clue),
                                 game_over: game_over,
@@ -666,7 +649,7 @@ pub mod guess_the_number {
                     assert_eq!(None, game.last_guess);
                     assert_eq!(None, game.last_clue);
                     assert_eq!(false, game.game_over);
-                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                    assert_eq!(None, game.max_attempts);
                 }
                 _ => panic!("No game started"),
             }
@@ -708,7 +691,7 @@ pub mod guess_the_number {
                     assert_eq!(Some(50), game.last_guess);
                     assert_eq!(None, game.last_clue);
                     assert_eq!(false, game.game_over);
-                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                    assert_eq!(None, game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -725,7 +708,7 @@ pub mod guess_the_number {
                     guess: 50,
                     clue: Clue::More,
                     target: None,
-                    max_attempts: MAX_ATTEMPTS,
+                    max_attempts: 5,
                 },
             )
             .await;
@@ -746,7 +729,7 @@ pub mod guess_the_number {
                     assert_eq!(Some(50), game.last_guess);
                     assert_eq!(Some(Clue::More), game.last_clue);
                     assert_eq!(false, game.game_over);
-                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                    assert_eq!(Some(5), game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -770,7 +753,7 @@ pub mod guess_the_number {
                     assert_eq!(Some(80), game.last_guess);
                     assert_eq!(None, game.last_clue);
                     assert_eq!(false, game.game_over);
-                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                    assert_eq!(Some(5), game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -787,7 +770,7 @@ pub mod guess_the_number {
                     guess: 80,
                     clue: Clue::Less,
                     target: None,
-                    max_attempts: MAX_ATTEMPTS,
+                    max_attempts: 5,
                 },
             )
             .await;
@@ -808,7 +791,7 @@ pub mod guess_the_number {
                     assert_eq!(Some(80), game.last_guess);
                     assert_eq!(Some(Clue::Less), game.last_clue);
                     assert_eq!(false, game.game_over);
-                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                    assert_eq!(Some(5), game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -845,7 +828,7 @@ pub mod guess_the_number {
                     guess: 50,
                     clue: Clue::Found,
                     target: Some(50),
-                    max_attempts: MAX_ATTEMPTS,
+                    max_attempts: 5,
                 },
             )
             .await;
@@ -867,7 +850,7 @@ pub mod guess_the_number {
                     assert_eq!(Some(50), game.last_guess);
                     assert_eq!(Some(Clue::Found), game.last_clue);
                     assert_eq!(true, game.game_over);
-                    assert_eq!(MAX_ATTEMPTS, game.max_attempts);
+                    assert_eq!(Some(5), game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
@@ -946,7 +929,7 @@ pub mod guess_the_number {
                     assert_eq!(Some(51), game.last_guess);
                     assert_eq!(Some(Clue::More), game.last_clue);
                     assert_eq!(true, game.game_over);
-                    assert_eq!(2, game.max_attempts);
+                    assert_eq!(Some(2), game.max_attempts);
                 }
                 _ => panic!("No game found"),
             }
