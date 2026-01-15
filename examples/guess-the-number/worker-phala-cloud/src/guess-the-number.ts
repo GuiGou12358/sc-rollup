@@ -55,8 +55,14 @@ export class GuessTheNumberWorker {
     this.client.addAction(response);
   }
 
+  getMaxAttempts(player: Address): number {
+    console.log("Max Attemts for player %s", player);
+    return 5;
+  }
+
   getResponse(message: RequestMessage): ResponseMessage {
     const target = this.getTargetNumber(message.gameNumber, message.minNumber, message.maxNumber, message.player);
+    const maxAttempts = this.getMaxAttempts(message.player);
     const guess = message.guess;
     let clue;
     if (target == guess) {
@@ -68,7 +74,6 @@ export class GuessTheNumberWorker {
     }
 
     const attempt = message.attempt;
-    const maxAttempts = message.maxAttempts;
     let responseTarget : number | undefined = undefined;
     if (clue == CLUE_FOUND || attempt >= maxAttempts){
       responseTarget = target;
@@ -106,7 +111,6 @@ type RequestMessage = {
   player: Address;
   attempt: number;
   guess: number;
-  maxAttempts: number;
 }
 
 const requestMessageCodec : Codec<RequestMessage> = Struct({
@@ -116,7 +120,6 @@ const requestMessageCodec : Codec<RequestMessage> = Struct({
   player: addressCodec,
   attempt: u32,
   guess: u16,
-  maxAttempts: u32,
 });
 
 
