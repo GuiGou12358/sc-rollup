@@ -15,7 +15,7 @@ The worker:
 
 ## Deploy the smart contract (ink! v6 - PolkaVM)
 
-Build the [contract](ink-v6-contract) or use the [artifact](ink-v6-contract/artifacts) adn then deploy it on a Substrate node with `revive` pallet.
+Build the [contract](ink-v6-contracts) or use the [artifact](ink-v6-contracts/artifacts) adn then deploy it on a Substrate node with `revive` pallet.
 
 For testing, the contract `0x22851ec2D16c25e83bFdf8d538bcD24e09b34b0e` is deployed on PAsset Hub (testnet). 
 
