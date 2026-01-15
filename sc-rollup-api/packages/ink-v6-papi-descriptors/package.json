@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "name": "@guigou/sc-rollup-ink-v6-descriptors",
   "files": [
     "dist"
@@ -20,16 +20,15 @@
   "sideEffects": false,
   "scripts": {
     "clean": "rm -rf dist .papi",
-    "gen-chain-metadata-pah": "pnpm exec papi add -w wss://testnet-passet-hub.polkadot.io pah",
-    "gen-chain-metadata-ah": "pnpm exec papi add -w wss://asset-hub-paseo-rpc.n.dwellir.com ah",
+    "gen-chain-metadata-westend-ah": "pnpm exec papi add -w wss://westend-asset-hub-rpc.polkadot.io westend_ah",
+    "gen-chain-metadata-paseo-pah": "pnpm exec papi add -w wss://testnet-passet-hub.polkadot.io paseo_pah",
+    "gen-chain-metadata-paseo-ah": "pnpm exec papi add -w wss://asset-hub-paseo-rpc.n.dwellir.com paseo_ah",
     "gen-contract-metadata": "pnpm exec papi ink add metadata/ink_client.json",
-    "generate": "pnpm run gen-chain-metadata-pah && pnpm run gen-chain-metadata-ah && pnpm run gen-contract-metadata",
+    "generate": "pnpm run gen-chain-metadata-westend-ah && pnpm run gen-chain-metadata-paseo-pah && pnpm run gen-chain-metadata-paseo-ah && pnpm run gen-contract-metadata",
     "prepack": "rm -rf dist && mkdir dist && cp -rf .papi/descriptors/dist/* dist",
     "release": "pnpm publish --access public"
   },
   "peerDependencies": {
     "polkadot-api": "*"
-  },
-  "dependencies": {
-    "@polkadot-api/descriptors": "file:.papi/descriptors"
+  }
 }
