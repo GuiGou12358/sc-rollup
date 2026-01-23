@@ -6,6 +6,7 @@ import cron, {type ScheduledTask} from "node-cron"
 import {hexAddPrefix} from "@polkadot/util";
 import {computePrivateKey} from "@guigou/util-crypto";
 import {type Config, GuessTheNumberWorker} from "./guess-the-number.ts";
+import {Indexer} from "./indexer.ts";
 
 const port = process.env.PORT || 3000;
 console.log(`Listening on port ${port}`);
@@ -25,6 +26,7 @@ function getConfig() : Config {
   const address = process.env.CONTRACT_ADDRESS;
   const rpc = process.env.RPC;
   const attestorPk = process.env.ATTESTOR_PK;
+  const indexerUrl = process.env.INDEXER_URL;
 
   if (!address){
     throw new Error("Contract address is missing!");
@@ -35,11 +37,15 @@ function getConfig() : Config {
   if (!attestorPk){
     throw new Error("Attestor key is missing!");
   }
+  if (!indexerUrl){
+    throw new Error("Indexer URL is missing!");
+  }
   return {
     address,
     rpc,
     attestorPk: hexAddPrefix(attestorPk),
     senderPk: undefined,
+    indexerUrl,
   };
 }
 
@@ -159,6 +165,26 @@ serve({
         ecdsaAddress: ecdsaKeypair.address,
         ecdsaPublicKey: to_hex(ecdsaKeypair.publicKey),
       }));
+    },
+
+    "/indexer": async (req) => {
+      const url = new URL(req.url);
+      let player = url.searchParams.get("player");
+
+      if (!player){
+        player = 'unknown';
+      }
+      console.log(player);
+
+      const indexerUrl = getConfig().indexerUrl;
+      const indexer = new Indexer(indexerUrl);
+      const maxAttempts = await indexer.getMaxAttempts(player);
+
+      return new Response(JSON.stringify({
+        player,
+        maxAttempts
+      }));
+
     },
 
   },

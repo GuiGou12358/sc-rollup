@@ -3,18 +3,23 @@ import {Bytes, type Codec, Option, Struct, u128, u16, u32, u8} from "scale-ts";
 import {hexToU8a} from "@polkadot/util";
 import {Vrf} from "@guigou/util-crypto";
 import {type HexString} from "@guigou/sc-rollup-core";
+import {Indexer} from "./indexer.ts";
+
+const DEFAULT_MAX_ATTEMPTS = 3;
 
 export type Config = {
   rpc: string;
   address: string;
   attestorPk: HexString;
   senderPk: HexString | undefined;
+  indexerUrl: string;
 }
 
 export class GuessTheNumberWorker {
 
   private readonly client: InkV6Client<RequestMessage, ResponseMessage>;
   private readonly vrf : Vrf;
+  private readonly indexer : Indexer;
 
   constructor(config: Config) {
     this.client = new InkV6Client<RequestMessage, ResponseMessage>(
@@ -26,6 +31,7 @@ export class GuessTheNumberWorker {
         responseMessageCodec
     );
     this.vrf = Vrf.getFromSeed(hexToU8a(config.attestorPk));
+    this.indexer = new Indexer(config.indexerUrl);
   }
 
   async pollMessages() {
@@ -39,30 +45,43 @@ export class GuessTheNumberWorker {
     let message
     do {
       message = await this.client.pollMessage();
-      message.map(m => this.handleMessage(m));
+      if (message.isSome()){
+        const m = message.valueOf();
+        if (m){
+          await this.handleMessage(m);
+        }
+      }
+      //message.map(async m => await this.handleMessage(m));
     } while (message.isSome());
 
     await this.client.commit();
 
   }
 
-  handleMessage(message: RequestMessage) {
+  async handleMessage(message: RequestMessage) {
     console.log("handle message ...");
     console.log(message);
-    const response = this.getResponse(message);
+    const response = await this.getResponse(message);
     console.log("response ...");
     console.log(response);
     this.client.addAction(response);
   }
 
-  getMaxAttempts(player: Address): number {
-    console.log("Max Attemts for player %s", player);
-    return 5;
+  async getMaxAttempts(player: Address): Promise<number> {
+    const address = bytesToHex(player);
+    const maxAttempts = await this.indexer.getMaxAttempts(address);
+    console.log("Max attempts for address %s : %s", address, maxAttempts);
+
+    if (maxAttempts == null){
+      return DEFAULT_MAX_ATTEMPTS
+    }
+
+    return maxAttempts;
   }
 
-  getResponse(message: RequestMessage): ResponseMessage {
+  async getResponse(message: RequestMessage): Promise<ResponseMessage> {
     const target = this.getTargetNumber(message.gameNumber, message.minNumber, message.maxNumber, message.player);
-    const maxAttempts = this.getMaxAttempts(message.player);
+    const maxAttempts = await this.getMaxAttempts(message.player);
     const guess = message.guess;
     let clue;
     if (target == guess) {
@@ -156,3 +175,13 @@ const saltVrfStructCodec : Codec<SaltVrfStruct> = Struct({
   gameNumber: u128,
   player: addressCodec,
 });
+
+
+function bytesToHex(bytes: Address): string {
+  return (
+      "0x" +
+      [...bytes]
+          .map(b => b.toString(16).padStart(2, "0"))
+          .join("")
+  );
+}
