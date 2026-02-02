@@ -190,4 +190,7 @@ serve({
   },
 });
 
+const task = getOrCreateTask();
+task.start();
+
 
