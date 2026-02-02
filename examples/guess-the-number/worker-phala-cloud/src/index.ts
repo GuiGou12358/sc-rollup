@@ -67,7 +67,7 @@ function getOrCreateTask() : ScheduledTask {
 
   if (!scheduledTask){
     // Every 30 seconds
-    scheduledTask = cron.schedule('*/30 * * * * *',
+    scheduledTask = cron.schedule('*/15 * * * * *',
         async () => {
           try {
             const worker = getOrCreateWorker();

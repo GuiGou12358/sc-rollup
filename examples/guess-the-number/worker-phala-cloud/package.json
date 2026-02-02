@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@guigou/sc-rollup-core": "^0.1.1",
-    "@guigou/sc-rollup-ink-v6": "^0.2.2",
+    "@guigou/sc-rollup-ink-v6": "^0.2.3",
     "@guigou/util-crypto": "^0.1.2",
     "@phala/dstack-sdk": "^0.5.7",
     "@polkadot/keyring": "^14.0.1",
