@@ -190,6 +190,7 @@ serve({
   },
 });
 
+console.log('Start the scheduled task at startup');
 const task = getOrCreateTask();
 task.start();
 
