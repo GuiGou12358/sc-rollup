@@ -68,15 +68,20 @@ export class GuessTheNumberWorker {
   }
 
   async getMaxAttempts(player: Address): Promise<number> {
-    const address = bytesToHex(player);
-    const maxAttempts = await this.indexer.getMaxAttempts(address);
-    console.log("Max attempts for address %s : %s", address, maxAttempts);
+    try {
+      const address = bytesToHex(player);
+      const maxAttempts = await this.indexer.getMaxAttempts(address);
+      console.log("Max attempts for address %s : %s", address, maxAttempts);
 
-    if (maxAttempts == null){
-      return DEFAULT_MAX_ATTEMPTS
+      if (maxAttempts == null) {
+        return DEFAULT_MAX_ATTEMPTS
+      }
+
+      return maxAttempts;
+    } catch (error) {
+      console.error("Error when query the indexer : ", error)
+      return DEFAULT_MAX_ATTEMPTS;
     }
-
-    return maxAttempts;
   }
 
   async getResponse(message: RequestMessage): Promise<ResponseMessage> {

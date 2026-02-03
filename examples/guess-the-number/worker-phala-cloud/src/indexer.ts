@@ -38,6 +38,7 @@ export class Indexer {
             }),
         });
 
+        console.log("GraphQLResponse : %s", JSON.stringify(response));
         const json: GraphQLResponse = await response.json();
 
         if (json.data.players.length === 0) {
