@@ -9,7 +9,7 @@ The number of attempts a player is allowed depends on the **NFTs hold by the pla
 
 It's implemented with two `ink! smart contracts` and a `verifiable offchain worker` and a `squid indexer`.
 
-The first `ink! smart contract` is an example implementation of ERC-721 (NFT) standard. Each NFT has a unique indetifier and an attribute 'max attempts'.
+The first `ink! smart contract` is an example implementation of ERC-721 (NFT) standard. Each NFT has a unique identifier and an attribute 'max attempts'.
 
 The second `ink! smart contract` manages the game:
  - start a new game
